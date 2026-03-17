@@ -17,6 +17,8 @@ export interface DrawAction {
   fontSize?: number
 }
 
+const MIN_DIST_SQ = 4
+
 export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   const currentTool = ref<Tool>('pen')
   const currentColor = ref('#FF0000')
@@ -26,8 +28,79 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   const redoStack = reactive<DrawAction[]>([])
   const currentAction = ref<DrawAction | null>(null)
 
+  let cacheCanvas: HTMLCanvasElement | null = null
+  let cacheCtx: CanvasRenderingContext2D | null = null
+  let cacheValid = false
+  let rafId: number | null = null
+
   function getCtx(): CanvasRenderingContext2D | null {
     return canvasRef.value?.getContext('2d') ?? null
+  }
+
+  function ensureCache() {
+    const canvas = canvasRef.value
+    if (!canvas) return
+
+    if (!cacheCanvas) {
+      cacheCanvas = document.createElement('canvas')
+    }
+
+    if (cacheCanvas.width !== canvas.width || cacheCanvas.height !== canvas.height) {
+      cacheCanvas.width = canvas.width
+      cacheCanvas.height = canvas.height
+      cacheCtx = cacheCanvas.getContext('2d')
+      const dpr = window.devicePixelRatio || 1
+      if (cacheCtx) cacheCtx.scale(dpr, dpr)
+      cacheValid = false
+    }
+
+    if (!cacheValid && cacheCtx) {
+      cacheCtx.clearRect(0, 0, cacheCanvas.width, cacheCanvas.height)
+      for (const action of history) {
+        drawActionOn(cacheCtx, action)
+      }
+      cacheValid = true
+    }
+  }
+
+  function invalidateCache() {
+    cacheValid = false
+  }
+
+  function renderFrame() {
+    const ctx = getCtx()
+    const canvas = canvasRef.value
+    if (!ctx || !canvas) return
+
+    ensureCache()
+
+    ctx.save()
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    if (cacheCanvas) {
+      ctx.drawImage(cacheCanvas, 0, 0)
+    }
+    ctx.restore()
+
+    if (currentAction.value) {
+      drawActionOn(ctx, currentAction.value)
+    }
+  }
+
+  function scheduleRender() {
+    if (rafId !== null) return
+    rafId = requestAnimationFrame(() => {
+      rafId = null
+      renderFrame()
+    })
+  }
+
+  function flushRender() {
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId)
+      rafId = null
+    }
+    renderFrame()
   }
 
   function addTextAction(text: string, x: number, y: number, width: number, fontSize: number, color?: string) {
@@ -42,7 +115,10 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     }
     history.push(action)
     redoStack.length = 0
-    redrawAll()
+
+    ensureCache()
+    if (cacheCtx) drawActionOn(cacheCtx, action)
+    flushRender()
   }
 
   function startDraw(point: Point) {
@@ -66,23 +142,34 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   function draw(point: Point) {
     if (!isDrawing.value || !currentAction.value) return
 
-    currentAction.value.points.push(point)
-    redrawAll()
-    drawAction(currentAction.value, true)
+    const action = currentAction.value
+    const isFreehand = action.tool === 'pen' || action.tool === 'highlighter' || action.tool === 'eraser'
+
+    if (isFreehand && action.points.length > 0) {
+      const last = action.points[action.points.length - 1]
+      const dx = point.x - last.x
+      const dy = point.y - last.y
+      if (dx * dx + dy * dy < MIN_DIST_SQ) return
+    }
+
+    action.points.push(point)
+    scheduleRender()
   }
 
   function endDraw() {
     if (!isDrawing.value || !currentAction.value) return
     isDrawing.value = false
+
     history.push(currentAction.value)
+
+    ensureCache()
+    if (cacheCtx) drawActionOn(cacheCtx, currentAction.value)
+
     currentAction.value = null
-    redrawAll()
+    flushRender()
   }
 
-  function drawAction(action: DrawAction, isPreview = false) {
-    const ctx = getCtx()
-    if (!ctx) return
-
+  function drawActionOn(ctx: CanvasRenderingContext2D, action: DrawAction) {
     ctx.save()
     ctx.globalAlpha = action.opacity
 
@@ -218,33 +305,30 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   }
 
   function redrawAll() {
-    const ctx = getCtx()
-    const canvas = canvasRef.value
-    if (!ctx || !canvas) return
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    for (const action of history) {
-      drawAction(action)
-    }
+    invalidateCache()
+    flushRender()
   }
 
   function undo() {
     if (history.length === 0) return
     const last = history.pop()!
     redoStack.push(last)
-    redrawAll()
+    invalidateCache()
+    flushRender()
   }
 
   function redo() {
     if (redoStack.length === 0) return
     const action = redoStack.pop()!
     history.push(action)
-    redrawAll()
+    invalidateCache()
+    flushRender()
   }
 
   function clearAll() {
     history.length = 0
     redoStack.length = 0
+    invalidateCache()
     const ctx = getCtx()
     const canvas = canvasRef.value
     if (ctx && canvas) {
@@ -280,8 +364,18 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   function removeAction(index: number) {
     if (index >= 0 && index < history.length) {
       history.splice(index, 1)
-      redrawAll()
+      invalidateCache()
+      flushRender()
     }
+  }
+
+  function destroy() {
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId)
+      rafId = null
+    }
+    cacheCanvas = null
+    cacheCtx = null
   }
 
   return {
@@ -300,5 +394,6 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     redo,
     clearAll,
     redrawAll,
+    destroy,
   }
 }

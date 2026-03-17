@@ -49,6 +49,7 @@ const {
   redo,
   clearAll,
   redrawAll,
+  destroy,
 } = useDrawing(canvasRef)
 
 const textFontSize = computed(() => Math.max(16, lineWidth.value * 6))
@@ -158,9 +159,18 @@ function onMouseDown(e: MouseEvent) {
   startDraw(getPoint(e))
 }
 
-function onMouseMove(e: MouseEvent) {
+function onPointerMove(e: PointerEvent) {
   mousePos.value = { x: e.clientX, y: e.clientY }
-  draw(getPoint(e))
+  if (!isDrawing.value) return
+
+  const coalesced = e.getCoalescedEvents?.()
+  if (coalesced && coalesced.length > 0) {
+    for (const ce of coalesced) {
+      draw({ x: ce.clientX, y: ce.clientY })
+    }
+  } else {
+    draw({ x: e.clientX, y: e.clientY })
+  }
 }
 
 function onMouseUp() {
@@ -249,6 +259,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('resize', resizeCanvas)
   window.removeEventListener('keydown', onKeyDown)
+  destroy()
 })
 
 function exitDrawing() {
@@ -271,10 +282,10 @@ function exitDrawing() {
       ref="canvasRef"
       class="drawing-canvas"
       :style="{ cursor: getCursorStyle() }"
-      @mousedown="onMouseDown"
-      @mousemove="onMouseMove"
-      @mouseup="onMouseUp"
-      @mouseleave="onMouseUp"
+      @pointerdown="onMouseDown"
+      @pointermove="onPointerMove"
+      @pointerup="onMouseUp"
+      @pointerleave="onMouseUp"
     />
 
     <TextBox
@@ -332,6 +343,7 @@ function exitDrawing() {
   left: 0;
   width: 100%;
   height: 100%;
+  touch-action: none;
 }
 
 .tool-tooltip {
