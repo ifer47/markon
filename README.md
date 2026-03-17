@@ -2,13 +2,9 @@
 
 > **轻量级屏幕标注工具** — 按下快捷键，随时在桌面上自由绘画、标注。适用于课堂演示 / 会议讲解 / 录屏批注。
 
-`Electron` `Vue 3` `Vite` `TypeScript` `Canvas`
-
 <p align="center">
   <img src="public/screenshot.png" width="520" alt="ZoomIt Annotator 设置面板" />
 </p>
-
----
 
 ## 🚀 快速开始
 
@@ -24,8 +20,6 @@ npm run build
 ```
 
 启动后应用静默运行在 **系统托盘**，不会弹出任何窗口。
-
----
 
 ## ⌨️ 快捷键一览
 
@@ -62,7 +56,7 @@ npm run build
 | <kbd>5</kbd> | ○ 椭圆 | 椭圆边框 |
 | <kbd>6</kbd> | ╱ 直线 | 直线段 |
 | <kbd>7</kbd> | ◎ 橡皮擦 | 擦除标注内容 |
-| <kbd>8</kbd> | 𝐓 文字 | 点击放置文字，滚轮调整字号，Ctrl+Enter 确认 |
+| <kbd>8</kbd> | 𝐓 文字 | 点击放置文字，滚轮调整字号，<kbd>Ctrl</kbd> + <kbd>Enter</kbd> 确认 |
 
 ### 标注模式 — 其他操作
 
@@ -76,19 +70,15 @@ npm run build
 
 > 💡 退出标注模式时会自动清除所有绘制内容。
 
----
-
 ## 🛠️ 技术栈
 
 | 技术 | 用途 |
 | :--- | :--- |
 | **Electron** | 桌面应用框架 — 全局快捷键、透明置顶窗口、系统托盘 |
-| **Vue 3** | 渲染层 UI 框架 |
+| **Vue3** | 渲染层 UI 框架 |
 | **Vite** | 极速构建与热更新 |
-| **TypeScript** | 全量类型安全 |
+| **TypeScript** | 完整类型支持 |
 | **Canvas API** | 高性能绘图引擎 |
-
----
 
 ## 📁 项目结构
 
@@ -118,8 +108,6 @@ zoomit/
 └── package.json
 ```
 
----
-
-## 📄 License
+## 📄 许可证
 
 [MIT](./LICENSE)
