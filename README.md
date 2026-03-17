@@ -1,8 +1,12 @@
-# ✏️ ZoomIt Annotator
+# <img src="public/icon.png" width="28" height="28" /> ZoomIt Annotator
 
 > **轻量级屏幕标注工具** — 按下快捷键，随时在桌面上自由绘画、标注。适用于课堂演示 / 会议讲解 / 录屏批注。
 
 `Electron` `Vue 3` `Vite` `TypeScript` `Canvas`
+
+<p align="center">
+  <img src="public/screenshot.png" width="520" alt="ZoomIt Annotator 设置面板" />
+</p>
 
 ---
 
