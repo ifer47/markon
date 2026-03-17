@@ -25,49 +25,50 @@ npm run build
 
 ## ⌨️ 快捷键一览
 
-### 🌐 全局快捷键
+### 全局快捷键
 
 > 以下快捷键在任何界面下都可使用：
 
 | 快捷键 | 功能 |
 | :--- | :--- |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> | 🎨 开启 / 退出标注模式 |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd> | 🧹 清除所有标注 |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> | 开启 / 退出标注模式 |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd> | 清除所有标注 |
 
-### 🖱️ 标注模式 — 绘制
+### 标注模式 — 绘制
 
 > 进入标注模式后，通过修饰键 + 鼠标拖动快速绘制不同图形：
 
 | 操作 | 绘制内容 |
 | :--- | :--- |
-| 直接拖动鼠标 | ✏️ 当前工具（默认画笔） |
-| <kbd>Ctrl</kbd> + 拖动 | ⬜ 矩形 |
-| <kbd>Shift</kbd> + 拖动 | ⭕ 椭圆 |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + 拖动 | ➡️ 箭头 |
+| 直接拖动鼠标 | 当前工具（默认画笔） |
+| <kbd>Ctrl</kbd> + 拖动 | 矩形 |
+| <kbd>Shift</kbd> + 拖动 | 椭圆 |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + 拖动 | 箭头 |
 
-### 🔢 标注模式 — 工具切换
+### 标注模式 — 工具切换
 
 > 按数字键即时切换，无需打开面板：
 
 | 按键 | 工具 | 说明 |
 | :---: | :--- | :--- |
-| <kbd>1</kbd> | ✏️ 画笔 | 自由绘画，平滑曲线 |
-| <kbd>2</kbd> | 🖍️ 荧光笔 | 半透明高亮标记 |
-| <kbd>3</kbd> | ➡️ 箭头 | 带箭头的指示线 |
-| <kbd>4</kbd> | ⬜ 矩形 | 矩形边框 |
-| <kbd>5</kbd> | ⭕ 椭圆 | 椭圆边框 |
-| <kbd>6</kbd> | 📏 直线 | 直线段 |
-| <kbd>7</kbd> | 🧹 橡皮擦 | 擦除标注内容 |
+| <kbd>1</kbd> | ∕ 画笔 | 自由绘画，平滑曲线 |
+| <kbd>2</kbd> | ∕∕ 荧光笔 | 半透明高亮标记 |
+| <kbd>3</kbd> | ⤤ 箭头 | 带箭头的指示线 |
+| <kbd>4</kbd> | ▢ 矩形 | 矩形边框 |
+| <kbd>5</kbd> | ○ 椭圆 | 椭圆边框 |
+| <kbd>6</kbd> | ╱ 直线 | 直线段 |
+| <kbd>7</kbd> | ◎ 橡皮擦 | 擦除标注内容 |
+| <kbd>8</kbd> | 𝐓 文字 | 点击放置文字，滚轮调整字号，Ctrl+Enter 确认 |
 
-### ⚙️ 标注模式 — 其他操作
+### 标注模式 — 其他操作
 
 | 快捷键 | 功能 |
 | :--- | :--- |
-| <kbd>Space</kbd> | 📋 呼出 / 隐藏设置面板（颜色、线宽、工具） |
-| <kbd>Ctrl</kbd> + <kbd>Z</kbd> | ↩️ 撤销 |
-| <kbd>Ctrl</kbd> + <kbd>Y</kbd> | ↪️ 重做 |
-| <kbd>Delete</kbd> | 🗑️ 清除全部标注 |
-| <kbd>Esc</kbd> | 🚪 退出标注模式 |
+| <kbd>Space</kbd> | 呼出 / 隐藏设置面板（工具、颜色、线宽） |
+| <kbd>Ctrl</kbd> + <kbd>Z</kbd> | 撤销 |
+| <kbd>Ctrl</kbd> + <kbd>Y</kbd> | 重做 |
+| <kbd>Delete</kbd> | 清除全部标注 |
+| <kbd>Esc</kbd> | 退出标注模式 |
 
 > 💡 退出标注模式时会自动清除所有绘制内容。
 
@@ -77,11 +78,11 @@ npm run build
 
 | 技术 | 用途 |
 | :--- | :--- |
-| **Electron** | 🖥️ 桌面应用框架 — 全局快捷键、透明置顶窗口、系统托盘 |
-| **Vue 3** | 💚 渲染层 UI 框架 |
-| **Vite** | ⚡ 极速构建与热更新 |
-| **TypeScript** | 🔒 全量类型安全 |
-| **Canvas API** | 🎨 高性能绘图引擎 |
+| **Electron** | 桌面应用框架 — 全局快捷键、透明置顶窗口、系统托盘 |
+| **Vue 3** | 渲染层 UI 框架 |
+| **Vite** | 极速构建与热更新 |
+| **TypeScript** | 全量类型安全 |
+| **Canvas API** | 高性能绘图引擎 |
 
 ---
 
@@ -96,9 +97,11 @@ zoomit/
 ├── src/
 │   ├── components/
 │   │   ├── DrawingOverlay.vue   # 绘图覆盖层（Canvas + 交互）
-│   │   └── SettingsPanel.vue    # 设置面板（工具 / 颜色 / 线宽）
+│   │   ├── SettingsPanel.vue    # 设置面板（工具 / 颜色 / 线宽）
+│   │   ├── TextBox.vue          # 内联文字输入框
+│   │   └── Icons.vue            # SVG 图标组件
 │   ├── composables/
-│   │   └── useDrawing.ts        # 绘图引擎（画笔、形状、撤销重做）
+│   │   └── useDrawing.ts        # 绘图引擎（画笔、形状、文字、撤销重做）
 │   ├── types/
 │   │   └── electron.d.ts        # TypeScript 类型声明
 │   ├── App.vue                  # 根组件
