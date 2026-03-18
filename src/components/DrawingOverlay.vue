@@ -110,7 +110,10 @@ const {
   redo,
   clearAll,
   redrawAll,
-  invalidate,
+  requestRedraw,
+  beginDrag,
+  endDrag,
+  scheduleRender,
   destroy,
 } = useDrawing(canvasRef)
 
@@ -215,6 +218,7 @@ function onMouseDown(e: MouseEvent) {
     isMoving.value = true
     moveStartPos.value = { x: e.clientX, y: e.clientY }
     originalActionPoints.value = hoveredActionInfo.value.action.points.map(p => ({ ...p }))
+    beginDrag(hoveredActionInfo.value.action)
     return
   }
 
@@ -249,7 +253,7 @@ function onPointerMove(e: PointerEvent) {
       action.points[i].x = origPoints[i].x + dx
       action.points[i].y = origPoints[i].y + dy
     }
-    invalidate()
+    scheduleRender()
     return
   }
 
@@ -279,7 +283,7 @@ function onMouseUp() {
     isMoving.value = false
     moveStartPos.value = null
     originalActionPoints.value = []
-    redrawAll()
+    endDrag()
     return
   }
 

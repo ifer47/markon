@@ -15,6 +15,8 @@ export interface DrawAction {
   points: Point[]
   text?: string
   fontSize?: number
+  textWidth?: number
+  bbox?: { x1: number, y1: number, x2: number, y2: number }
 }
 
 const MIN_DIST_SQ = 4
@@ -27,14 +29,33 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   const history: DrawAction[] = []
   const redoStack: DrawAction[] = []
   const currentAction = shallowRef<DrawAction | null>(null)
+  const previewAction = shallowRef<DrawAction | null>(null)
 
   let cacheCanvas: HTMLCanvasElement | null = null
   let cacheCtx: CanvasRenderingContext2D | null = null
   let cacheValid = false
   let rafId: number | null = null
 
+  // Incremental stroke cache for freehand drawing
+  let strokeCanvas: HTMLCanvasElement | null = null
+  let strokeCtx: CanvasRenderingContext2D | null = null
+  let lastBakedPtIdx = 0
+
   function getCtx(): CanvasRenderingContext2D | null {
     return canvasRef.value?.getContext('2d') ?? null
+  }
+
+  function computeBbox(action: DrawAction, pad: number): DrawAction['bbox'] {
+    const pts = action.points
+    if (pts.length === 0) return undefined
+    let x1 = pts[0].x, y1 = pts[0].y, x2 = pts[0].x, y2 = pts[0].y
+    for (let i = 1; i < pts.length; i++) {
+      if (pts[i].x < x1) x1 = pts[i].x
+      if (pts[i].y < y1) y1 = pts[i].y
+      if (pts[i].x > x2) x2 = pts[i].x
+      if (pts[i].y > y2) y2 = pts[i].y
+    }
+    return { x1: x1 - pad, y1: y1 - pad, x2: x2 + pad, y2: y2 + pad }
   }
 
   function ensureCache() {
@@ -57,6 +78,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     if (!cacheValid && cacheCtx) {
       cacheCtx.clearRect(0, 0, cacheCanvas.width, cacheCanvas.height)
       for (let i = 0; i < history.length; i++) {
+        if (history[i] === previewAction.value) continue
         drawActionOn(cacheCtx, history[i])
       }
       cacheValid = true
@@ -65,6 +87,73 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
   function invalidateCache() {
     cacheValid = false
+  }
+
+  function initStrokeCanvas() {
+    const canvas = canvasRef.value
+    if (!canvas) return
+    if (!strokeCanvas) strokeCanvas = document.createElement('canvas')
+    strokeCanvas.width = canvas.width
+    strokeCanvas.height = canvas.height
+    strokeCtx = strokeCanvas.getContext('2d')
+    const dpr = window.devicePixelRatio || 1
+    if (strokeCtx) strokeCtx.scale(dpr, dpr)
+    lastBakedPtIdx = 0
+  }
+
+  function clearStrokeCanvas() {
+    if (strokeCtx && strokeCanvas) {
+      strokeCtx.clearRect(0, 0, strokeCanvas.width, strokeCanvas.height)
+    }
+    lastBakedPtIdx = 0
+  }
+
+  // Bake finalized segments of the current freehand stroke incrementally.
+  // Segments up to pts.length-3 are "settled" (their shape won't change).
+  function bakeIncrementalStroke(action: DrawAction) {
+    if (!strokeCtx) return
+    const pts = action.points
+    const targetIdx = pts.length - 3
+    if (targetIdx <= lastBakedPtIdx || targetIdx < 1) return
+
+    strokeCtx.save()
+    if (action.tool === 'eraser') {
+      strokeCtx.globalCompositeOperation = 'destination-out'
+      strokeCtx.globalAlpha = 1
+    } else {
+      strokeCtx.globalCompositeOperation = 'source-over'
+      strokeCtx.globalAlpha = action.opacity
+    }
+    strokeCtx.strokeStyle = action.color
+    strokeCtx.lineWidth = action.lineWidth
+    strokeCtx.lineCap = 'round'
+    strokeCtx.lineJoin = 'round'
+
+    strokeCtx.beginPath()
+
+    if (lastBakedPtIdx === 0) {
+      strokeCtx.moveTo(pts[0].x, pts[0].y)
+      // Draw from the first point using quadratic bezier
+      for (let i = 1; i <= targetIdx; i++) {
+        const midX = (pts[i].x + pts[i + 1].x) / 2
+        const midY = (pts[i].y + pts[i + 1].y) / 2
+        strokeCtx.quadraticCurveTo(pts[i].x, pts[i].y, midX, midY)
+      }
+    } else {
+      // Resume from the last baked midpoint
+      const mX = (pts[lastBakedPtIdx].x + pts[lastBakedPtIdx + 1].x) / 2
+      const mY = (pts[lastBakedPtIdx].y + pts[lastBakedPtIdx + 1].y) / 2
+      strokeCtx.moveTo(mX, mY)
+      for (let i = lastBakedPtIdx + 1; i <= targetIdx; i++) {
+        const midX = (pts[i].x + pts[i + 1].x) / 2
+        const midY = (pts[i].y + pts[i + 1].y) / 2
+        strokeCtx.quadraticCurveTo(pts[i].x, pts[i].y, midX, midY)
+      }
+    }
+
+    strokeCtx.stroke()
+    strokeCtx.restore()
+    lastBakedPtIdx = targetIdx
   }
 
   function renderFrame() {
@@ -84,7 +173,23 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
     const action = currentAction.value
     if (action) {
-      drawActionOn(ctx, action)
+      const isFreehand = action.tool === 'pen' || action.tool === 'highlighter' || action.tool === 'eraser'
+      if (isFreehand && strokeCanvas && action.points.length > 3) {
+        // Composite the pre-baked stroke layer
+        ctx.save()
+        ctx.setTransform(1, 0, 0, 1, 0, 0)
+        ctx.drawImage(strokeCanvas, 0, 0)
+        ctx.restore()
+        // Draw only the unsettled tail (last 3 points)
+        drawFreehandTail(ctx, action)
+      } else {
+        drawActionOn(ctx, action)
+      }
+    }
+
+    const preview = previewAction.value
+    if (preview) {
+      drawActionOn(ctx, preview)
     }
   }
 
@@ -114,8 +219,26 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       text,
       fontSize,
     }
-    redoStack.length = 0
 
+    // Cache text width and bbox to avoid measuring in findActionAt
+    const ctx = getCtx()
+    if (ctx) {
+      ctx.font = `${fontSize}px "Microsoft YaHei", "PingFang SC", system-ui, sans-serif`
+      const lines = text.split('\n')
+      let maxWidth = 0
+      for (const line of lines) {
+        const w = ctx.measureText(line).width
+        if (w > maxWidth) maxWidth = w
+      }
+      action.textWidth = maxWidth
+      const lh = Math.round(fontSize * 1.3)
+      action.bbox = {
+        x1: x - 10, y1: y - lh / 2 - 10,
+        x2: x + maxWidth + 20, y2: y + lines.length * lh + lh / 2 + 10,
+      }
+    }
+
+    redoStack.length = 0
     ensureCache()
     if (cacheCtx) drawActionOn(cacheCtx, action)
     history.push(action)
@@ -126,6 +249,9 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     if (currentTool.value === 'text') return
     isDrawing.value = true
     redoStack.length = 0
+
+    const isFreehand = currentTool.value === 'pen' || currentTool.value === 'highlighter' || currentTool.value === 'eraser'
+    if (isFreehand) initStrokeCanvas()
 
     const opacity = currentTool.value === 'highlighter' ? 0.35 : 1
     const width = currentTool.value === 'highlighter' ? 20 :
@@ -154,6 +280,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       const dy = point.y - last.y
       if (dx * dx + dy * dy < MIN_DIST_SQ) return
       pts.push(point)
+      bakeIncrementalStroke(action)
     } else {
       let finalPoint = point
       if (isPerfect && pts.length > 0 && (action.tool === 'rect' || action.tool === 'ellipse')) {
@@ -182,6 +309,11 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     const action = currentAction.value
     if (!action) return
     isDrawing.value = false
+
+    const pad = Math.max(20, action.lineWidth / 2 + 10)
+    action.bbox = computeBbox(action, pad)
+
+    clearStrokeCanvas()
 
     ensureCache()
     if (cacheCtx) drawActionOn(cacheCtx, action)
@@ -215,12 +347,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       ctx.fillStyle = action.color
       ctx.textBaseline = 'alphabetic'
       const lines = (action.text ?? '').split('\n')
-      // HTML textarea 的 padding 为 0 2px，所以 x 偏移 2px
       const x = action.points[0].x + 2
-      // DOM 中 textarea 的 top 为 y - lh / 2，每行高度为 lh
-      // CSS 渲染时，文本在 line-height 内垂直居中。
-      // 居中时，基线 (baseline) 距离行垂直中心的偏移量：(ascender + descender) / 2
-      // 对于微软雅黑 (YaHei) 和苹方 (PingFang)，该偏移量约为字号的 0.398 倍
       const lh = Math.round(fs * 1.3)
       const baselineOffsetY = fs * 0.398
       for (let i = 0; i < lines.length; i++) {
@@ -260,6 +387,46 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
         break
     }
 
+    ctx.restore()
+  }
+
+  // Draws only the unsettled tail of a freehand stroke (last 3 points from baked index)
+  function drawFreehandTail(ctx: CanvasRenderingContext2D, action: DrawAction) {
+    const pts = action.points
+    if (pts.length < 2) return
+
+    ctx.save()
+    if (action.tool === 'eraser') {
+      ctx.globalCompositeOperation = 'destination-out'
+      ctx.globalAlpha = 1
+    } else {
+      ctx.globalCompositeOperation = 'source-over'
+      ctx.globalAlpha = action.opacity
+    }
+    ctx.strokeStyle = action.color
+    ctx.lineWidth = action.lineWidth
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+
+    ctx.beginPath()
+    if (lastBakedPtIdx === 0) {
+      ctx.moveTo(pts[0].x, pts[0].y)
+    } else {
+      const mX = (pts[lastBakedPtIdx].x + pts[lastBakedPtIdx + 1].x) / 2
+      const mY = (pts[lastBakedPtIdx].y + pts[lastBakedPtIdx + 1].y) / 2
+      ctx.moveTo(mX, mY)
+    }
+
+    const start = Math.max(1, lastBakedPtIdx + 1)
+    for (let i = start; i < pts.length - 1; i++) {
+      const midX = (pts[i].x + pts[i + 1].x) / 2
+      const midY = (pts[i].y + pts[i + 1].y) / 2
+      ctx.quadraticCurveTo(pts[i].x, pts[i].y, midX, midY)
+    }
+    const last = pts[pts.length - 1]
+    ctx.lineTo(last.x, last.y)
+
+    ctx.stroke()
     ctx.restore()
   }
 
@@ -333,6 +500,47 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     flushRender()
   }
 
+  function requestRedraw() {
+    invalidateCache()
+    scheduleRender()
+  }
+
+  function beginDrag(action: DrawAction) {
+    previewAction.value = action
+    invalidateCache()
+    scheduleRender()
+  }
+
+  function endDrag() {
+    if (previewAction.value) {
+      const action = previewAction.value
+      const pad = Math.max(20, action.lineWidth / 2 + 10)
+      if (action.tool === 'text' && action.textWidth != null) {
+        const fs = action.fontSize ?? 24
+        const lh = Math.round(fs * 1.3)
+        const lines = (action.text ?? '').split('\n')
+        const x = action.points[0].x
+        const y = action.points[0].y
+        action.bbox = {
+          x1: x - 10, y1: y - lh / 2 - 10,
+          x2: x + action.textWidth + 20, y2: y + lines.length * lh + lh / 2 + 10,
+        }
+      } else {
+        action.bbox = computeBbox(action, pad)
+      }
+
+      // 移到 history 末尾，使其层级最高
+      const idx = history.indexOf(action)
+      if (idx !== -1 && idx !== history.length - 1) {
+        history.splice(idx, 1)
+        history.push(action)
+      }
+    }
+    previewAction.value = null
+    invalidateCache()
+    flushRender()
+  }
+
   function undo() {
     if (history.length === 0) return
     const last = history.pop()!
@@ -369,30 +577,25 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   }
 
   function findActionAt(p: Point): { action: DrawAction, index: number } | null {
-    const ctx = getCtx()
-    if (!ctx) return null
-    
     for (let i = history.length - 1; i >= 0; i--) {
       const action = history[i]
       const pts = action.points
       if (pts.length === 0) continue
 
+      // Fast AABB pre-filter — skip actions whose bounding box doesn't contain the point
+      const bbox = action.bbox
+      if (bbox && (p.x < bbox.x1 || p.x > bbox.x2 || p.y < bbox.y1 || p.y > bbox.y2)) continue
+
       const threshold = Math.max(10, (action.lineWidth || 2) / 2 + 5)
 
       if (action.tool === 'text' && action.text) {
         const fs = action.fontSize ?? 24
-        ctx.font = `${fs}px "Microsoft YaHei", "PingFang SC", system-ui, sans-serif`
-        const lines = action.text.split('\n')
-        let maxWidth = 0
-        for (const line of lines) {
-          const w = ctx.measureText(line).width
-          if (w > maxWidth) maxWidth = w
-        }
         const lh = Math.round(fs * 1.3)
-        const h = lines.length * lh
+        const textWidth = action.textWidth ?? 200
+        const lines = action.text.split('\n')
         const boxX = pts[0].x - 10
         const boxY = pts[0].y - lh / 2 - 10
-        if (p.x >= boxX && p.x <= boxX + maxWidth + 20 && p.y >= boxY && p.y <= boxY + h + 20) {
+        if (p.x >= boxX && p.x <= boxX + textWidth + 20 && p.y >= boxY && p.y <= boxY + lines.length * lh + 20) {
           return { action, index: i }
         }
         continue
@@ -422,12 +625,12 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
           const maxX = Math.max(pts[0].x, pts[1].x)
           const minY = Math.min(pts[0].y, pts[1].y)
           const maxY = Math.max(pts[0].y, pts[1].y)
-          
+
           const d1 = distancePointToSegment(p, {x: minX, y: minY}, {x: maxX, y: minY})
           const d2 = distancePointToSegment(p, {x: maxX, y: minY}, {x: maxX, y: maxY})
           const d3 = distancePointToSegment(p, {x: maxX, y: maxY}, {x: minX, y: maxY})
           const d4 = distancePointToSegment(p, {x: minX, y: maxY}, {x: minX, y: minY})
-          
+
           if (Math.min(d1, d2, d3, d4) <= threshold) return { action, index: i }
         }
         continue
@@ -439,7 +642,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
           const cy = (pts[0].y + pts[1].y) / 2
           const rx = Math.abs(pts[1].x - pts[0].x) / 2
           const ry = Math.abs(pts[1].y - pts[0].y) / 2
-          
+
           if (rx < 1 || ry < 1) {
             if (Math.hypot(p.x - cx, p.y - cy) <= threshold) return { action, index: i }
             continue
@@ -479,6 +682,8 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     }
     cacheCanvas = null
     cacheCtx = null
+    strokeCanvas = null
+    strokeCtx = null
   }
 
   return {
@@ -497,7 +702,10 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     redo,
     clearAll,
     redrawAll,
-    invalidate: invalidateCache,
+    requestRedraw,
+    scheduleRender,
+    beginDrag,
+    endDrag,
     destroy,
   }
 }
