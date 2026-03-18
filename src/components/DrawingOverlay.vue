@@ -358,6 +358,7 @@ onMounted(() => {
       textBoxPos.value = null
       clearAll()
       if (isActive) {
+        currentTool.value = 'pen'
         nextTick(() => resizeCanvas())
       }
     })
