@@ -67,8 +67,10 @@ npm run build
 | <kbd>Ctrl</kbd> + <kbd>Y</kbd> | 重做 |
 | <kbd>Delete</kbd> | 清除全部标注 |
 | <kbd>Esc</kbd> | 退出标注模式 |
+| <kbd>Alt</kbd> + <kbd>Tab</kbd> | 切换窗口并退出标注模式 |
+| <kbd>Win</kbd> | 打开开始菜单并退出标注模式 |
 
-> 💡 退出标注模式时会自动清除所有绘制内容。
+> 💡 标注覆盖全屏（包括任务栏区域），退出标注模式时会自动清除所有绘制内容。
 
 ## 🛠️ 技术栈
 
