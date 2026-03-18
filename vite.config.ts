@@ -14,6 +14,16 @@ export default defineConfig(({ command }) => {
   const sourcemap = isServe || !!process.env.VSCODE_DEBUG
 
   return {
+    build: {
+      target: 'esnext',
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vue: ['vue'],
+          },
+        },
+      },
+    },
     plugins: [
       vue(),
       tailwindcss(),
