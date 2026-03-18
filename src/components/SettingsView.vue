@@ -126,65 +126,68 @@ onUnmounted(() => {
 <template>
   <div class="flex h-screen w-screen font-text text-white select-none overflow-hidden">
     <!-- Sidebar -->
-    <div class="w-[160px] shrink-0 bg-[#161618] flex flex-col border-r border-white/5">
-      <div class="flex items-center gap-2.5 px-4 pt-5 pb-4">
-        <img src="/icon.png" class="w-8 h-8 rounded-lg" alt="MarkOn" draggable="false" />
-        <span class="text-[13px] font-semibold text-white/80 tracking-wide">MarkOn</span>
+    <div class="w-[154px] shrink-0 bg-[#161618] flex flex-col border-r border-white/5">
+      <div class="flex items-center gap-2.5 px-4 pt-5 pb-5">
+        <img src="/icon.png" class="w-7 h-7 shrink-0 brightness-0 invert" alt="MarkOn" draggable="false" />
+        <span class="text-[13px] font-semibold text-white/85 tracking-wide leading-tight">MarkOn</span>
       </div>
 
-      <nav class="flex flex-col gap-0.5 px-2 mt-1">
+      <nav class="flex flex-col gap-0.5 px-2">
         <button
           v-for="tab in tabs"
           :key="tab.id"
-          class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] border-none cursor-pointer transition-all duration-120"
+          class="flex items-center gap-2 px-3 py-[7px] rounded-lg text-[12.5px] border-none cursor-pointer transition-all duration-120"
           :class="activeTab === tab.id
-            ? 'bg-white/10 text-white'
-            : 'bg-transparent text-white/50 hover:bg-white/5 hover:text-white/70'"
+            ? 'bg-white/10 text-white/90'
+            : 'bg-transparent text-white/40 hover:bg-white/5 hover:text-white/60'"
           @click="activeTab = tab.id"
         >
-          <span class="text-base leading-none">{{ tab.icon }}</span>
+          <span class="text-sm leading-none opacity-70">{{ tab.icon }}</span>
           {{ tab.label }}
         </button>
       </nav>
 
-      <div class="mt-auto px-3 pb-4">
-        <span class="text-[10px] text-white/15">v0.0.2</span>
+      <div class="mt-auto px-3 pb-3">
+        <span class="text-[10px] text-white/12">v0.0.2</span>
       </div>
     </div>
 
     <!-- Content -->
     <div class="flex-1 bg-[#1e1e20] flex flex-col overflow-hidden">
-      <div v-if="activeTab === 'shortcuts'" class="flex-1 flex flex-col px-6 py-5 overflow-y-auto">
-        <h2 class="text-[15px] font-semibold text-white/80 mb-1">快捷键设置</h2>
-        <p class="text-[11px] text-white/30 mb-5">点击「修改」后按下新的快捷键组合，需包含至少一个修饰键（Ctrl / Alt / Shift），F1-F12 可单独使用</p>
+      <div v-if="activeTab === 'shortcuts'" class="flex-1 flex flex-col px-7 py-6 overflow-y-auto">
+        <h2 class="text-[14px] font-semibold text-white/75 mb-0.5">快捷键</h2>
+        <p class="text-[11px] text-white/25 mb-4 leading-relaxed">点击「修改」后按下新的组合键（需含 Ctrl / Alt / Shift 中至少一个），F1-F12 可单独使用</p>
 
-        <div class="flex flex-col gap-2">
+        <div class="rounded-lg border border-white/5 overflow-hidden">
           <div
-            v-for="(label, action) in labels"
+            v-for="(label, action, idx) in labels"
             :key="action"
-            class="flex items-center justify-between px-4 py-3 rounded-xl transition-colors duration-120"
-            :class="capturing === action ? 'bg-accent/10 ring-1 ring-accent/30' : 'bg-white/3 hover:bg-white/5'"
+            class="flex items-center justify-between px-4 py-2.5 transition-colors duration-120"
+            :class="[
+              capturing === action ? 'bg-accent/8' : 'hover:bg-white/3',
+              idx > 0 ? 'border-t border-white/5' : '',
+            ]"
           >
-            <span class="text-[13px] text-white/70">{{ label }}</span>
+            <span class="text-[12.5px] text-white/55">{{ label }}</span>
 
-            <div class="flex items-center gap-2.5">
+            <div class="flex items-center gap-2">
               <template v-if="capturing === action">
-                <span class="text-[13px] text-accent font-medium min-w-[100px] text-right">
+                <span class="text-[12px] text-accent font-medium min-w-[90px] text-right tracking-wide">
                   {{ capturedKeys || '请按下组合键...' }}
                 </span>
                 <button
-                  class="px-2.5 py-1 rounded-md bg-white/8 text-white/50 text-[11px] border-none cursor-pointer hover:bg-white/12 hover:text-white/70 transition-colors duration-120"
+                  class="px-2 py-[3px] rounded-[5px] bg-white/6 text-white/40 text-[11px] border-none cursor-pointer hover:bg-white/10 hover:text-white/60 transition-colors duration-120"
                   @click="cancelCapture"
                 >
                   取消
                 </button>
               </template>
               <template v-else>
-                <kbd class="inline-flex items-center px-2.5 py-1 rounded-md bg-white/6 border border-white/8 text-[12px] text-white/60 font-mono tracking-wide">
+                <kbd class="inline-flex items-center px-2 py-[3px] rounded-[5px] bg-white/5 border border-white/6 text-[11px] text-white/45 font-mono tracking-wider">
                   {{ shortcuts[action] }}
                 </kbd>
                 <button
-                  class="px-2.5 py-1 rounded-md bg-white/8 text-white/50 text-[11px] border-none cursor-pointer hover:bg-white/12 hover:text-white/70 transition-colors duration-120"
+                  class="px-2 py-[3px] rounded-[5px] bg-white/6 text-white/40 text-[11px] border-none cursor-pointer hover:bg-white/10 hover:text-white/60 transition-colors duration-120"
                   @click="startCapture(action)"
                 >
                   修改
@@ -195,16 +198,16 @@ onUnmounted(() => {
         </div>
 
         <!-- Actions -->
-        <div class="flex items-center gap-3 mt-5">
+        <div class="flex items-center gap-2.5 mt-4">
           <button
-            class="px-4 py-[7px] rounded-lg bg-accent text-white text-[12px] font-medium border-none cursor-pointer hover:brightness-110 transition-all duration-120 disabled:opacity-40 disabled:cursor-default"
+            class="px-3.5 py-[5px] rounded-[6px] bg-accent text-white text-[11.5px] font-medium border-none cursor-pointer hover:brightness-110 transition-all duration-120 disabled:opacity-40 disabled:cursor-default"
             :disabled="saving"
             @click="saveShortcuts"
           >
             {{ saving ? '保存中...' : '保存' }}
           </button>
           <button
-            class="px-4 py-[7px] rounded-lg bg-white/8 text-white/50 text-[12px] border-none cursor-pointer hover:bg-white/12 hover:text-white/70 transition-colors duration-120"
+            class="px-3.5 py-[5px] rounded-[6px] bg-white/6 text-white/40 text-[11.5px] border-none cursor-pointer hover:bg-white/10 hover:text-white/60 transition-colors duration-120"
             @click="resetDefaults"
           >
             恢复默认
@@ -215,10 +218,10 @@ onUnmounted(() => {
         <Transition name="msg">
           <div
             v-if="message"
-            class="mt-3 px-3 py-2 rounded-lg text-[12px]"
+            class="mt-3 px-3 py-1.5 rounded-[6px] text-[11.5px]"
             :class="message.type === 'success'
-              ? 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20'
-              : 'bg-red-500/10 text-red-400 ring-1 ring-red-500/20'"
+              ? 'bg-emerald-500/10 text-emerald-400/80'
+              : 'bg-red-500/10 text-red-400/80'"
           >
             {{ message.text }}
           </div>
