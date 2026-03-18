@@ -161,6 +161,34 @@ function commitCurrentTextBox(cancel = false) {
   }
 }
 
+function onDoubleClick(e: MouseEvent) {
+  if (e.button !== 0) return
+  if (showSettings.value || showQuickColors.value) return
+
+  const pos = { x: e.clientX, y: e.clientY }
+  const clickedActionInfo = findActionAt(pos)
+
+  if (clickedActionInfo && clickedActionInfo.action.tool === 'text') {
+    if (textBoxPos.value) {
+      commitCurrentTextBox()
+    }
+
+    const { action, index } = clickedActionInfo
+    editingOriginalAction.value = action
+    removeAction(index)
+    
+    activeTextBoxColor.value = action.color
+    activeTextBoxFontSize.value = action.fontSize ?? 24
+    activeTextBoxInitialText.value = action.text ?? ''
+    
+    currentTool.value = 'text'
+    
+    nextTick(() => {
+      textBoxPos.value = { x: action.points[0].x, y: action.points[0].y }
+    })
+  }
+}
+
 function onMouseDown(e: MouseEvent) {
   if (e.button !== 0) return
   if (showSettings.value || showQuickColors.value) return
@@ -177,29 +205,20 @@ function onMouseDown(e: MouseEvent) {
     }
 
     if (clickedActionInfo && clickedActionInfo.action.tool === 'text') {
-      // 点击了已有的文本，进入编辑模式
-      const { action, index } = clickedActionInfo
-      editingOriginalAction.value = action
-      removeAction(index)
-      
-      activeTextBoxColor.value = action.color
-      activeTextBoxFontSize.value = action.fontSize ?? 24
-      activeTextBoxInitialText.value = action.text ?? ''
-      
+      // 在文本模式下点击已有文本，不再直接编辑，而是让后面逻辑处理移动
+      // 如果要编辑，通过双击触发（后面会实现双击事件）
+      // 这里只需要新建文本的逻辑即可
+      // 但考虑到此时鼠标在已有文字上，我们应该允许移动，所以直接交给后面的移动逻辑
+    } else {
+      // 点击空白处，新建文本
+      activeTextBoxColor.value = currentColor.value
+      activeTextBoxFontSize.value = textFontSize.value
+      activeTextBoxInitialText.value = ''
       nextTick(() => {
-        textBoxPos.value = { x: action.points[0].x, y: action.points[0].y }
+        textBoxPos.value = pos
       })
       return
     }
-
-    // 点击空白处，新建文本
-    activeTextBoxColor.value = currentColor.value
-    activeTextBoxFontSize.value = textFontSize.value
-    activeTextBoxInitialText.value = ''
-    nextTick(() => {
-      textBoxPos.value = pos
-    })
-    return
   }
 
   if (textBoxPos.value) {
@@ -241,7 +260,7 @@ function onPointerMove(e: PointerEvent) {
   }
 
   if (!isDrawing.value) {
-    if (active.value && !showSettings.value && !showQuickColors.value && !textBoxPos.value && currentTool.value !== 'text') {
+    if (active.value && !showSettings.value && !showQuickColors.value && !textBoxPos.value) {
       hoveredActionInfo.value = findActionAt(mousePos.value)
     } else {
       hoveredActionInfo.value = null
@@ -360,7 +379,7 @@ function onKeyDown(e: KeyboardEvent) {
 }
 
 const cursorStyle = computed(() => {
-  if (isMoving.value || (hoveredActionInfo.value && !isDrawing.value && currentTool.value !== 'text')) return 'move'
+  if (isMoving.value || (hoveredActionInfo.value && !isDrawing.value)) return 'move'
   if (currentTool.value === 'text') return 'text'
   if (showQuickColors.value || showSettings.value) return 'default'
 
@@ -463,6 +482,7 @@ function exitDrawing() {
       class="absolute top-0 left-0 w-full h-full touch-none"
       :style="{ cursor: cursorStyle }"
       @pointerdown="onMouseDown"
+      @dblclick="onDoubleClick"
       @pointermove="onPointerMove"
       @pointerup="onMouseUp"
       @pointerleave="onMouseUp"
