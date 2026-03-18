@@ -1,7 +1,6 @@
 {
   "name": "markon",
   "version": "0.0.2",
-  "main": "dist-electron/main/index.js",
   "description": "轻量级屏幕标注工具 - 按下快捷键，随时在桌面上自由绘画、标注",
   "author": "",
   "license": "MIT",
@@ -10,31 +9,25 @@
     "markon",
     "screen-annotation",
     "drawing",
-    "electron",
+    "tauri",
     "vue"
   ],
-  "debug": {
-    "env": {
-      "VITE_DEV_SERVER_URL": "http://127.0.0.1:3344/"
-    }
-  },
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build && electron-builder",
-    "preview": "vite preview"
+    "dev": "tauri dev",
+    "dev:fe": "vite",
+    "build": "tauri build",
+    "build:fe": "vue-tsc --noEmit && vite build"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.1",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/cli": "^2",
     "@vitejs/plugin-vue": "^6.0.5",
-    "electron": "^41.0.3",
-    "electron-builder": "^26.8.1",
     "lucide-vue-next": "^0.577.0",
     "tailwindcss": "^4.2.1",
     "typescript": "^5.9.3",
     "vite": "^6.4.1",
-    "vite-plugin-electron": "^0.29.1",
-    "vite-plugin-electron-renderer": "^0.14.6",
     "vue": "^3.5.30",
     "vue-tsc": "^3.2.6"
   }

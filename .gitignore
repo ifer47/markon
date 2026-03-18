@@ -10,9 +10,11 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
-dist-electron
-release
 *.local
+.playwright-mcp
+
+# Tauri / Rust
+src-tauri/target
 
 # Editor directories and files
 .vscode/.debug.env
