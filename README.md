@@ -1,9 +1,9 @@
-# <img src="public/icon.png" width="28" height="28" /> ZoomIt Annotator
+# <img src="public/icon.png" width="28" height="28" /> MarkOn
 
 > **轻量级屏幕标注工具** — 按下快捷键，随时在桌面上自由绘画、标注。适用于课堂演示 / 会议讲解 / 录屏批注。
 
 <p align="center">
-  <img src="public/screenshot.png" width="520" alt="ZoomIt Annotator 设置面板" />
+  <img src="public/screenshot.png" width="520" alt="MarkOn 设置面板" />
 </p>
 
 ## 🚀 快速开始
@@ -95,7 +95,7 @@ npm run build
 ## 📁 项目结构
 
 ```
-zoomit/
+markon/
 ├── electron/
 │   ├── main/index.ts            # 主进程 — 窗口管理、快捷键、托盘
 │   └── preload/index.ts         # 预加载 — IPC 通信桥接

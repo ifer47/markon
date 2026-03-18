@@ -1,9 +1,9 @@
 // @see https://www.electron.build/configuration/configuration
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
-  "appId": "com.zoomit.annotator",
+  "appId": "com.markon.app",
   "asar": true,
-  "productName": "ZoomIt Annotator",
+  "productName": "MarkOn",
   "directories": {
     "output": "release/${version}"
   },
