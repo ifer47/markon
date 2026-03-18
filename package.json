@@ -1,6 +1,6 @@
 {
   "name": "zoomit-annotator",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "main": "dist-electron/main/index.js",
   "description": "屏幕标注工具 - 类似ZoomIt，上课演示时随时标注桌面内容",
   "author": "",
