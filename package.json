@@ -1,13 +1,13 @@
 {
-  "name": "zoomit-annotator",
+  "name": "markon",
   "version": "0.0.1",
   "main": "dist-electron/main/index.js",
-  "description": "屏幕标注工具 - 类似ZoomIt，上课演示时随时标注桌面内容",
+  "description": "轻量级屏幕标注工具 - 按下快捷键，随时在桌面上自由绘画、标注",
   "author": "",
   "license": "MIT",
   "private": true,
   "keywords": [
-    "zoomit",
+    "markon",
     "screen-annotation",
     "drawing",
     "electron",

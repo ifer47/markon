@@ -141,7 +141,7 @@ function createTray() {
     },
   ])
 
-  tray.setToolTip('ZoomIt - 屏幕标注工具')
+  tray.setToolTip('MarkOn - 屏幕标注工具')
   tray.setContextMenu(contextMenu)
   tray.on('click', () => toggleDrawing())
 }
