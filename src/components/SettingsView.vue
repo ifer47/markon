@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
-import type { AppConfig } from '../types/electron'
+import { invoke } from '@tauri-apps/api/core'
+import type { AppConfig, SaveResult } from '../types/app'
 
 const activeTab = ref('shortcuts')
 
@@ -80,7 +81,7 @@ async function saveShortcuts() {
   saving.value = true
   message.value = null
   try {
-    const res = await window.electronAPI.saveShortcuts({ ...shortcuts })
+    const res = await invoke<SaveResult>('save_shortcuts', { shortcuts: { ...shortcuts } })
     if (res.ok) {
       message.value = { type: 'success', text: '快捷键已保存' }
     } else {
@@ -88,7 +89,7 @@ async function saveShortcuts() {
         type: 'error',
         text: `以下快捷键被占用：${res.failed?.join('、') ?? ''}`,
       }
-      const cfg = await window.electronAPI.getConfig()
+      const cfg = await invoke<AppConfig>('get_config')
       Object.assign(shortcuts, cfg.shortcuts)
     }
   } catch {
@@ -100,9 +101,11 @@ async function saveShortcuts() {
 }
 
 async function resetDefaults() {
-  const res = await window.electronAPI.saveShortcuts({
-    toggleDrawing: 'Ctrl+Shift+D',
-    clearDrawing: 'Ctrl+Shift+C',
+  const res = await invoke<SaveResult>('save_shortcuts', {
+    shortcuts: {
+      toggleDrawing: 'Ctrl+Shift+D',
+      clearDrawing: 'Ctrl+Shift+C',
+    },
   })
   if (res.ok) {
     shortcuts.toggleDrawing = 'Ctrl+Shift+D'
@@ -113,7 +116,7 @@ async function resetDefaults() {
 }
 
 onMounted(async () => {
-  const cfg = await window.electronAPI.getConfig()
+  const cfg = await invoke<AppConfig>('get_config')
   Object.assign(shortcuts, cfg.shortcuts)
   window.addEventListener('keydown', onKeyDown, true)
 })
@@ -128,7 +131,7 @@ onUnmounted(() => {
     <!-- Sidebar -->
     <div class="w-[154px] shrink-0 bg-[#161618] flex flex-col border-r border-white/5">
       <div class="flex items-center gap-2.5 px-4 pt-5 pb-5">
-        <img src="/icon.png" class="w-7 h-7 shrink-0 brightness-0 invert" alt="MarkOn" draggable="false" />
+        <svg class="w-7 h-7 shrink-0" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M659.498667 412.8l-6.101334-6.058667a233.6 233.6 0 0 0-101.973333-57.557333c-124.032-33.237333-243.157333 37.077333-276.992 163.413333-1.834667 6.826667-2.816 14.506667-4.437333 33.749334-6.570667 79.786667-25.344 139.306667-76.8 199.68 96.426667 37.888 210.688 64.597333 297.557333 64.597333a234.88 234.88 0 0 0 226.56-174.037333 234.538667 234.538667 0 0 0-57.856-223.786667z m-92.501334-147.712l210.730667-163.925333a42.666667 42.666667 0 0 1 56.32 3.541333l127.786667 127.744a42.666667 42.666667 0 0 1 3.498666 56.32l-163.84 210.730667a320.213333 320.213333 0 0 1-310.741333 396.458666C341.333333 895.957333 149.333333 831.872 42.666667 767.872c169.813333-128 130.005333-205.226667 149.333333-277.333333 45.141333-168.533333 206.592-267.008 374.997333-225.450667zM712.533333 345.258667c2.816 2.688 5.546667 5.461333 8.277334 8.234666L769.28 401.92l105.6-135.765333-74.496-74.496-135.765333 105.6L712.533333 345.258667z" fill="currentColor"/></svg>
         <span class="text-[13px] font-semibold text-white/85 tracking-wide leading-tight">MarkOn</span>
       </div>
 

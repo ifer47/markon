@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, computed, type Component } from 'vue'
+import { invoke } from '@tauri-apps/api/core'
+import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import { useDrawing, type Tool, type DrawAction } from '../composables/useDrawing'
 import SettingsPanel from './SettingsPanel.vue'
 import TextBox from './TextBox.vue'
@@ -345,13 +347,16 @@ const quickColorsPanelStyle = computed(() => {
   return { left: left + 'px', top: top + 'px' }
 })
 
-onMounted(() => {
+const unlisteners: UnlistenFn[] = []
+
+onMounted(async () => {
   resizeCanvas()
   window.addEventListener('resize', resizeCanvas)
   window.addEventListener('keydown', onKeyDown)
 
-  if (window.electronAPI) {
-    window.electronAPI.onToggleDrawing((isActive: boolean) => {
+  unlisteners.push(
+    await listen<boolean>('toggle-drawing', (event) => {
+      const isActive = event.payload
       active.value = isActive
       showSettings.value = false
       showQuickColors.value = false
@@ -362,16 +367,19 @@ onMounted(() => {
         nextTick(() => resizeCanvas())
       }
     })
+  )
 
-    window.electronAPI.onClearDrawing(() => {
+  unlisteners.push(
+    await listen('clear-drawing', () => {
       clearAll()
     })
-  }
+  )
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', resizeCanvas)
   window.removeEventListener('keydown', onKeyDown)
+  unlisteners.forEach((fn) => fn())
   destroy()
 })
 
@@ -380,9 +388,7 @@ function exitDrawing() {
   showSettings.value = false
   showQuickColors.value = false
   textBoxPos.value = null
-  if (window.electronAPI) {
-    window.electronAPI.exitDrawing()
-  }
+  invoke('exit_drawing')
 }
 </script>
 
