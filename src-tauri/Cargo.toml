@@ -1,6 +1,6 @@
 [package]
 name = "markon"
-version = "0.0.2"
+version = "0.0.3"
 description = "轻量级屏幕标注工具"
 authors = [""]
 edition = "2021"
