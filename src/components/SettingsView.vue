@@ -151,7 +151,7 @@ onUnmounted(() => {
       </nav>
 
       <div class="mt-auto px-3 pb-3">
-        <span class="text-[10px] text-white/12">v0.0.3</span>
+        <span class="text-[10px] text-white/12">v0.0.4</span>
       </div>
     </div>
 
