@@ -186,6 +186,17 @@ function onDoubleClick(e: MouseEvent) {
     nextTick(() => {
       textBoxPos.value = { x: action.points[0].x, y: action.points[0].y }
     })
+  } else if (currentTool.value === 'text') {
+    // 在文本模式下，双击空白处新建文本
+    if (textBoxPos.value) {
+      commitCurrentTextBox()
+    }
+    activeTextBoxColor.value = currentColor.value
+    activeTextBoxFontSize.value = textFontSize.value
+    activeTextBoxInitialText.value = ''
+    nextTick(() => {
+      textBoxPos.value = pos
+    })
   }
 }
 
@@ -193,43 +204,21 @@ function onMouseDown(e: MouseEvent) {
   if (e.button !== 0) return
   if (showSettings.value || showQuickColors.value) return
 
-  if (currentTool.value === 'text') {
-    e.preventDefault()
-    const pos = { x: e.clientX, y: e.clientY }
-
-    const clickedActionInfo = findActionAt(pos)
-    
-    if (textBoxPos.value) {
-      // 提交当前正在编辑的文本
-      commitCurrentTextBox()
-    }
-
-    if (clickedActionInfo && clickedActionInfo.action.tool === 'text') {
-      // 在文本模式下点击已有文本，不再直接编辑，而是让后面逻辑处理移动
-      // 如果要编辑，通过双击触发（后面会实现双击事件）
-      // 这里只需要新建文本的逻辑即可
-      // 但考虑到此时鼠标在已有文字上，我们应该允许移动，所以直接交给后面的移动逻辑
-    } else {
-      // 点击空白处，新建文本
-      activeTextBoxColor.value = currentColor.value
-      activeTextBoxFontSize.value = textFontSize.value
-      activeTextBoxInitialText.value = ''
-      nextTick(() => {
-        textBoxPos.value = pos
-      })
-      return
-    }
-  }
-
   if (textBoxPos.value) {
     commitCurrentTextBox()
     return
   }
 
+  // 优先处理拖拽，无论在什么工具模式下，只要放在已有元素上，按下就是拖拽
   if (hoveredActionInfo.value) {
     isMoving.value = true
     moveStartPos.value = { x: e.clientX, y: e.clientY }
     originalActionPoints.value = hoveredActionInfo.value.action.points.map(p => ({ ...p }))
+    return
+  }
+
+  // 如果当前是文字模式，单击不执行任何操作（新建文字交由双击处理）
+  if (currentTool.value === 'text') {
     return
   }
 

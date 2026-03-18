@@ -56,7 +56,7 @@ npm run build
 | <kbd>5</kbd> | ○ 椭圆 | 椭圆边框 |
 | <kbd>6</kbd> | ╱ 直线 | 直线段 |
 | <kbd>7</kbd> | ◎ 橡皮擦 | 擦除标注内容 |
-| <kbd>T</kbd> | 𝐓 文字 | 点击放置文字，滚轮调整字号，<kbd>Ctrl</kbd> + <kbd>Enter</kbd> 确认 |
+| <kbd>T</kbd> | 𝐓 文字 | 双击放置/编辑文字，滚轮调整字号，<kbd>Ctrl</kbd> + <kbd>Enter</kbd> 确认 |
 
 ### 标注模式 — 颜色切换
 
