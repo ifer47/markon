@@ -13,6 +13,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setIgnoreMouse(ignore: boolean) {
     ipcRenderer.send('set-ignore-mouse', ignore)
   },
+  getConfig() {
+    return ipcRenderer.invoke('get-config')
+  },
+  saveShortcuts(shortcuts: Record<string, string>) {
+    return ipcRenderer.invoke('save-shortcuts', shortcuts)
+  },
 })
 
 contextBridge.exposeInMainWorld('ipcRenderer', {

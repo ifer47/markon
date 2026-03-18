@@ -13,9 +13,17 @@
     background: transparent !important;
   }
 
+  html.settings, html.settings body {
+    background: #1e1e20 !important;
+  }
+
   #app {
     width: 100vw;
     height: 100vh;
     background: transparent;
+  }
+
+  html.settings #app {
+    background: #1e1e20;
   }
 }
