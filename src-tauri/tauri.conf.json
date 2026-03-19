@@ -47,7 +47,15 @@
     ],
     "windows": {
       "nsis": {
-        "installMode": "currentUser"
+        "installMode": "currentUser",
+        "installerIcon": "./icons/installer-icon.ico",
+        "sidebarImage": "./icons/installer-sidebar.bmp",
+        "languages": ["SimpChinese"]
+      },
+      "wix": {
+        "language": "zh-CN",
+        "bannerPath": "./icons/installer-banner-blank.bmp",
+        "dialogImagePath": "./icons/installer-dialog.bmp"
       }
     }
   }
