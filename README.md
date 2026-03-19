@@ -6,6 +6,17 @@
   <img src="public/screenshot.png" width="520" alt="MarkOn 设置面板" />
 </p>
 
+## 📥 下载安装
+
+> 无需安装开发环境，直接下载安装包即可使用。
+
+| 平台 | 安装包 | 说明 |
+| :--- | :--- | :--- |
+| Windows x64 | [MarkOn_0.0.4_x64-setup.exe](https://github.com/ifer47/markon/releases/download/v0.0.4/MarkOn_0.0.4_x64-setup.exe) | NSIS 安装程序（推荐） |
+| Windows x64 | [MarkOn_0.0.4_x64_en-US.msi](https://github.com/ifer47/markon/releases/download/v0.0.4/MarkOn_0.0.4_x64_en-US.msi) | MSI 安装程序 |
+
+也可以前往 [Releases 页面](https://github.com/ifer47/markon/releases/tag/v0.0.4) 查看所有版本及更新日志。
+
 ## 🚀 快速开始
 
 ```bash
