@@ -131,7 +131,7 @@ onUnmounted(() => {
             <span class="text-[10px] leading-none font-sans">{{ tool.label }}</span>
             <span
               class="absolute top-[3px] right-[5px] text-[8px] font-sans"
-              :class="currentTool === tool.id ? 'text-white/40' : 'text-white/18'"
+              :class="currentTool === tool.id ? 'text-white/60' : 'text-white/40'"
             >{{ tool.key }}</span>
           </button>
         </div>
@@ -168,7 +168,7 @@ onUnmounted(() => {
             </button>
           </div>
         </div>
-        <label class="group inline-flex items-center gap-2 cursor-pointer py-1.5 pl-1.5 pr-2.5 rounded-lg mt-1.5 transition-[background] duration-120 hover:bg-white/6">
+        <label class="group inline-flex items-center gap-2.5 cursor-pointer py-1.5 pl-1.5 pr-2.5 rounded-lg mt-1.5 transition-[background] duration-120 hover:bg-white/6">
           <input
             type="color"
             class="absolute w-0 h-0 opacity-0 pointer-events-none"
@@ -176,10 +176,12 @@ onUnmounted(() => {
             @input="emit('selectColor', ($event.target as HTMLInputElement).value)"
           />
           <span
-            class="w-[18px] h-[18px] rounded-full border-2 border-dashed border-white/20 transition-[border-color] duration-120 pointer-events-none group-hover:border-white/35"
-            :style="{ backgroundColor: currentColor }"
-          />
-          <span class="text-[11px] text-white/30 font-sans">自定义颜色</span>
+            class="w-[20px] h-[20px] rounded-full border border-white/20 transition-[border-color,transform] duration-120 pointer-events-none group-hover:border-white/40 group-hover:scale-105 flex items-center justify-center shadow-[inset_0_0_2px_rgba(0,0,0,0.5)]"
+            style="background: conic-gradient(from 90deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080, #ff0000);"
+          >
+            <span class="text-white text-[14px] leading-none font-light" style="text-shadow: 0 1px 2px rgba(0,0,0,0.6)">+</span>
+          </span>
+          <span class="text-[11px] text-white/50 font-sans">自定义颜色</span>
         </label>
       </div>
 
@@ -203,7 +205,7 @@ onUnmounted(() => {
               class="w-[70%] rounded-full transition-transform duration-120 group-hover:scale-x-110"
               :style="{
                 height: Math.max(1.5, w.value * 1.2) + 'px',
-                backgroundColor: currentColor,
+                backgroundColor: lineWidth === w.value ? '#ffffff' : 'rgba(255,255,255,0.4)',
               }"
             />
           </button>
@@ -211,42 +213,42 @@ onUnmounted(() => {
       </div>
 
       <!-- 底部快捷键提示 -->
-      <div class="flex flex-col gap-[3px] pt-2 px-3.5 pb-2.5 border-t border-white/5">
-        <div class="flex items-center justify-between text-[10px] font-sans">
-          <span class="flex items-center gap-[3px] text-white/25">
-            <kbd class="inline-block px-[5px] py-px rounded-[3px] bg-white/6 border border-white/8 text-[9px] font-sans text-white/35 leading-[1.3]">Ctrl</kbd>
-            <span class="text-white/12 text-[9px]">+</span>
-            拖动
+      <div class="flex flex-col gap-1.5 pt-3 px-3.5 pb-3 border-t border-white/5">
+        <div class="flex items-center justify-between text-[10.5px] font-sans">
+          <span class="flex items-center gap-1.5 text-white/45">
+            <kbd class="inline-block px-1.5 py-px rounded-[4px] bg-white/10 border border-white/10 text-[9.5px] font-sans text-white/70 leading-[1.4] shadow-sm">Ctrl</kbd>
+            <span class="text-white/30 text-[10px]">+</span>
+            <span>拖动</span>
           </span>
-          <span class="text-white/20 text-[10px]">矩形</span>
+          <span class="text-white/50 text-[10.5px] text-right min-w-[48px]">矩形</span>
         </div>
-        <div class="flex items-center justify-between text-[10px] font-sans">
-          <span class="flex items-center gap-[3px] text-white/25">
-            <kbd class="inline-block px-[5px] py-px rounded-[3px] bg-white/6 border border-white/8 text-[9px] font-sans text-white/35 leading-[1.3]">Shift</kbd>
-            <span class="text-white/12 text-[9px]">+</span>
-            拖动
+        <div class="flex items-center justify-between text-[10.5px] font-sans">
+          <span class="flex items-center gap-1.5 text-white/45">
+            <kbd class="inline-block px-1.5 py-px rounded-[4px] bg-white/10 border border-white/10 text-[9.5px] font-sans text-white/70 leading-[1.4] shadow-sm">Shift</kbd>
+            <span class="text-white/30 text-[10px]">+</span>
+            <span>拖动</span>
           </span>
-          <span class="text-white/20 text-[10px]">椭圆</span>
+          <span class="text-white/50 text-[10.5px] text-right min-w-[48px]">椭圆</span>
         </div>
-        <div class="flex items-center justify-between text-[10px] font-sans">
-          <span class="flex items-center gap-[3px] text-white/25">
-            <kbd class="inline-block px-[5px] py-px rounded-[3px] bg-white/6 border border-white/8 text-[9px] font-sans text-white/35 leading-[1.3]">Ctrl</kbd>
-            <span class="text-white/12 text-[9px]">+</span>
-            <kbd class="inline-block px-[5px] py-px rounded-[3px] bg-white/6 border border-white/8 text-[9px] font-sans text-white/35 leading-[1.3]">Shift</kbd>
-            <span class="text-white/12 text-[9px]">+</span>
-            拖动
+        <div class="flex items-center justify-between text-[10.5px] font-sans">
+          <span class="flex items-center gap-1.5 text-white/45">
+            <kbd class="inline-block px-1.5 py-px rounded-[4px] bg-white/10 border border-white/10 text-[9.5px] font-sans text-white/70 leading-[1.4] shadow-sm">Ctrl</kbd>
+            <span class="text-white/30 text-[10px]">+</span>
+            <kbd class="inline-block px-1.5 py-px rounded-[4px] bg-white/10 border border-white/10 text-[9.5px] font-sans text-white/70 leading-[1.4] shadow-sm">Shift</kbd>
+            <span class="text-white/30 text-[10px]">+</span>
+            <span>拖动</span>
           </span>
-          <span class="text-white/20 text-[10px]">箭头</span>
+          <span class="text-white/50 text-[10.5px] text-right min-w-[48px]">箭头</span>
         </div>
-        <div class="flex items-center justify-between text-[10px] font-sans">
-          <span class="flex items-center gap-[3px] text-white/25">
-            <kbd class="inline-block px-[5px] py-px rounded-[3px] bg-white/6 border border-white/8 text-[9px] font-sans text-white/35 leading-[1.3]">Q</kbd>
-            /
-            <kbd class="inline-block px-[5px] py-px rounded-[3px] bg-white/6 border border-white/8 text-[9px] font-sans text-white/35 leading-[1.3]">E</kbd>
-            <span class="text-white/12 text-[9px]">/</span>
-            右键
+        <div class="flex items-center justify-between text-[10.5px] font-sans">
+          <span class="flex items-center gap-1.5 text-white/45">
+            <kbd class="inline-block px-1.5 py-px rounded-[4px] bg-white/10 border border-white/10 text-[9.5px] font-sans text-white/70 leading-[1.4] shadow-sm">Q</kbd>
+            <span class="text-white/30 text-[10px]">/</span>
+            <kbd class="inline-block px-1.5 py-px rounded-[4px] bg-white/10 border border-white/10 text-[9.5px] font-sans text-white/70 leading-[1.4] shadow-sm">E</kbd>
+            <span class="text-white/30 text-[10px]">/</span>
+            <span>右键</span>
           </span>
-          <span class="text-white/20 text-[10px]">切换颜色</span>
+          <span class="text-white/50 text-[10.5px] text-right min-w-[48px]">切换颜色</span>
         </div>
       </div>
     </div>

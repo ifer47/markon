@@ -552,7 +552,7 @@ function exitDrawing() {
             </button>
           </div>
           <div class="flex items-center justify-center gap-3 mt-1.5 pt-1.5 border-t border-white/5">
-            <span class="text-[9px] text-white/25 font-sans">Q ← 切换 → E</span>
+            <span class="text-[10px] text-white/50 font-sans tracking-wider">Q ← 切换 → E</span>
           </div>
         </div>
       </div>

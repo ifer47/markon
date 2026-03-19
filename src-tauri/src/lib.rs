@@ -270,6 +270,10 @@ fn set_ignore_mouse(app: AppHandle, ignore: bool) {
 
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec![]),
+        ))
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .manage(AppState {
             config: Mutex::new(AppConfig::default()),

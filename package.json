@@ -38,5 +38,8 @@
     "vite": "^6.4.1",
     "vue": "^3.5.30",
     "vue-tsc": "^3.2.6"
+  },
+  "dependencies": {
+    "@tauri-apps/plugin-autostart": "^2.5.1"
   }
 }
