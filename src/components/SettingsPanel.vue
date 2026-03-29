@@ -68,8 +68,14 @@ function initPosition() {
   })
 }
 
+let cachedPanelH = 400
+let lastDragX = 0
+let lastDragY = 0
+let dragRafId: number | null = null
+
 function startDrag(e: MouseEvent) {
   isDragging.value = true
+  cachedPanelH = panelRef.value?.offsetHeight ?? 400
   dragOffset.value = {
     x: e.clientX - panelLeft.value,
     y: e.clientY - panelTop.value,
@@ -79,13 +85,22 @@ function startDrag(e: MouseEvent) {
 
 function onDrag(e: MouseEvent) {
   if (!isDragging.value) return
-  const panelH = panelRef.value?.offsetHeight ?? 400
-  panelLeft.value = Math.max(0, Math.min(e.clientX - dragOffset.value.x, window.innerWidth - panelW))
-  panelTop.value = Math.max(0, Math.min(e.clientY - dragOffset.value.y, window.innerHeight - panelH))
+  lastDragX = e.clientX
+  lastDragY = e.clientY
+  if (dragRafId !== null) return
+  dragRafId = requestAnimationFrame(() => {
+    dragRafId = null
+    panelLeft.value = Math.max(0, Math.min(lastDragX - dragOffset.value.x, window.innerWidth - panelW))
+    panelTop.value = Math.max(0, Math.min(lastDragY - dragOffset.value.y, window.innerHeight - cachedPanelH))
+  })
 }
 
 function stopDrag() {
   isDragging.value = false
+  if (dragRafId !== null) {
+    cancelAnimationFrame(dragRafId)
+    dragRafId = null
+  }
 }
 
 onMounted(() => {
@@ -97,6 +112,10 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('mousemove', onDrag)
   window.removeEventListener('mouseup', stopDrag)
+  if (dragRafId !== null) {
+    cancelAnimationFrame(dragRafId)
+    dragRafId = null
+  }
 })
 </script>
 
@@ -104,8 +123,8 @@ onUnmounted(() => {
   <div class="fixed top-0 left-0 w-screen h-screen z-100001" @mousedown.self="emit('close')">
     <div
       ref="panelRef"
-      class="absolute w-[272px] bg-[rgba(30,30,32,0.94)] backdrop-blur-xl backdrop-saturate-[1.8] rounded-2xl border border-white/8 shadow-[0_24px_48px_rgba(0,0,0,0.45),0_4px_16px_rgba(0,0,0,0.25),inset_0_0.5px_0_rgba(255,255,255,0.08)] select-none overflow-hidden"
-      :style="{ left: panelLeft + 'px', top: panelTop + 'px' }"
+      class="absolute left-0 top-0 w-[272px] bg-[rgba(30,30,32,0.97)] rounded-2xl border border-white/8 shadow-[0_24px_48px_rgba(0,0,0,0.45),0_4px_16px_rgba(0,0,0,0.25),inset_0_0.5px_0_rgba(255,255,255,0.08)] select-none overflow-hidden"
+      :style="{ transform: `translate3d(${panelLeft}px,${panelTop}px,0)`, willChange: isDragging ? 'transform' : 'auto' }"
       @mousedown.stop
     >
       <div class="h-2.5 cursor-default" @mousedown="startDrag" />
