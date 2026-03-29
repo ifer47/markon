@@ -41,8 +41,20 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   let strokeCtx: CanvasRenderingContext2D | null = null
   let lastBakedPtIdx = 0
 
+  // Pre-rendered drag element canvas (avoids per-frame path reconstruction)
+  let dragCanvas: HTMLCanvasElement | null = null
+  let dragCtx: CanvasRenderingContext2D | null = null
+  let dragOffsetX = 0
+  let dragOffsetY = 0
+  let dragBboxX = 0
+  let dragBboxY = 0
+  let useDragCanvas = false
+  let prevDragScreenX = NaN
+  let prevDragScreenY = NaN
+  const pathCache = new WeakMap<DrawAction, Path2D>()
+
   function getCtx(): CanvasRenderingContext2D | null {
-    return canvasRef.value?.getContext('2d') ?? null
+    return canvasRef.value?.getContext('2d', { alpha: true, desynchronized: true }) ?? null
   }
 
   function computeBbox(action: DrawAction, pad: number): DrawAction['bbox'] {
@@ -161,6 +173,53 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     const canvas = canvasRef.value
     if (!ctx || !canvas) return
 
+    const preview = previewAction.value
+
+    // Fast path: dirty-rect rendering during drag with pre-rendered canvas.
+    // Instead of clearing+redrawing the entire canvas (~33M pixels on 4K),
+    // only update the union of old and new element positions.
+    if (preview && useDragCanvas && dragCanvas) {
+      ensureCache()
+
+      const dpr = window.devicePixelRatio || 1
+      const newX = Math.round((dragBboxX + dragOffsetX) * dpr)
+      const newY = Math.round((dragBboxY + dragOffsetY) * dpr)
+      const dw = dragCanvas.width
+      const dh = dragCanvas.height
+
+      if (newX === prevDragScreenX && newY === prevDragScreenY) return
+
+      ctx.save()
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
+
+      if (!isNaN(prevDragScreenX)) {
+        const ux = Math.max(0, Math.min(prevDragScreenX, newX))
+        const uy = Math.max(0, Math.min(prevDragScreenY, newY))
+        const ur = Math.min(canvas.width, Math.max(prevDragScreenX + dw, newX + dw))
+        const ub = Math.min(canvas.height, Math.max(prevDragScreenY + dh, newY + dh))
+
+        if (ur > ux && ub > uy) {
+          const uw = ur - ux, uh = ub - uy
+          ctx.clearRect(ux, uy, uw, uh)
+          if (cacheCanvas) ctx.drawImage(cacheCanvas, ux, uy, uw, uh, ux, uy, uw, uh)
+        }
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        if (cacheCanvas) ctx.drawImage(cacheCanvas, 0, 0)
+      }
+
+      ctx.drawImage(dragCanvas, newX, newY)
+      ctx.restore()
+
+      prevDragScreenX = newX
+      prevDragScreenY = newY
+      return
+    }
+
+    // Standard render path
+    prevDragScreenX = NaN
+    prevDragScreenY = NaN
+
     ensureCache()
 
     ctx.save()
@@ -175,21 +234,25 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     if (action) {
       const isFreehand = action.tool === 'pen' || action.tool === 'highlighter' || action.tool === 'eraser'
       if (isFreehand && strokeCanvas && action.points.length > 3) {
-        // Composite the pre-baked stroke layer
         ctx.save()
         ctx.setTransform(1, 0, 0, 1, 0, 0)
         ctx.drawImage(strokeCanvas, 0, 0)
         ctx.restore()
-        // Draw only the unsettled tail (last 3 points)
         drawFreehandTail(ctx, action)
       } else {
         drawActionOn(ctx, action)
       }
     }
 
-    const preview = previewAction.value
     if (preview) {
-      drawActionOn(ctx, preview)
+      if (dragOffsetX !== 0 || dragOffsetY !== 0) {
+        ctx.save()
+        ctx.translate(dragOffsetX, dragOffsetY)
+        drawActionOn(ctx, preview)
+        ctx.restore()
+      } else {
+        drawActionOn(ctx, preview)
+      }
     }
   }
 
@@ -370,9 +433,30 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     switch (action.tool) {
       case 'pen':
       case 'highlighter':
-      case 'eraser':
-        drawFreehand(ctx, pts)
+      case 'eraser': {
+        let path = pathCache.get(action)
+        if (!path && action.bbox) {
+          path = new Path2D()
+          path.moveTo(pts[0].x, pts[0].y)
+          if (pts.length === 2) {
+            path.lineTo(pts[1].x, pts[1].y)
+          } else {
+            for (let k = 1; k < pts.length - 1; k++) {
+              const midX = (pts[k].x + pts[k + 1].x) / 2
+              const midY = (pts[k].y + pts[k + 1].y) / 2
+              path.quadraticCurveTo(pts[k].x, pts[k].y, midX, midY)
+            }
+            path.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y)
+          }
+          pathCache.set(action, path)
+        }
+        if (path) {
+          ctx.stroke(path)
+        } else {
+          drawFreehand(ctx, pts)
+        }
         break
+      }
       case 'line':
         drawLine(ctx, pts[0], pts[1])
         break
@@ -508,12 +592,64 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   function beginDrag(action: DrawAction) {
     previewAction.value = action
     invalidateCache()
+    ensureCache()
+
+    useDragCanvas = false
+    dragOffsetX = 0
+    dragOffsetY = 0
+    prevDragScreenX = NaN
+    prevDragScreenY = NaN
+
+    if (action.tool !== 'eraser') {
+      const canvas = canvasRef.value
+      if (canvas) {
+        const dpr = window.devicePixelRatio || 1
+        const pad = Math.max(20, action.lineWidth / 2 + 10) + 2
+        const bbox = computeBbox(action, pad)
+        if (bbox) {
+          const bw = Math.ceil((bbox.x2 - bbox.x1) * dpr)
+          const bh = Math.ceil((bbox.y2 - bbox.y1) * dpr)
+          if (bw > 0 && bh > 0) {
+            dragBboxX = bbox.x1
+            dragBboxY = bbox.y1
+            if (!dragCanvas) dragCanvas = document.createElement('canvas')
+            dragCanvas.width = bw
+            dragCanvas.height = bh
+            dragCtx = dragCanvas.getContext('2d')
+            if (dragCtx) {
+              dragCtx.setTransform(1, 0, 0, 1, 0, 0)
+              dragCtx.clearRect(0, 0, bw, bh)
+              dragCtx.scale(dpr, dpr)
+              dragCtx.translate(-bbox.x1, -bbox.y1)
+              drawActionOn(dragCtx, action)
+              useDragCanvas = true
+            }
+          }
+        }
+      }
+    }
+
+    scheduleRender()
+  }
+
+  function updateDragOffset(dx: number, dy: number) {
+    dragOffsetX = dx
+    dragOffsetY = dy
     scheduleRender()
   }
 
   function endDrag() {
     if (previewAction.value) {
       const action = previewAction.value
+
+      if (dragOffsetX !== 0 || dragOffsetY !== 0) {
+        for (const pt of action.points) {
+          pt.x += dragOffsetX
+          pt.y += dragOffsetY
+        }
+        pathCache.delete(action)
+      }
+
       const pad = Math.max(20, action.lineWidth / 2 + 10)
       if (action.tool === 'text' && action.textWidth != null) {
         const fs = action.fontSize ?? 24
@@ -529,7 +665,6 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
         action.bbox = computeBbox(action, pad)
       }
 
-      // 移到 history 末尾，使其层级最高
       const idx = history.indexOf(action)
       if (idx !== -1 && idx !== history.length - 1) {
         history.splice(idx, 1)
@@ -537,6 +672,11 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       }
     }
     previewAction.value = null
+    useDragCanvas = false
+    dragOffsetX = 0
+    dragOffsetY = 0
+    prevDragScreenX = NaN
+    prevDragScreenY = NaN
     invalidateCache()
     flushRender()
   }
@@ -553,7 +693,9 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     if (redoStack.length === 0) return
     const action = redoStack.pop()!
     history.push(action)
-    invalidateCache()
+    if (cacheValid && cacheCtx) {
+      drawActionOn(cacheCtx, action)
+    }
     flushRender()
   }
 
@@ -568,12 +710,16 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     }
   }
 
+  function distToSeg(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {
+    const dx = bx - ax, dy = by - ay
+    const l2 = dx * dx + dy * dy
+    if (l2 === 0) return Math.hypot(px - ax, py - ay)
+    const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / l2))
+    return Math.hypot(px - (ax + t * dx), py - (ay + t * dy))
+  }
+
   function distancePointToSegment(p: Point, a: Point, b: Point): number {
-    const l2 = (a.x - b.x) ** 2 + (a.y - b.y) ** 2
-    if (l2 === 0) return Math.hypot(p.x - a.x, p.y - a.y)
-    let t = ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / l2
-    t = Math.max(0, Math.min(1, t))
-    return Math.hypot(p.x - (a.x + t * (b.x - a.x)), p.y - (a.y + t * (b.y - a.y)))
+    return distToSeg(p.x, p.y, a.x, a.y, b.x, b.y)
   }
 
   function findActionAt(p: Point): { action: DrawAction, index: number } | null {
@@ -605,8 +751,13 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
         if (pts.length === 1) {
           if (Math.hypot(p.x - pts[0].x, p.y - pts[0].y) <= threshold) return { action, index: i }
         } else {
-          for (let j = 0; j < pts.length - 1; j++) {
-            if (distancePointToSegment(p, pts[j], pts[j + 1]) <= threshold) return { action, index: i }
+          const segCount = pts.length - 1
+          const step = segCount > 50 ? Math.ceil(segCount / 50) : 1
+          for (let j = 0; j < segCount; j += step) {
+            if (distToSeg(p.x, p.y, pts[j].x, pts[j].y, pts[j + 1].x, pts[j + 1].y) <= threshold) return { action, index: i }
+          }
+          if (step > 1 && distToSeg(p.x, p.y, pts[segCount - 1].x, pts[segCount - 1].y, pts[segCount].x, pts[segCount].y) <= threshold) {
+            return { action, index: i }
           }
         }
         continue
@@ -621,15 +772,13 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
       if (action.tool === 'rect') {
         if (pts.length >= 2) {
-          const minX = Math.min(pts[0].x, pts[1].x)
-          const maxX = Math.max(pts[0].x, pts[1].x)
-          const minY = Math.min(pts[0].y, pts[1].y)
-          const maxY = Math.max(pts[0].y, pts[1].y)
+          const x0 = Math.min(pts[0].x, pts[1].x), x1 = Math.max(pts[0].x, pts[1].x)
+          const y0 = Math.min(pts[0].y, pts[1].y), y1 = Math.max(pts[0].y, pts[1].y)
 
-          const d1 = distancePointToSegment(p, {x: minX, y: minY}, {x: maxX, y: minY})
-          const d2 = distancePointToSegment(p, {x: maxX, y: minY}, {x: maxX, y: maxY})
-          const d3 = distancePointToSegment(p, {x: maxX, y: maxY}, {x: minX, y: maxY})
-          const d4 = distancePointToSegment(p, {x: minX, y: maxY}, {x: minX, y: minY})
+          const d1 = distToSeg(p.x, p.y, x0, y0, x1, y0)
+          const d2 = distToSeg(p.x, p.y, x1, y0, x1, y1)
+          const d3 = distToSeg(p.x, p.y, x1, y1, x0, y1)
+          const d4 = distToSeg(p.x, p.y, x0, y1, x0, y0)
 
           if (Math.min(d1, d2, d3, d4) <= threshold) return { action, index: i }
         }
@@ -684,6 +833,8 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     cacheCtx = null
     strokeCanvas = null
     strokeCtx = null
+    dragCanvas = null
+    dragCtx = null
   }
 
   return {
@@ -705,6 +856,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     requestRedraw,
     scheduleRender,
     beginDrag,
+    updateDragOffset,
     endDrag,
     destroy,
   }

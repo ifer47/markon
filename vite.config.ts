@@ -8,6 +8,8 @@ export default defineConfig({
   plugins: [vue(), tailwindcss()],
   build: {
     target: 'esnext',
+    modulePreload: { polyfill: false },
+    reportCompressedSize: false,
     rollupOptions: {
       output: {
         manualChunks: {

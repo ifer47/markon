@@ -97,7 +97,7 @@ npm run build
 | :--- | :--- |
 | <kbd>Space</kbd> | 呼出 / 隐藏设置面板（工具、颜色、线宽） |
 | <kbd>Ctrl</kbd> + <kbd>Z</kbd> | 撤销 |
-| <kbd>Ctrl</kbd> + <kbd>Y</kbd> | 重做 |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd> | 重做 |
 | <kbd>Delete</kbd> | 清除全部标注 |
 | <kbd>Esc</kbd> | 退出标注模式 |
 | <kbd>Alt</kbd> + <kbd>Tab</kbd> | 切换窗口并退出标注模式 |

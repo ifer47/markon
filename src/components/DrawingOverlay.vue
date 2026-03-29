@@ -113,8 +113,8 @@ const {
   redrawAll,
   requestRedraw,
   beginDrag,
+  updateDragOffset,
   endDrag,
-  scheduleRender,
   destroy,
 } = useDrawing(canvasRef)
 
@@ -127,9 +127,11 @@ const editingOriginalAction = shallowRef<DrawAction | null>(null)
 
 const hoveredActionInfo = shallowRef<{ action: DrawAction, index: number } | null>(null)
 const isMoving = ref(false)
-const moveStartPos = shallowRef<{ x: number, y: number } | null>(null)
-const originalActionPoints = shallowRef<{x: number, y: number}[]>([])
 const enableDragging = ref(false)
+let hoverRafId: number | null = null
+let isDragging = false
+let dragStartX = 0
+let dragStartY = 0
 
 function resizeCanvas() {
   const canvas = canvasRef.value
@@ -141,13 +143,19 @@ function resizeCanvas() {
   canvas.style.width = window.innerWidth + 'px'
   canvas.style.height = window.innerHeight + 'px'
 
-  const ctx = canvas.getContext('2d')
+  const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true })
   if (ctx) ctx.scale(dpr, dpr)
 
   redrawAll()
 }
 
 let toolBeforeModifier: string | null = null
+let resizeTimer: ReturnType<typeof setTimeout> | null = null
+
+function debouncedResize() {
+  if (resizeTimer) clearTimeout(resizeTimer)
+  resizeTimer = setTimeout(resizeCanvas, 100)
+}
 
 function commitCurrentTextBox(cancel = false) {
   if (textBoxRef.value && textBoxPos.value) {
@@ -206,7 +214,7 @@ function onDoubleClick(e: MouseEvent) {
   }
 }
 
-function onMouseDown(e: MouseEvent) {
+function onPointerDown(e: PointerEvent) {
   if (e.button !== 0) return
   if (showSettings.value || showQuickColors.value) return
 
@@ -217,10 +225,12 @@ function onMouseDown(e: MouseEvent) {
 
   // 优先处理拖拽，无论在什么工具模式下，只要放在已有元素上，按下就是拖拽
   if (hoveredActionInfo.value && enableDragging.value) {
+    isDragging = true
+    dragStartX = e.clientX
+    dragStartY = e.clientY
     isMoving.value = true
-    moveStartPos.value = { x: e.clientX, y: e.clientY }
-    originalActionPoints.value = hoveredActionInfo.value.action.points.map(p => ({ ...p }))
     beginDrag(hoveredActionInfo.value.action)
+    canvasRef.value?.setPointerCapture(e.pointerId)
     return
   }
 
@@ -240,28 +250,29 @@ function onMouseDown(e: MouseEvent) {
     currentTool.value = 'ellipse'
   }
 
+  canvasRef.value?.setPointerCapture(e.pointerId)
   startDraw({ x: e.clientX, y: e.clientY })
 }
 
 function onPointerMove(e: PointerEvent) {
-  mousePos.value = { x: e.clientX, y: e.clientY }
-
-  if (isMoving.value && moveStartPos.value && hoveredActionInfo.value) {
-    const dx = e.clientX - moveStartPos.value.x
-    const dy = e.clientY - moveStartPos.value.y
-    const action = hoveredActionInfo.value.action
-    const origPoints = originalActionPoints.value
-    for (let i = 0; i < action.points.length; i++) {
-      action.points[i].x = origPoints[i].x + dx
-      action.points[i].y = origPoints[i].y + dy
-    }
-    scheduleRender()
+  if (isDragging) {
+    updateDragOffset(e.clientX - dragStartX, e.clientY - dragStartY)
     return
   }
 
+  mousePos.value.x = e.clientX
+  mousePos.value.y = e.clientY
+
   if (!isDrawing.value) {
     if (active.value && !showSettings.value && !showQuickColors.value && !textBoxPos.value && enableDragging.value) {
-      hoveredActionInfo.value = findActionAt(mousePos.value)
+      if (hoverRafId === null) {
+        hoverRafId = requestAnimationFrame(() => {
+          hoverRafId = null
+          if (active.value && !showSettings.value && !showQuickColors.value && !textBoxPos.value && enableDragging.value) {
+            hoveredActionInfo.value = findActionAt(mousePos.value)
+          }
+        })
+      }
     } else {
       hoveredActionInfo.value = null
     }
@@ -280,11 +291,12 @@ function onPointerMove(e: PointerEvent) {
   }
 }
 
-function onMouseUp() {
-  if (isMoving.value) {
+function onPointerUp(e: PointerEvent) {
+  canvasRef.value?.releasePointerCapture(e.pointerId)
+
+  if (isDragging) {
+    isDragging = false
     isMoving.value = false
-    moveStartPos.value = null
-    originalActionPoints.value = []
     endDrag()
     return
   }
@@ -365,7 +377,10 @@ function onKeyDown(e: KeyboardEvent) {
 
   if (showSettings.value) return
 
-  if (e.ctrlKey && e.key === 'z') {
+  if (e.ctrlKey && e.shiftKey && e.key === 'Z') {
+    e.preventDefault()
+    redo()
+  } else if (e.ctrlKey && e.key === 'z') {
     e.preventDefault()
     undo()
   } else if (e.ctrlKey && e.key === 'y') {
@@ -378,34 +393,46 @@ function onKeyDown(e: KeyboardEvent) {
   }
 }
 
+const cursorSvgCache = new Map<string, string>()
+
 const cursorStyle = computed(() => {
   if (enableDragging.value && (isMoving.value || (hoveredActionInfo.value && !isDrawing.value))) return 'move'
   if (currentTool.value === 'text') return 'text'
   if (showQuickColors.value || showSettings.value) return 'default'
 
   const c = currentColor.value
-  if (currentTool.value === 'eraser') {
+  const isEraser = currentTool.value === 'eraser'
+  const key = isEraser ? 'eraser' : c
+
+  const cached = cursorSvgCache.get(key)
+  if (cached) return cached
+
+  let result: string
+  if (isEraser) {
     const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'>` +
       `<circle cx='16' cy='16' r='14' fill='none' stroke='white' stroke-width='1.5' stroke-dasharray='3,2'/>` +
       `<line x1='16' y1='12' x2='16' y2='20' stroke='white' stroke-width='1'/>` +
       `<line x1='12' y1='16' x2='20' y2='16' stroke='white' stroke-width='1'/>` +
       `</svg>`
-    return `url("data:image/svg+xml,${encodeURIComponent(svg)}") 16 16, crosshair`
+    result = `url("data:image/svg+xml,${encodeURIComponent(svg)}") 16 16, crosshair`
+  } else {
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28'>` +
+      `<line x1='14' y1='2' x2='14' y2='10' stroke='black' stroke-opacity='0.4' stroke-width='3' stroke-linecap='round'/>` +
+      `<line x1='14' y1='18' x2='14' y2='26' stroke='black' stroke-opacity='0.4' stroke-width='3' stroke-linecap='round'/>` +
+      `<line x1='2' y1='14' x2='10' y2='14' stroke='black' stroke-opacity='0.4' stroke-width='3' stroke-linecap='round'/>` +
+      `<line x1='18' y1='14' x2='26' y2='14' stroke='black' stroke-opacity='0.4' stroke-width='3' stroke-linecap='round'/>` +
+      `<line x1='14' y1='2' x2='14' y2='10' stroke='${c}' stroke-width='1.5' stroke-linecap='round'/>` +
+      `<line x1='14' y1='18' x2='14' y2='26' stroke='${c}' stroke-width='1.5' stroke-linecap='round'/>` +
+      `<line x1='2' y1='14' x2='10' y2='14' stroke='${c}' stroke-width='1.5' stroke-linecap='round'/>` +
+      `<line x1='18' y1='14' x2='26' y2='14' stroke='${c}' stroke-width='1.5' stroke-linecap='round'/>` +
+      `<circle cx='14' cy='14' r='2.5' fill='black' fill-opacity='0.3'/>` +
+      `<circle cx='14' cy='14' r='2' fill='${c}'/>` +
+      `</svg>`
+    result = `url("data:image/svg+xml,${encodeURIComponent(svg)}") 14 14, crosshair`
   }
 
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28'>` +
-    `<line x1='14' y1='2' x2='14' y2='10' stroke='black' stroke-opacity='0.4' stroke-width='3' stroke-linecap='round'/>` +
-    `<line x1='14' y1='18' x2='14' y2='26' stroke='black' stroke-opacity='0.4' stroke-width='3' stroke-linecap='round'/>` +
-    `<line x1='2' y1='14' x2='10' y2='14' stroke='black' stroke-opacity='0.4' stroke-width='3' stroke-linecap='round'/>` +
-    `<line x1='18' y1='14' x2='26' y2='14' stroke='black' stroke-opacity='0.4' stroke-width='3' stroke-linecap='round'/>` +
-    `<line x1='14' y1='2' x2='14' y2='10' stroke='${c}' stroke-width='1.5' stroke-linecap='round'/>` +
-    `<line x1='14' y1='18' x2='14' y2='26' stroke='${c}' stroke-width='1.5' stroke-linecap='round'/>` +
-    `<line x1='2' y1='14' x2='10' y2='14' stroke='${c}' stroke-width='1.5' stroke-linecap='round'/>` +
-    `<line x1='18' y1='14' x2='26' y2='14' stroke='${c}' stroke-width='1.5' stroke-linecap='round'/>` +
-    `<circle cx='14' cy='14' r='2.5' fill='black' fill-opacity='0.3'/>` +
-    `<circle cx='14' cy='14' r='2' fill='${c}'/>` +
-    `</svg>`
-  return `url("data:image/svg+xml,${encodeURIComponent(svg)}") 14 14, crosshair`
+  cursorSvgCache.set(key, result)
+  return result
 })
 
 const quickColorsPanelStyle = computed(() => {
@@ -428,7 +455,7 @@ function onKeyUp(e: KeyboardEvent) {
 
 onMounted(async () => {
   resizeCanvas()
-  window.addEventListener('resize', resizeCanvas)
+  window.addEventListener('resize', debouncedResize)
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('keyup', onKeyUp)
 
@@ -470,9 +497,14 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  window.removeEventListener('resize', resizeCanvas)
+  window.removeEventListener('resize', debouncedResize)
+  if (resizeTimer) { clearTimeout(resizeTimer); resizeTimer = null }
   window.removeEventListener('keydown', onKeyDown)
   window.removeEventListener('keyup', onKeyUp)
+  if (hoverRafId !== null) {
+    cancelAnimationFrame(hoverRafId)
+    hoverRafId = null
+  }
   unlisteners.forEach((fn) => fn())
   destroy()
 })
@@ -495,12 +527,13 @@ function exitDrawing() {
     <canvas
       ref="canvasRef"
       class="absolute top-0 left-0 w-full h-full touch-none"
+      style="contain: strict"
       :style="{ cursor: cursorStyle }"
-      @pointerdown="onMouseDown"
+      @pointerdown="onPointerDown"
       @dblclick="onDoubleClick"
       @pointermove="onPointerMove"
-      @pointerup="onMouseUp"
-      @pointerleave="onMouseUp"
+      @pointerup="onPointerUp"
+      @pointerleave="onPointerUp"
       @contextmenu.prevent="onContextMenu"
     />
 
@@ -519,7 +552,7 @@ function exitDrawing() {
     <Transition name="tooltip-fade">
       <div
         v-if="active && toolTip"
-        class="fixed bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-2 py-2 px-5 bg-[rgba(28,28,30,0.88)] backdrop-blur-md rounded-[10px] text-white text-[15px] font-sans tracking-[0.5px] pointer-events-none z-100003 whitespace-nowrap shadow-[0_2px_12px_rgba(0,0,0,0.3)]"
+        class="fixed bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-2 py-2 px-5 bg-[rgba(28,28,30,0.94)] rounded-[10px] text-white text-[15px] font-sans tracking-[0.5px] pointer-events-none z-100003 whitespace-nowrap shadow-[0_2px_12px_rgba(0,0,0,0.3)]"
       >
         <span
           v-if="toolTipColor"
@@ -540,7 +573,7 @@ function exitDrawing() {
         @contextmenu.prevent="showQuickColors = false"
       >
         <div
-          class="absolute bg-[rgba(30,30,32,0.92)] backdrop-blur-xl rounded-xl border border-white/8 shadow-[0_8px_32px_rgba(0,0,0,0.4)] p-2.5 select-none"
+          class="absolute bg-[rgba(30,30,32,0.97)] rounded-xl border border-white/8 shadow-[0_8px_32px_rgba(0,0,0,0.4)] p-2.5 select-none"
           :style="quickColorsPanelStyle"
           @mousedown.stop
         >
