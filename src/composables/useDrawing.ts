@@ -619,8 +619,8 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     if (!action) return
     isDrawing.value = false
 
-    const isFreehand = action.tool === 'pen' || action.tool === 'highlighter' || action.tool === 'eraser'
-    if (isFreehand && action.points.length > 2) {
+    const shouldSimplifyFreehand = action.tool === 'eraser'
+    if (shouldSimplifyFreehand && action.points.length > 2) {
       action.points = simplifyFreehandPoints(action.points, action.lineWidth)
     }
 
