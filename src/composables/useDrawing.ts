@@ -7,6 +7,13 @@ export interface Point {
   y: number
 }
 
+interface InputPointLike {
+  x?: number
+  y?: number
+  clientX?: number
+  clientY?: number
+}
+
 export interface DrawAction {
   tool: Tool
   color: string
@@ -20,6 +27,7 @@ export interface DrawAction {
 }
 
 const MIN_DIST_SQ = 4
+const HIT_GRID_SIZE = 192
 
 export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   const currentTool = ref<Tool>('pen')
@@ -33,6 +41,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
   let cacheCanvas: HTMLCanvasElement | null = null
   let cacheCtx: CanvasRenderingContext2D | null = null
+  let mainCtx: CanvasRenderingContext2D | null = null
   let cacheValid = false
   let rafId: number | null = null
 
@@ -51,10 +60,22 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   let useDragCanvas = false
   let prevDragScreenX = NaN
   let prevDragScreenY = NaN
+  let prevStrokeRect: { x: number, y: number, w: number, h: number } | null = null
   const pathCache = new WeakMap<DrawAction, Path2D>()
+  let hitGridDirty = true
+  const hitGrid = new Map<string, number[]>()
+  let hitGridOverflow: number[] = []
 
   function getCtx(): CanvasRenderingContext2D | null {
-    return canvasRef.value?.getContext('2d', { alpha: true, desynchronized: true }) ?? null
+    const canvas = canvasRef.value
+    if (!canvas) {
+      mainCtx = null
+      return null
+    }
+    if (!mainCtx) {
+      mainCtx = canvas.getContext('2d', { alpha: true, desynchronized: true })
+    }
+    return mainCtx
   }
 
   function computeBbox(action: DrawAction, pad: number): DrawAction['bbox'] {
@@ -68,6 +89,65 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       if (pts[i].y > y2) y2 = pts[i].y
     }
     return { x1: x1 - pad, y1: y1 - pad, x2: x2 + pad, y2: y2 + pad }
+  }
+
+  function computePointsBbox(points: Point[], startIdx: number, endIdx: number, pad: number) {
+    if (points.length === 0 || startIdx > endIdx) return null
+    let x1 = points[startIdx].x
+    let y1 = points[startIdx].y
+    let x2 = x1
+    let y2 = y1
+    for (let i = startIdx + 1; i <= endIdx; i++) {
+      if (points[i].x < x1) x1 = points[i].x
+      if (points[i].y < y1) y1 = points[i].y
+      if (points[i].x > x2) x2 = points[i].x
+      if (points[i].y > y2) y2 = points[i].y
+    }
+    return { x1: x1 - pad, y1: y1 - pad, x2: x2 + pad, y2: y2 + pad }
+  }
+
+  function markHitGridDirty() {
+    hitGridDirty = true
+  }
+
+  function ensureHitGrid() {
+    if (!hitGridDirty) return
+
+    hitGrid.clear()
+    hitGridOverflow = []
+
+    for (let i = 0; i < history.length; i++) {
+      const bbox = history[i].bbox
+      if (!bbox) {
+        hitGridOverflow.push(i)
+        continue
+      }
+
+      const startCellX = Math.floor(bbox.x1 / HIT_GRID_SIZE)
+      const endCellX = Math.floor(bbox.x2 / HIT_GRID_SIZE)
+      const startCellY = Math.floor(bbox.y1 / HIT_GRID_SIZE)
+      const endCellY = Math.floor(bbox.y2 / HIT_GRID_SIZE)
+      const cellCount = (endCellX - startCellX + 1) * (endCellY - startCellY + 1)
+
+      if (cellCount > 64) {
+        hitGridOverflow.push(i)
+        continue
+      }
+
+      for (let cy = startCellY; cy <= endCellY; cy++) {
+        for (let cx = startCellX; cx <= endCellX; cx++) {
+          const key = `${cx},${cy}`
+          let bucket = hitGrid.get(key)
+          if (!bucket) {
+            bucket = []
+            hitGrid.set(key, bucket)
+          }
+          bucket.push(i)
+        }
+      }
+    }
+
+    hitGridDirty = false
   }
 
   function ensureCache() {
@@ -179,6 +259,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     // Instead of clearing+redrawing the entire canvas (~33M pixels on 4K),
     // only update the union of old and new element positions.
     if (preview && useDragCanvas && dragCanvas) {
+      prevStrokeRect = null
       ensureCache()
 
       const dpr = window.devicePixelRatio || 1
@@ -220,7 +301,60 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     prevDragScreenX = NaN
     prevDragScreenY = NaN
 
+    const action = currentAction.value
+    const activeStrokeCanvas = strokeCanvas
+    const isFreehandDirtyRect =
+      !preview &&
+      action &&
+      activeStrokeCanvas &&
+      (action.tool === 'pen' || action.tool === 'highlighter') &&
+      action.points.length > 3
+
     ensureCache()
+
+    if (isFreehandDirtyRect) {
+      const dpr = window.devicePixelRatio || 1
+      const pts = action.points
+      const pad = Math.max(20, action.lineWidth / 2 + 12)
+      const bbox = computePointsBbox(pts, Math.max(0, lastBakedPtIdx - 1), pts.length - 1, pad)
+
+      if (bbox) {
+        const nextRect = {
+          x: Math.max(0, Math.floor(bbox.x1 * dpr)),
+          y: Math.max(0, Math.floor(bbox.y1 * dpr)),
+          w: Math.min(canvas.width, Math.ceil(bbox.x2 * dpr)) - Math.max(0, Math.floor(bbox.x1 * dpr)),
+          h: Math.min(canvas.height, Math.ceil(bbox.y2 * dpr)) - Math.max(0, Math.floor(bbox.y1 * dpr)),
+        }
+
+        const ux = prevStrokeRect ? Math.min(prevStrokeRect.x, nextRect.x) : nextRect.x
+        const uy = prevStrokeRect ? Math.min(prevStrokeRect.y, nextRect.y) : nextRect.y
+        const ur = prevStrokeRect ? Math.max(prevStrokeRect.x + prevStrokeRect.w, nextRect.x + nextRect.w) : nextRect.x + nextRect.w
+        const ub = prevStrokeRect ? Math.max(prevStrokeRect.y + prevStrokeRect.h, nextRect.y + nextRect.h) : nextRect.y + nextRect.h
+        const uw = ur - ux
+        const uh = ub - uy
+
+        if (uw > 0 && uh > 0) {
+          ctx.save()
+          ctx.setTransform(1, 0, 0, 1, 0, 0)
+          ctx.clearRect(ux, uy, uw, uh)
+          if (cacheCanvas) ctx.drawImage(cacheCanvas, ux, uy, uw, uh, ux, uy, uw, uh)
+          ctx.drawImage(activeStrokeCanvas, ux, uy, uw, uh, ux, uy, uw, uh)
+          ctx.restore()
+
+          ctx.save()
+          ctx.beginPath()
+          ctx.rect(ux / dpr, uy / dpr, uw / dpr, uh / dpr)
+          ctx.clip()
+          drawFreehandTail(ctx, action)
+          ctx.restore()
+        }
+
+        prevStrokeRect = nextRect
+        return
+      }
+    }
+
+    prevStrokeRect = null
 
     ctx.save()
     ctx.setTransform(1, 0, 0, 1, 0, 0)
@@ -230,13 +364,12 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     }
     ctx.restore()
 
-    const action = currentAction.value
     if (action) {
       const isFreehand = action.tool === 'pen' || action.tool === 'highlighter' || action.tool === 'eraser'
-      if (isFreehand && strokeCanvas && action.points.length > 3) {
+      if (isFreehand && activeStrokeCanvas && action.points.length > 3) {
         ctx.save()
         ctx.setTransform(1, 0, 0, 1, 0, 0)
-        ctx.drawImage(strokeCanvas, 0, 0)
+        ctx.drawImage(activeStrokeCanvas, 0, 0)
         ctx.restore()
         drawFreehandTail(ctx, action)
       } else {
@@ -305,6 +438,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     ensureCache()
     if (cacheCtx) drawActionOn(cacheCtx, action)
     history.push(action)
+    markHitGridDirty()
     flushRender()
   }
 
@@ -330,26 +464,49 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   }
 
   function draw(point: Point, isPerfect = false) {
+    drawBatch([point], isPerfect)
+  }
+
+  function drawBatch(points: ArrayLike<InputPointLike>, isPerfect = false) {
     if (!isDrawing.value) return
     const action = currentAction.value
-    if (!action) return
+    if (!action || points.length === 0) return
 
     const pts = action.points
     const isFreehand = action.tool === 'pen' || action.tool === 'highlighter' || action.tool === 'eraser'
 
     if (isFreehand) {
-      const last = pts[pts.length - 1]
-      const dx = point.x - last.x
-      const dy = point.y - last.y
-      if (dx * dx + dy * dy < MIN_DIST_SQ) return
-      pts.push(point)
+      let last = pts[pts.length - 1]
+      let appended = false
+
+      for (let i = 0; i < points.length; i++) {
+        const point = points[i]
+        const x = point.x ?? point.clientX
+        const y = point.y ?? point.clientY
+        if (x == null || y == null) continue
+
+        const dx = x - last.x
+        const dy = y - last.y
+        if (dx * dx + dy * dy < MIN_DIST_SQ) continue
+        const nextPoint = { x, y }
+        pts.push(nextPoint)
+        last = nextPoint
+        appended = true
+      }
+
+      if (!appended) return
       bakeIncrementalStroke(action)
     } else {
-      let finalPoint = point
+      const point = points[points.length - 1]
+      const x = point.x ?? point.clientX
+      const y = point.y ?? point.clientY
+      if (x == null || y == null) return
+
+      let finalPoint = { x, y }
       if (isPerfect && pts.length > 0 && (action.tool === 'rect' || action.tool === 'ellipse')) {
         const start = pts[0]
-        const dx = point.x - start.x
-        const dy = point.y - start.y
+        const dx = x - start.x
+        const dy = y - start.y
         const maxDist = Math.max(Math.abs(dx), Math.abs(dy))
         finalPoint = {
           x: start.x + (dx < 0 ? -maxDist : maxDist),
@@ -381,6 +538,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     ensureCache()
     if (cacheCtx) drawActionOn(cacheCtx, action)
     history.push(action)
+    markHitGridDirty()
 
     currentAction.value = null
     flushRender()
@@ -671,6 +829,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
         history.push(action)
       }
     }
+    markHitGridDirty()
     previewAction.value = null
     useDragCanvas = false
     dragOffsetX = 0
@@ -685,6 +844,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     if (history.length === 0) return
     const last = history.pop()!
     redoStack.push(last)
+    markHitGridDirty()
     invalidateCache()
     flushRender()
   }
@@ -693,6 +853,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     if (redoStack.length === 0) return
     const action = redoStack.pop()!
     history.push(action)
+    markHitGridDirty()
     if (cacheValid && cacheCtx) {
       drawActionOn(cacheCtx, action)
     }
@@ -702,6 +863,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   function clearAll() {
     history.length = 0
     redoStack.length = 0
+    markHitGridDirty()
     invalidateCache()
     const ctx = getCtx()
     const canvas = canvasRef.value
@@ -722,103 +884,122 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     return distToSeg(p.x, p.y, a.x, a.y, b.x, b.y)
   }
 
-  function findActionAt(p: Point): { action: DrawAction, index: number } | null {
-    for (let i = history.length - 1; i >= 0; i--) {
-      const action = history[i]
-      const pts = action.points
-      if (pts.length === 0) continue
+  function hitTestAction(action: DrawAction, index: number, p: Point): { action: DrawAction, index: number } | null {
+    const pts = action.points
+    if (pts.length === 0) return null
 
-      // Fast AABB pre-filter — skip actions whose bounding box doesn't contain the point
-      const bbox = action.bbox
-      if (bbox && (p.x < bbox.x1 || p.x > bbox.x2 || p.y < bbox.y1 || p.y > bbox.y2)) continue
+    const bbox = action.bbox
+    if (bbox && (p.x < bbox.x1 || p.x > bbox.x2 || p.y < bbox.y1 || p.y > bbox.y2)) return null
 
-      const threshold = Math.max(10, (action.lineWidth || 2) / 2 + 5)
+    const threshold = Math.max(10, (action.lineWidth || 2) / 2 + 5)
 
-      if (action.tool === 'text' && action.text) {
-        const fs = action.fontSize ?? 24
-        const lh = Math.round(fs * 1.3)
-        const textWidth = action.textWidth ?? 200
-        const lines = action.text.split('\n')
-        const boxX = pts[0].x - 10
-        const boxY = pts[0].y - lh / 2 - 10
-        if (p.x >= boxX && p.x <= boxX + textWidth + 20 && p.y >= boxY && p.y <= boxY + lines.length * lh + 20) {
-          return { action, index: i }
-        }
-        continue
+    if (action.tool === 'text' && action.text) {
+      const fs = action.fontSize ?? 24
+      const lh = Math.round(fs * 1.3)
+      const textWidth = action.textWidth ?? 200
+      const lines = action.text.split('\n')
+      const boxX = pts[0].x - 10
+      const boxY = pts[0].y - lh / 2 - 10
+      if (p.x >= boxX && p.x <= boxX + textWidth + 20 && p.y >= boxY && p.y <= boxY + lines.length * lh + 20) {
+        return { action, index }
       }
+      return null
+    }
 
-      if (action.tool === 'pen' || action.tool === 'highlighter' || action.tool === 'eraser') {
-        if (pts.length === 1) {
-          if (Math.hypot(p.x - pts[0].x, p.y - pts[0].y) <= threshold) return { action, index: i }
-        } else {
-          const segCount = pts.length - 1
-          const step = segCount > 50 ? Math.ceil(segCount / 50) : 1
-          for (let j = 0; j < segCount; j += step) {
-            if (distToSeg(p.x, p.y, pts[j].x, pts[j].y, pts[j + 1].x, pts[j + 1].y) <= threshold) return { action, index: i }
-          }
-          if (step > 1 && distToSeg(p.x, p.y, pts[segCount - 1].x, pts[segCount - 1].y, pts[segCount].x, pts[segCount].y) <= threshold) {
-            return { action, index: i }
-          }
+    if (action.tool === 'pen' || action.tool === 'highlighter' || action.tool === 'eraser') {
+      if (pts.length === 1) {
+        if (Math.hypot(p.x - pts[0].x, p.y - pts[0].y) <= threshold) return { action, index }
+      } else {
+        const segCount = pts.length - 1
+        const step = segCount > 50 ? Math.ceil(segCount / 50) : 1
+        for (let j = 0; j < segCount; j += step) {
+          if (distToSeg(p.x, p.y, pts[j].x, pts[j].y, pts[j + 1].x, pts[j + 1].y) <= threshold) return { action, index }
         }
-        continue
+        if (step > 1 && distToSeg(p.x, p.y, pts[segCount - 1].x, pts[segCount - 1].y, pts[segCount].x, pts[segCount].y) <= threshold) {
+          return { action, index }
+        }
       }
+      return null
+    }
 
-      if (action.tool === 'line' || action.tool === 'arrow') {
-        if (pts.length >= 2) {
-          if (distancePointToSegment(p, pts[0], pts[1]) <= threshold) return { action, index: i }
-        }
-        continue
+    if (action.tool === 'line' || action.tool === 'arrow') {
+      if (pts.length >= 2) {
+        if (distancePointToSegment(p, pts[0], pts[1]) <= threshold) return { action, index }
       }
+      return null
+    }
 
-      if (action.tool === 'rect') {
-        if (pts.length >= 2) {
-          const x0 = Math.min(pts[0].x, pts[1].x), x1 = Math.max(pts[0].x, pts[1].x)
-          const y0 = Math.min(pts[0].y, pts[1].y), y1 = Math.max(pts[0].y, pts[1].y)
+    if (action.tool === 'rect') {
+      if (pts.length >= 2) {
+        const x0 = Math.min(pts[0].x, pts[1].x), x1 = Math.max(pts[0].x, pts[1].x)
+        const y0 = Math.min(pts[0].y, pts[1].y), y1 = Math.max(pts[0].y, pts[1].y)
 
-          const d1 = distToSeg(p.x, p.y, x0, y0, x1, y0)
-          const d2 = distToSeg(p.x, p.y, x1, y0, x1, y1)
-          const d3 = distToSeg(p.x, p.y, x1, y1, x0, y1)
-          const d4 = distToSeg(p.x, p.y, x0, y1, x0, y0)
+        const d1 = distToSeg(p.x, p.y, x0, y0, x1, y0)
+        const d2 = distToSeg(p.x, p.y, x1, y0, x1, y1)
+        const d3 = distToSeg(p.x, p.y, x1, y1, x0, y1)
+        const d4 = distToSeg(p.x, p.y, x0, y1, x0, y0)
 
-          if (Math.min(d1, d2, d3, d4) <= threshold) return { action, index: i }
-        }
-        continue
+        if (Math.min(d1, d2, d3, d4) <= threshold) return { action, index }
       }
+      return null
+    }
 
-      if (action.tool === 'ellipse') {
-        if (pts.length >= 2) {
-          const cx = (pts[0].x + pts[1].x) / 2
-          const cy = (pts[0].y + pts[1].y) / 2
-          const rx = Math.abs(pts[1].x - pts[0].x) / 2
-          const ry = Math.abs(pts[1].y - pts[0].y) / 2
+    if (action.tool === 'ellipse') {
+      if (pts.length >= 2) {
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const rx = Math.abs(pts[1].x - pts[0].x) / 2
+        const ry = Math.abs(pts[1].y - pts[0].y) / 2
 
-          if (rx < 1 || ry < 1) {
-            if (Math.hypot(p.x - cx, p.y - cy) <= threshold) return { action, index: i }
-            continue
-          }
-
-          if (p.x < cx - rx - threshold || p.x > cx + rx + threshold ||
-              p.y < cy - ry - threshold || p.y > cy + ry + threshold) continue
-
-          let minDist = Infinity
-          for (let j = 0; j < 32; j++) {
-            const angle = (j / 32) * Math.PI * 2
-            const px = cx + rx * Math.cos(angle)
-            const py = cy + ry * Math.sin(angle)
-            const dist = Math.hypot(p.x - px, p.y - py)
-            if (dist < minDist) minDist = dist
-          }
-          if (minDist <= threshold) return { action, index: i }
+        if (rx < 1 || ry < 1) {
+          if (Math.hypot(p.x - cx, p.y - cy) <= threshold) return { action, index }
+          return null
         }
-        continue
+
+        if (p.x < cx - rx - threshold || p.x > cx + rx + threshold ||
+            p.y < cy - ry - threshold || p.y > cy + ry + threshold) return null
+
+        let minDist = Infinity
+        for (let j = 0; j < 32; j++) {
+          const angle = (j / 32) * Math.PI * 2
+          const px = cx + rx * Math.cos(angle)
+          const py = cy + ry * Math.sin(angle)
+          const dist = Math.hypot(p.x - px, p.y - py)
+          if (dist < minDist) minDist = dist
+        }
+        if (minDist <= threshold) return { action, index }
       }
     }
+
+    return null
+  }
+
+  function findActionAt(p: Point): { action: DrawAction, index: number } | null {
+    ensureHitGrid()
+
+    const bucket = hitGrid.get(`${Math.floor(p.x / HIT_GRID_SIZE)},${Math.floor(p.y / HIT_GRID_SIZE)}`)
+    let bucketPos = bucket ? bucket.length - 1 : -1
+    let overflowPos = hitGridOverflow.length - 1
+
+    while (bucketPos >= 0 || overflowPos >= 0) {
+      let index: number
+      if (overflowPos < 0 || (bucketPos >= 0 && bucket![bucketPos] > hitGridOverflow[overflowPos])) {
+        index = bucket![bucketPos--]
+      } else {
+        index = hitGridOverflow[overflowPos--]
+      }
+
+      const hit = hitTestAction(history[index], index, p)
+      if (hit) return hit
+    }
+
     return null
   }
 
   function removeAction(index: number) {
     if (index >= 0 && index < history.length) {
       history.splice(index, 1)
+      markHitGridDirty()
       invalidateCache()
       flushRender()
     }
@@ -831,6 +1012,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     }
     cacheCanvas = null
     cacheCtx = null
+    mainCtx = null
     strokeCanvas = null
     strokeCtx = null
     dragCanvas = null
@@ -845,6 +1027,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     history,
     startDraw,
     draw,
+    drawBatch,
     endDraw,
     findActionAt,
     removeAction,

@@ -103,6 +103,7 @@ const {
   isDrawing,
   startDraw,
   draw,
+  drawBatch,
   endDraw,
   addTextAction,
   findActionAt,
@@ -132,6 +133,8 @@ let hoverRafId: number | null = null
 let isDragging = false
 let dragStartX = 0
 let dragStartY = 0
+let lastPointerX = 0
+let lastPointerY = 0
 
 function resizeCanvas() {
   const canvas = canvasRef.value
@@ -218,6 +221,9 @@ function onPointerDown(e: PointerEvent) {
   if (e.button !== 0) return
   if (showSettings.value || showQuickColors.value) return
 
+  lastPointerX = e.clientX
+  lastPointerY = e.clientY
+
   if (textBoxPos.value) {
     commitCurrentTextBox()
     return
@@ -255,15 +261,18 @@ function onPointerDown(e: PointerEvent) {
 }
 
 function onPointerMove(e: PointerEvent) {
+  lastPointerX = e.clientX
+  lastPointerY = e.clientY
+
   if (isDragging) {
     updateDragOffset(e.clientX - dragStartX, e.clientY - dragStartY)
     return
   }
 
-  mousePos.value.x = e.clientX
-  mousePos.value.y = e.clientY
-
   if (!isDrawing.value) {
+    mousePos.value.x = e.clientX
+    mousePos.value.y = e.clientY
+
     if (active.value && !showSettings.value && !showQuickColors.value && !textBoxPos.value && enableDragging.value) {
       if (hoverRafId === null) {
         hoverRafId = requestAnimationFrame(() => {
@@ -283,9 +292,7 @@ function onPointerMove(e: PointerEvent) {
 
   const coalesced = e.getCoalescedEvents?.()
   if (coalesced && coalesced.length > 0) {
-    for (const ce of coalesced) {
-      draw({ x: ce.clientX, y: ce.clientY }, isPerfect)
-    }
+    drawBatch(coalesced, isPerfect)
   } else {
     draw({ x: e.clientX, y: e.clientY }, isPerfect)
   }
@@ -346,6 +353,7 @@ function onKeyDown(e: KeyboardEvent) {
 
   if (e.key === ' ') {
     e.preventDefault()
+    mousePos.value = { x: lastPointerX, y: lastPointerY }
     showSettings.value = !showSettings.value
     return
   }
