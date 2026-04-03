@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-utils/schema.json",
-  "productName": "MarkOn",
-  "version": "0.0.5",
-  "identifier": "com.markon.app",
+  "productName": "MarkerOn",
+  "version": "0.0.6",
+  "identifier": "com.markeron.app",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "overlay",
-        "title": "MarkOn",
+        "title": "MarkerOn",
         "transparent": true,
         "decorations": false,
         "alwaysOnTop": true,
@@ -31,7 +31,7 @@
     "trayIcon": {
       "id": "main",
       "iconPath": "icons/icon.png",
-      "tooltip": "MarkOn - 屏幕标注工具",
+      "tooltip": "MarkerOn - 屏幕标注工具",
       "menuOnLeftClick": false
     }
   },

@@ -1,9 +1,9 @@
-# <img src="public/icon.png" width="28" height="28" /> MarkOn
+# <img src="public/icon.png" width="28" height="28" /> MarkerOn
 
 > **轻量级屏幕标注工具** — 按下快捷键，随时在桌面上自由绘画、标注。适用于课堂演示 / 会议讲解 / 录屏批注。
 
 <p align="center">
-  <img src="public/screenshot.png" width="520" alt="MarkOn 设置面板" />
+  <img src="public/screenshot.png" width="520" alt="MarkerOn 设置面板" />
 </p>
 
 ## 📥 下载安装
@@ -12,10 +12,10 @@
 
 | 平台 | 安装包 | 说明 |
 | :--- | :--- | :--- |
-| Windows x64 | [MarkOn_0.0.5_x64-setup.exe](https://github.com/ifer47/markon/releases/download/v0.0.5/MarkOn_0.0.5_x64-setup.exe) | NSIS 安装程序（推荐） |
-| Windows x64 | [MarkOn_0.0.5_x64_zh-CN.msi](https://github.com/ifer47/markon/releases/download/v0.0.5/MarkOn_0.0.5_x64_zh-CN.msi) | MSI 安装程序 |
+| Windows x64 | [MarkerOn_0.0.6_x64-setup.exe](https://github.com/ifer47/markon/releases/download/v0.0.6/MarkerOn_0.0.6_x64-setup.exe) | NSIS 安装程序（推荐） |
+| Windows x64 | [MarkerOn_0.0.6_x64_zh-CN.msi](https://github.com/ifer47/markon/releases/download/v0.0.6/MarkerOn_0.0.6_x64_zh-CN.msi) | MSI 安装程序 |
 
-也可以前往 [Releases 页面](https://github.com/ifer47/markon/releases/tag/v0.0.5) 查看所有版本及更新日志。
+也可以前往 [Releases 页面](https://github.com/ifer47/markon/releases/tag/v0.0.6) 查看所有版本及更新日志。
 
 ## 🚀 快速开始
 
@@ -133,7 +133,7 @@ npm run build
 ## 📁 项目结构
 
 ```
-markon/
+markeron/
 ├── src-tauri/
 │   ├── src/
 │   │   └── lib.rs               # Rust 后端 — 窗口管理、快捷键、托盘
