@@ -14,7 +14,7 @@
   <Identity
     Name="MarkerOn"
     Publisher="CN=Administrator"
-    Version="0.0.7.0" />
+    Version="0.0.8.0" />
 
   <Properties>
     <DisplayName>MarkerOn</DisplayName>
