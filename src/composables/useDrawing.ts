@@ -24,6 +24,8 @@ export interface DrawAction {
   fontSize?: number
   textWidth?: number
   bbox?: { x1: number, y1: number, x2: number, y2: number }
+  rectHit?: { x0: number, y0: number, x1: number, y1: number }
+  ellipseHit?: { cx: number, cy: number, rx: number, ry: number }
 }
 
 const MIN_DIST_SQ = 4
@@ -63,8 +65,11 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   let prevStrokeRect: { x: number, y: number, w: number, h: number } | null = null
   const pathCache = new WeakMap<DrawAction, Path2D>()
   let hitGridDirty = true
-  const hitGrid = new Map<string, number[]>()
-  let hitGridOverflow: number[] = []
+  const hitGrid = new Map<string, DrawAction[]>()
+  let hitGridOverflow: DrawAction[] = []
+  const hitGridCells = new WeakMap<DrawAction, string[] | null>()
+  const hitGridOrder = new WeakMap<DrawAction, number>()
+  let nextHitGridOrder = 1
 
   function getCtx(): CanvasRenderingContext2D | null {
     const canvas = canvasRef.value
@@ -106,45 +111,129 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     return { x1: x1 - pad, y1: y1 - pad, x2: x2 + pad, y2: y2 + pad }
   }
 
-  function markHitGridDirty() {
-    hitGridDirty = true
+  function updateShapeHitCache(action: DrawAction) {
+    action.rectHit = undefined
+    action.ellipseHit = undefined
+
+    if (action.points.length < 2) return
+
+    if (action.tool === 'rect') {
+      action.rectHit = {
+        x0: Math.min(action.points[0].x, action.points[1].x),
+        y0: Math.min(action.points[0].y, action.points[1].y),
+        x1: Math.max(action.points[0].x, action.points[1].x),
+        y1: Math.max(action.points[0].y, action.points[1].y),
+      }
+      return
+    }
+
+    if (action.tool === 'ellipse') {
+      action.ellipseHit = {
+        cx: (action.points[0].x + action.points[1].x) / 2,
+        cy: (action.points[0].y + action.points[1].y) / 2,
+        rx: Math.abs(action.points[1].x - action.points[0].x) / 2,
+        ry: Math.abs(action.points[1].y - action.points[0].y) / 2,
+      }
+    }
+  }
+
+  function clearHitGridState() {
+    hitGrid.clear()
+    hitGridOverflow = []
+    nextHitGridOrder = 1
+  }
+
+  function getHitGridCells(action: DrawAction): string[] | null {
+    const bbox = action.bbox
+    if (!bbox) return null
+
+    const startCellX = Math.floor(bbox.x1 / HIT_GRID_SIZE)
+    const endCellX = Math.floor(bbox.x2 / HIT_GRID_SIZE)
+    const startCellY = Math.floor(bbox.y1 / HIT_GRID_SIZE)
+    const endCellY = Math.floor(bbox.y2 / HIT_GRID_SIZE)
+    const cellCount = (endCellX - startCellX + 1) * (endCellY - startCellY + 1)
+
+    if (cellCount > 64) return null
+
+    const cells: string[] = []
+    for (let cy = startCellY; cy <= endCellY; cy++) {
+      for (let cx = startCellX; cx <= endCellX; cx++) {
+        cells.push(`${cx},${cy}`)
+      }
+    }
+    return cells
+  }
+
+  function removeActionRef(list: DrawAction[], action: DrawAction) {
+    const idx = list.lastIndexOf(action)
+    if (idx !== -1) list.splice(idx, 1)
+  }
+
+  function addActionToHitGrid(action: DrawAction, order = nextHitGridOrder++) {
+    const cells = getHitGridCells(action)
+    hitGridCells.set(action, cells)
+    hitGridOrder.set(action, order)
+
+    if (!cells) {
+      hitGridOverflow.push(action)
+      return
+    }
+
+    for (let i = 0; i < cells.length; i++) {
+      const key = cells[i]
+      let bucket = hitGrid.get(key)
+      if (!bucket) {
+        bucket = []
+        hitGrid.set(key, bucket)
+      }
+      bucket.push(action)
+    }
+  }
+
+  function removeActionFromHitGrid(action: DrawAction) {
+    const cells = hitGridCells.get(action)
+    if (cells === undefined) return
+
+    if (cells === null) {
+      removeActionRef(hitGridOverflow, action)
+    } else {
+      for (let i = 0; i < cells.length; i++) {
+        const key = cells[i]
+        const bucket = hitGrid.get(key)
+        if (!bucket) continue
+        removeActionRef(bucket, action)
+        if (bucket.length === 0) hitGrid.delete(key)
+      }
+    }
+
+    hitGridCells.delete(action)
+    hitGridOrder.delete(action)
+  }
+
+  function appendActionToHitGrid(action: DrawAction) {
+    if (hitGridDirty) return
+    addActionToHitGrid(action)
+  }
+
+  function deleteActionFromHitGrid(action: DrawAction) {
+    if (hitGridDirty) return
+    removeActionFromHitGrid(action)
+  }
+
+  function refreshActionInHitGrid(action: DrawAction, moveToTop = false) {
+    if (hitGridDirty) return
+    const prevOrder = hitGridOrder.get(action)
+    removeActionFromHitGrid(action)
+    addActionToHitGrid(action, moveToTop || prevOrder == null ? nextHitGridOrder++ : prevOrder)
   }
 
   function ensureHitGrid() {
     if (!hitGridDirty) return
 
-    hitGrid.clear()
-    hitGridOverflow = []
+    clearHitGridState()
 
     for (let i = 0; i < history.length; i++) {
-      const bbox = history[i].bbox
-      if (!bbox) {
-        hitGridOverflow.push(i)
-        continue
-      }
-
-      const startCellX = Math.floor(bbox.x1 / HIT_GRID_SIZE)
-      const endCellX = Math.floor(bbox.x2 / HIT_GRID_SIZE)
-      const startCellY = Math.floor(bbox.y1 / HIT_GRID_SIZE)
-      const endCellY = Math.floor(bbox.y2 / HIT_GRID_SIZE)
-      const cellCount = (endCellX - startCellX + 1) * (endCellY - startCellY + 1)
-
-      if (cellCount > 64) {
-        hitGridOverflow.push(i)
-        continue
-      }
-
-      for (let cy = startCellY; cy <= endCellY; cy++) {
-        for (let cx = startCellX; cx <= endCellX; cx++) {
-          const key = `${cx},${cy}`
-          let bucket = hitGrid.get(key)
-          if (!bucket) {
-            bucket = []
-            hitGrid.set(key, bucket)
-          }
-          bucket.push(i)
-        }
-      }
+      addActionToHitGrid(history[i])
     }
 
     hitGridDirty = false
@@ -438,7 +527,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     ensureCache()
     if (cacheCtx) drawActionOn(cacheCtx, action)
     history.push(action)
-    markHitGridDirty()
+    appendActionToHitGrid(action)
     flushRender()
   }
 
@@ -530,18 +619,61 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     if (!action) return
     isDrawing.value = false
 
+    const isFreehand = action.tool === 'pen' || action.tool === 'highlighter' || action.tool === 'eraser'
+    if (isFreehand && action.points.length > 2) {
+      action.points = simplifyFreehandPoints(action.points, action.lineWidth)
+    }
+
     const pad = Math.max(20, action.lineWidth / 2 + 10)
     action.bbox = computeBbox(action, pad)
+    updateShapeHitCache(action)
 
     clearStrokeCanvas()
 
     ensureCache()
     if (cacheCtx) drawActionOn(cacheCtx, action)
     history.push(action)
-    markHitGridDirty()
+    appendActionToHitGrid(action)
 
     currentAction.value = null
     flushRender()
+  }
+
+  function simplifyFreehandPoints(points: Point[], lineWidth: number): Point[] {
+    if (points.length <= 2) return points
+
+    const minDist = Math.max(1.5, Math.min(4, lineWidth * 0.18))
+    const minDistSq = minDist * minDist
+    const collinearTol = Math.max(0.75, Math.min(2.5, lineWidth * 0.12))
+    const result: Point[] = [points[0]]
+
+    for (let i = 1; i < points.length - 1; i++) {
+      const prev = result[result.length - 1]
+      const curr = points[i]
+      const next = points[i + 1]
+
+      const dx = curr.x - prev.x
+      const dy = curr.y - prev.y
+      if (dx * dx + dy * dy < minDistSq) continue
+
+      const segDx = next.x - prev.x
+      const segDy = next.y - prev.y
+      const segLenSq = segDx * segDx + segDy * segDy
+      if (segLenSq >= minDistSq &&
+          distToSeg(curr.x, curr.y, prev.x, prev.y, next.x, next.y) <= collinearTol) {
+        continue
+      }
+
+      result.push(curr)
+    }
+
+    const last = points[points.length - 1]
+    const prev = result[result.length - 1]
+    if (result.length === 1 || prev.x !== last.x || prev.y !== last.y) {
+      result.push(last)
+    }
+
+    return result.length >= 2 ? result : [points[0], last]
   }
 
   function drawActionOn(ctx: CanvasRenderingContext2D, action: DrawAction) {
@@ -822,14 +954,16 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       } else {
         action.bbox = computeBbox(action, pad)
       }
+      updateShapeHitCache(action)
 
       const idx = history.indexOf(action)
+      const movedToTop = idx !== -1 && idx !== history.length - 1
       if (idx !== -1 && idx !== history.length - 1) {
         history.splice(idx, 1)
         history.push(action)
       }
+      refreshActionInHitGrid(action, movedToTop)
     }
-    markHitGridDirty()
     previewAction.value = null
     useDragCanvas = false
     dragOffsetX = 0
@@ -844,7 +978,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     if (history.length === 0) return
     const last = history.pop()!
     redoStack.push(last)
-    markHitGridDirty()
+    deleteActionFromHitGrid(last)
     invalidateCache()
     flushRender()
   }
@@ -853,7 +987,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     if (redoStack.length === 0) return
     const action = redoStack.pop()!
     history.push(action)
-    markHitGridDirty()
+    appendActionToHitGrid(action)
     if (cacheValid && cacheCtx) {
       drawActionOn(cacheCtx, action)
     }
@@ -863,7 +997,8 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   function clearAll() {
     history.length = 0
     redoStack.length = 0
-    markHitGridDirty()
+    clearHitGridState()
+    hitGridDirty = false
     invalidateCache()
     const ctx = getCtx()
     const canvas = canvasRef.value
@@ -884,12 +1019,12 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     return distToSeg(p.x, p.y, a.x, a.y, b.x, b.y)
   }
 
-  function hitTestAction(action: DrawAction, index: number, p: Point): { action: DrawAction, index: number } | null {
+  function hitTestAction(action: DrawAction, p: Point): boolean {
     const pts = action.points
-    if (pts.length === 0) return null
+    if (pts.length === 0) return false
 
     const bbox = action.bbox
-    if (bbox && (p.x < bbox.x1 || p.x > bbox.x2 || p.y < bbox.y1 || p.y > bbox.y2)) return null
+    if (bbox && (p.x < bbox.x1 || p.x > bbox.x2 || p.y < bbox.y1 || p.y > bbox.y2)) return false
 
     const threshold = Math.max(10, (action.lineWidth || 2) / 2 + 5)
 
@@ -900,78 +1035,80 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       const lines = action.text.split('\n')
       const boxX = pts[0].x - 10
       const boxY = pts[0].y - lh / 2 - 10
-      if (p.x >= boxX && p.x <= boxX + textWidth + 20 && p.y >= boxY && p.y <= boxY + lines.length * lh + 20) {
-        return { action, index }
-      }
-      return null
+      return p.x >= boxX && p.x <= boxX + textWidth + 20 && p.y >= boxY && p.y <= boxY + lines.length * lh + 20
     }
 
     if (action.tool === 'pen' || action.tool === 'highlighter' || action.tool === 'eraser') {
       if (pts.length === 1) {
-        if (Math.hypot(p.x - pts[0].x, p.y - pts[0].y) <= threshold) return { action, index }
+        if (Math.hypot(p.x - pts[0].x, p.y - pts[0].y) <= threshold) return true
       } else {
         const segCount = pts.length - 1
         const step = segCount > 50 ? Math.ceil(segCount / 50) : 1
         for (let j = 0; j < segCount; j += step) {
-          if (distToSeg(p.x, p.y, pts[j].x, pts[j].y, pts[j + 1].x, pts[j + 1].y) <= threshold) return { action, index }
+          if (distToSeg(p.x, p.y, pts[j].x, pts[j].y, pts[j + 1].x, pts[j + 1].y) <= threshold) return true
         }
         if (step > 1 && distToSeg(p.x, p.y, pts[segCount - 1].x, pts[segCount - 1].y, pts[segCount].x, pts[segCount].y) <= threshold) {
-          return { action, index }
+          return true
         }
       }
-      return null
+      return false
     }
 
     if (action.tool === 'line' || action.tool === 'arrow') {
       if (pts.length >= 2) {
-        if (distancePointToSegment(p, pts[0], pts[1]) <= threshold) return { action, index }
+        if (distancePointToSegment(p, pts[0], pts[1]) <= threshold) return true
       }
-      return null
+      return false
     }
 
     if (action.tool === 'rect') {
       if (pts.length >= 2) {
-        const x0 = Math.min(pts[0].x, pts[1].x), x1 = Math.max(pts[0].x, pts[1].x)
-        const y0 = Math.min(pts[0].y, pts[1].y), y1 = Math.max(pts[0].y, pts[1].y)
+        const rect = action.rectHit ?? {
+          x0: Math.min(pts[0].x, pts[1].x),
+          y0: Math.min(pts[0].y, pts[1].y),
+          x1: Math.max(pts[0].x, pts[1].x),
+          y1: Math.max(pts[0].y, pts[1].y),
+        }
 
-        const d1 = distToSeg(p.x, p.y, x0, y0, x1, y0)
-        const d2 = distToSeg(p.x, p.y, x1, y0, x1, y1)
-        const d3 = distToSeg(p.x, p.y, x1, y1, x0, y1)
-        const d4 = distToSeg(p.x, p.y, x0, y1, x0, y0)
+        const d1 = distToSeg(p.x, p.y, rect.x0, rect.y0, rect.x1, rect.y0)
+        const d2 = distToSeg(p.x, p.y, rect.x1, rect.y0, rect.x1, rect.y1)
+        const d3 = distToSeg(p.x, p.y, rect.x1, rect.y1, rect.x0, rect.y1)
+        const d4 = distToSeg(p.x, p.y, rect.x0, rect.y1, rect.x0, rect.y0)
 
-        if (Math.min(d1, d2, d3, d4) <= threshold) return { action, index }
+        if (Math.min(d1, d2, d3, d4) <= threshold) return true
       }
-      return null
+      return false
     }
 
     if (action.tool === 'ellipse') {
       if (pts.length >= 2) {
-        const cx = (pts[0].x + pts[1].x) / 2
-        const cy = (pts[0].y + pts[1].y) / 2
-        const rx = Math.abs(pts[1].x - pts[0].x) / 2
-        const ry = Math.abs(pts[1].y - pts[0].y) / 2
-
-        if (rx < 1 || ry < 1) {
-          if (Math.hypot(p.x - cx, p.y - cy) <= threshold) return { action, index }
-          return null
+        const ellipse = action.ellipseHit ?? {
+          cx: (pts[0].x + pts[1].x) / 2,
+          cy: (pts[0].y + pts[1].y) / 2,
+          rx: Math.abs(pts[1].x - pts[0].x) / 2,
+          ry: Math.abs(pts[1].y - pts[0].y) / 2,
         }
 
-        if (p.x < cx - rx - threshold || p.x > cx + rx + threshold ||
-            p.y < cy - ry - threshold || p.y > cy + ry + threshold) return null
+        if (ellipse.rx < 1 || ellipse.ry < 1) {
+          return Math.hypot(p.x - ellipse.cx, p.y - ellipse.cy) <= threshold
+        }
+
+        if (p.x < ellipse.cx - ellipse.rx - threshold || p.x > ellipse.cx + ellipse.rx + threshold ||
+            p.y < ellipse.cy - ellipse.ry - threshold || p.y > ellipse.cy + ellipse.ry + threshold) return false
 
         let minDist = Infinity
         for (let j = 0; j < 32; j++) {
           const angle = (j / 32) * Math.PI * 2
-          const px = cx + rx * Math.cos(angle)
-          const py = cy + ry * Math.sin(angle)
+          const px = ellipse.cx + ellipse.rx * Math.cos(angle)
+          const py = ellipse.cy + ellipse.ry * Math.sin(angle)
           const dist = Math.hypot(p.x - px, p.y - py)
           if (dist < minDist) minDist = dist
         }
-        if (minDist <= threshold) return { action, index }
+        return minDist <= threshold
       }
     }
 
-    return null
+    return false
   }
 
   function findActionAt(p: Point): { action: DrawAction, index: number } | null {
@@ -982,15 +1119,25 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     let overflowPos = hitGridOverflow.length - 1
 
     while (bucketPos >= 0 || overflowPos >= 0) {
-      let index: number
-      if (overflowPos < 0 || (bucketPos >= 0 && bucket![bucketPos] > hitGridOverflow[overflowPos])) {
-        index = bucket![bucketPos--]
+      let action: DrawAction
+      if (overflowPos < 0) {
+        action = bucket![bucketPos--]
+      } else if (bucketPos < 0) {
+        action = hitGridOverflow[overflowPos--]
       } else {
-        index = hitGridOverflow[overflowPos--]
+        const bucketAction = bucket![bucketPos]
+        const overflowAction = hitGridOverflow[overflowPos]
+        if ((hitGridOrder.get(bucketAction) ?? 0) >= (hitGridOrder.get(overflowAction) ?? 0)) {
+          action = bucket![bucketPos--]
+        } else {
+          action = hitGridOverflow[overflowPos--]
+        }
       }
 
-      const hit = hitTestAction(history[index], index, p)
-      if (hit) return hit
+      if (hitTestAction(action, p)) {
+        const index = history.lastIndexOf(action)
+        if (index !== -1) return { action, index }
+      }
     }
 
     return null
@@ -998,8 +1145,9 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
   function removeAction(index: number) {
     if (index >= 0 && index < history.length) {
+      const action = history[index]
       history.splice(index, 1)
-      markHitGridDirty()
+      deleteActionFromHitGrid(action)
       invalidateCache()
       flushRender()
     }
