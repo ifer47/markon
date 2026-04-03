@@ -1,12 +1,12 @@
 [package]
-name = "markon"
-version = "0.0.4"
+name = "markeron"
+version = "0.0.6"
 description = "轻量级屏幕标注工具"
 authors = [""]
 edition = "2021"
 
 [lib]
-name = "markon_lib"
+name = "markeron_lib"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [build-dependencies]

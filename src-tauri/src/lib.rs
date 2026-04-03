@@ -140,7 +140,7 @@ fn open_settings(app: &AppHandle) {
 
     let url = WebviewUrl::App("index.html#settings".into());
     let builder = WebviewWindowBuilder::new(app, "settings", url)
-        .title("MarkOn 设置")
+        .title("MarkerOn 设置")
         .inner_size(600.0, 450.0)
         .min_inner_size(500.0, 380.0)
         .resizable(true)
@@ -390,5 +390,5 @@ pub fn run() {
             _ => {}
         })
         .run(tauri::generate_context!())
-        .expect("error while running MarkOn");
+        .expect("error while running MarkerOn");
 }
