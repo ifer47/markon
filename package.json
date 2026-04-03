@@ -6,12 +6,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ifer47/markon.git"
+    "url": "git+https://github.com/ifer47/markeron.git"
   },
   "bugs": {
-    "url": "https://github.com/ifer47/markon/issues"
+    "url": "https://github.com/ifer47/markeron/issues"
   },
-  "homepage": "https://github.com/ifer47/markon#readme",
+  "homepage": "https://github.com/ifer47/markeron#readme",
   "private": true,
   "keywords": [
     "markeron",
