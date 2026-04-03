@@ -30,3 +30,11 @@ src-tauri/target
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
+
+# Development certificate
+devcert.pfx
+
+# MSIX packaging
+dist_msix/
+*.msix
+*.msixbundle
