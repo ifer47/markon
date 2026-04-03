@@ -12,10 +12,10 @@
 
 | 平台 | 安装包 | 说明 |
 | :--- | :--- | :--- |
-| Windows x64 | [MarkerOn_0.0.6_x64-setup.exe](https://github.com/ifer47/markon/releases/download/v0.0.6/MarkerOn_0.0.6_x64-setup.exe) | NSIS 安装程序（推荐） |
-| Windows x64 | [MarkerOn_0.0.6_x64_zh-CN.msi](https://github.com/ifer47/markon/releases/download/v0.0.6/MarkerOn_0.0.6_x64_zh-CN.msi) | MSI 安装程序 |
+| Windows x64 | [MarkerOn_0.0.6_x64-setup.exe](https://github.com/ifer47/markeron/releases/download/v0.0.6/MarkerOn_0.0.6_x64-setup.exe) | NSIS 安装程序（推荐） |
+| Windows x64 | [MarkerOn_0.0.6_x64_zh-CN.msi](https://github.com/ifer47/markeron/releases/download/v0.0.6/MarkerOn_0.0.6_x64_zh-CN.msi) | MSI 安装程序 |
 
-也可以前往 [Releases 页面](https://github.com/ifer47/markon/releases/tag/v0.0.6) 查看所有版本及更新日志。
+也可以前往 [Releases 页面](https://github.com/ifer47/markeron/releases/tag/v0.0.6) 查看所有版本及更新日志。
 
 ## 🚀 快速开始
 
