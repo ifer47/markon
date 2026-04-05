@@ -20,7 +20,7 @@ export interface DrawAction {
   lineWidth: number
   opacity: number
   points: Point[]
-  attachedErasers?: DrawAction[]
+  attachedErasers?: { source: DrawAction, clone: DrawAction }[]
   text?: string
   fontSize?: number
   textWidth?: number
@@ -163,14 +163,20 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
             ry: action.ellipseHit.ry,
           }
         : undefined,
-      attachedErasers: action.attachedErasers?.map((mask) => cloneActionWithOffset(mask, dx, dy)),
+      attachedErasers: action.attachedErasers?.map((ae) => ({
+        source: ae.source,
+        clone: cloneActionWithOffset(ae.clone, dx, dy),
+      })),
     }
   }
 
   function offsetAttachedErasers(action: DrawAction, dx: number, dy: number) {
     if (!action.attachedErasers?.length) return
     for (let i = 0; i < action.attachedErasers.length; i++) {
-      action.attachedErasers[i] = cloneActionWithOffset(action.attachedErasers[i], dx, dy)
+      action.attachedErasers[i] = {
+        source: action.attachedErasers[i].source,
+        clone: cloneActionWithOffset(action.attachedErasers[i].clone, dx, dy),
+      }
     }
   }
 
@@ -184,7 +190,9 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   function drawAttachedErasers(ctx: CanvasRenderingContext2D, action: DrawAction) {
     if (action.tool === 'eraser' || !action.attachedErasers?.length) return
     for (let i = 0; i < action.attachedErasers.length; i++) {
-      drawActionOn(ctx, action.attachedErasers[i])
+      const ae = action.attachedErasers[i]
+      if (history.indexOf(ae.source) === -1) continue
+      drawActionOn(ctx, ae.clone)
     }
   }
 
@@ -982,7 +990,10 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
         }
         offsetAttachedErasers(action, dragOffsetX, dragOffsetY)
         if (dragMaskActions.length > 0) {
-          const movedMasks = dragMaskActions.map((mask) => cloneActionWithOffset(mask, dragOffsetX, dragOffsetY))
+          const movedMasks = dragMaskActions.map((mask) => ({
+            source: mask,
+            clone: cloneActionWithOffset(mask, dragOffsetX, dragOffsetY),
+          }))
           action.attachedErasers = action.attachedErasers
             ? action.attachedErasers.concat(movedMasks)
             : movedMasks
