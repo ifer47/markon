@@ -20,7 +20,7 @@ export interface DrawAction {
   lineWidth: number
   opacity: number
   points: Point[]
-  attachedErasers?: { source: DrawAction, clone: DrawAction }[]
+  attachedErasers?: DrawAction[]
   text?: string
   fontSize?: number
   textWidth?: number
@@ -37,8 +37,46 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   const currentColor = ref('#FF0000')
   const lineWidth = ref(3)
   const isDrawing = ref(false)
+
+  interface DragSnapshot {
+    points: Point[]
+    index: number
+    attachedErasers: DrawAction['attachedErasers']
+    bbox: DrawAction['bbox']
+    rectHit: DrawAction['rectHit']
+    ellipseHit: DrawAction['ellipseHit']
+  }
+
+  type UndoEntry =
+    | { type: 'add', action: DrawAction }
+    | { type: 'remove', action: DrawAction, index: number }
+    | { type: 'drag', action: DrawAction, from: DragSnapshot, to: DragSnapshot }
+    | { type: 'erase', targets: { action: DrawAction, before: DrawAction['attachedErasers'], after: DrawAction['attachedErasers'] }[] }
+    | { type: 'clear', actions: DrawAction[], prevUndoStack: UndoEntry[] }
+
+  function takeDragSnapshot(action: DrawAction, index: number): DragSnapshot {
+    return {
+      points: action.points.map(p => ({ x: p.x, y: p.y })),
+      index,
+      attachedErasers: action.attachedErasers ? [...action.attachedErasers] : undefined,
+      bbox: action.bbox ? { ...action.bbox } : undefined,
+      rectHit: action.rectHit ? { ...action.rectHit } : undefined,
+      ellipseHit: action.ellipseHit ? { ...action.ellipseHit } : undefined,
+    }
+  }
+
+  function restoreDragSnapshot(action: DrawAction, snap: DragSnapshot) {
+    action.points = snap.points.map(p => ({ x: p.x, y: p.y }))
+    action.attachedErasers = snap.attachedErasers ? [...snap.attachedErasers] : undefined
+    action.bbox = snap.bbox ? { ...snap.bbox } : undefined
+    action.rectHit = snap.rectHit ? { ...snap.rectHit } : undefined
+    action.ellipseHit = snap.ellipseHit ? { ...snap.ellipseHit } : undefined
+    pathCache.delete(action)
+  }
+
   const history: DrawAction[] = []
-  const redoStack: DrawAction[] = []
+  const undoStack: UndoEntry[] = []
+  const redoStack: UndoEntry[] = []
   const currentAction = shallowRef<DrawAction | null>(null)
   const previewAction = shallowRef<DrawAction | null>(null)
 
@@ -61,7 +99,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   let dragBboxX = 0
   let dragBboxY = 0
   let useDragCanvas = false
-  let dragMaskActions: DrawAction[] = []
+  let tempCanvas: HTMLCanvasElement | null = null
   let prevDragScreenX = NaN
   let prevDragScreenY = NaN
   let prevStrokeRect: { x: number, y: number, w: number, h: number } | null = null
@@ -120,21 +158,6 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     return a.x1 <= b.x2 && a.x2 >= b.x1 && a.y1 <= b.y2 && a.y2 >= b.y1
   }
 
-  function getDragMaskActions(action: DrawAction, bbox: DrawAction['bbox']) {
-    const idx = history.indexOf(action)
-    if (idx === -1) return []
-
-    const masks: DrawAction[] = []
-    for (let i = idx + 1; i < history.length; i++) {
-      const candidate = history[i]
-      if (candidate.tool !== 'eraser') continue
-      if (!bbox || !candidate.bbox || bboxesIntersect(bbox, candidate.bbox)) {
-        masks.push(candidate)
-      }
-    }
-    return masks
-  }
-
   function cloneActionWithOffset(action: DrawAction, dx: number, dy: number): DrawAction {
     return {
       ...action,
@@ -163,36 +186,14 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
             ry: action.ellipseHit.ry,
           }
         : undefined,
-      attachedErasers: action.attachedErasers?.map((ae) => ({
-        source: ae.source,
-        clone: cloneActionWithOffset(ae.clone, dx, dy),
-      })),
+      attachedErasers: action.attachedErasers?.map((ae) => cloneActionWithOffset(ae, dx, dy)),
     }
   }
 
   function offsetAttachedErasers(action: DrawAction, dx: number, dy: number) {
     if (!action.attachedErasers?.length) return
     for (let i = 0; i < action.attachedErasers.length; i++) {
-      action.attachedErasers[i] = {
-        source: action.attachedErasers[i].source,
-        clone: cloneActionWithOffset(action.attachedErasers[i].clone, dx, dy),
-      }
-    }
-  }
-
-  function drawPreviewWithMasks(ctx: CanvasRenderingContext2D, action: DrawAction) {
-    drawActionOn(ctx, action)
-    for (let i = 0; i < dragMaskActions.length; i++) {
-      drawActionOn(ctx, dragMaskActions[i])
-    }
-  }
-
-  function drawAttachedErasers(ctx: CanvasRenderingContext2D, action: DrawAction) {
-    if (action.tool === 'eraser' || !action.attachedErasers?.length) return
-    for (let i = 0; i < action.attachedErasers.length; i++) {
-      const ae = action.attachedErasers[i]
-      if (history.indexOf(ae.source) === -1) continue
-      drawActionOn(ctx, ae.clone)
+      action.attachedErasers[i] = cloneActionWithOffset(action.attachedErasers[i], dx, dy)
     }
   }
 
@@ -374,8 +375,6 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     lastBakedPtIdx = 0
   }
 
-  // Bake finalized segments of the current freehand stroke incrementally.
-  // Segments up to pts.length-3 are "settled" (their shape won't change).
   function bakeIncrementalStroke(action: DrawAction) {
     if (!strokeCtx) return
     const pts = action.points
@@ -383,13 +382,8 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     if (targetIdx <= lastBakedPtIdx || targetIdx < 1) return
 
     strokeCtx.save()
-    if (action.tool === 'eraser') {
-      strokeCtx.globalCompositeOperation = 'destination-out'
-      strokeCtx.globalAlpha = 1
-    } else {
-      strokeCtx.globalCompositeOperation = 'source-over'
-      strokeCtx.globalAlpha = action.opacity
-    }
+    strokeCtx.globalCompositeOperation = 'source-over'
+    strokeCtx.globalAlpha = action.opacity
     strokeCtx.strokeStyle = action.color
     strokeCtx.lineWidth = action.lineWidth
     strokeCtx.lineCap = 'round'
@@ -399,14 +393,12 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
     if (lastBakedPtIdx === 0) {
       strokeCtx.moveTo(pts[0].x, pts[0].y)
-      // Draw from the first point using quadratic bezier
       for (let i = 1; i <= targetIdx; i++) {
         const midX = (pts[i].x + pts[i + 1].x) / 2
         const midY = (pts[i].y + pts[i + 1].y) / 2
         strokeCtx.quadraticCurveTo(pts[i].x, pts[i].y, midX, midY)
       }
     } else {
-      // Resume from the last baked midpoint
       const mX = (pts[lastBakedPtIdx].x + pts[lastBakedPtIdx + 1].x) / 2
       const mY = (pts[lastBakedPtIdx].y + pts[lastBakedPtIdx + 1].y) / 2
       strokeCtx.moveTo(mX, mY)
@@ -429,9 +421,6 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
     const preview = previewAction.value
 
-    // Fast path: dirty-rect rendering during drag with pre-rendered canvas.
-    // Instead of clearing+redrawing the entire canvas (~33M pixels on 4K),
-    // only update the union of old and new element positions.
     if (preview && useDragCanvas && dragCanvas) {
       prevStrokeRect = null
       ensureCache()
@@ -471,7 +460,6 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       return
     }
 
-    // Standard render path
     prevDragScreenX = NaN
     prevDragScreenY = NaN
 
@@ -555,10 +543,10 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       if (dragOffsetX !== 0 || dragOffsetY !== 0) {
         ctx.save()
         ctx.translate(dragOffsetX, dragOffsetY)
-        drawPreviewWithMasks(ctx, preview)
+        drawActionOn(ctx, preview)
         ctx.restore()
       } else {
-        drawPreviewWithMasks(ctx, preview)
+        drawActionOn(ctx, preview)
       }
     }
   }
@@ -590,7 +578,6 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       fontSize,
     }
 
-    // Cache text width and bbox to avoid measuring in findActionAt
     const ctx = getCtx()
     if (ctx) {
       ctx.font = `${fontSize}px "Microsoft YaHei", "PingFang SC", system-ui, sans-serif`
@@ -612,6 +599,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     ensureCache()
     if (cacheCtx) drawActionOn(cacheCtx, action)
     history.push(action)
+    undoStack.push({ type: 'add', action })
     appendActionToHitGrid(action)
     flushRender()
   }
@@ -712,16 +700,81 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
     clearStrokeCanvas()
 
-    ensureCache()
-    if (cacheCtx) drawActionOn(cacheCtx, action)
-    history.push(action)
-    appendActionToHitGrid(action)
+    if (action.tool === 'eraser') {
+      if (action.bbox) {
+        const eraseTargets: { action: DrawAction, before: DrawAction['attachedErasers'], after: DrawAction['attachedErasers'] }[] = []
+
+        for (let i = 0; i < history.length; i++) {
+          const target = history[i]
+          if (!target.bbox || !bboxesIntersect(target.bbox, action.bbox!)) continue
+
+          const before = target.attachedErasers ? [...target.attachedErasers] : undefined
+          if (!target.attachedErasers) target.attachedErasers = []
+          target.attachedErasers.push(action)
+          const after = [...target.attachedErasers]
+          eraseTargets.push({ action: target, before, after })
+          pathCache.delete(target)
+        }
+
+        if (eraseTargets.length > 0) {
+          undoStack.push({ type: 'erase', targets: eraseTargets })
+          redoStack.length = 0
+        }
+      }
+      invalidateCache()
+    } else {
+      ensureCache()
+      if (cacheCtx) drawActionOn(cacheCtx, action)
+      history.push(action)
+      undoStack.push({ type: 'add', action })
+      appendActionToHitGrid(action)
+    }
 
     currentAction.value = null
     flushRender()
   }
 
   function drawActionOn(ctx: CanvasRenderingContext2D, action: DrawAction) {
+    if (action.tool !== 'eraser' && action.attachedErasers?.length) {
+      const bbox = action.bbox
+      if (!bbox) { drawActionDirect(ctx, action); return }
+
+      const dpr = window.devicePixelRatio || 1
+      const w = bbox.x2 - bbox.x1
+      const h = bbox.y2 - bbox.y1
+      const pw = Math.ceil(w * dpr)
+      const ph = Math.ceil(h * dpr)
+      if (pw <= 0 || ph <= 0) return
+
+      if (!tempCanvas) tempCanvas = document.createElement('canvas')
+      if (tempCanvas.width < pw || tempCanvas.height < ph) {
+        tempCanvas.width = Math.max(tempCanvas.width || 0, pw)
+        tempCanvas.height = Math.max(tempCanvas.height || 0, ph)
+      }
+      const tctx = tempCanvas.getContext('2d')
+      if (!tctx) { drawActionDirect(ctx, action); return }
+
+      tctx.setTransform(1, 0, 0, 1, 0, 0)
+      tctx.clearRect(0, 0, pw, ph)
+      tctx.scale(dpr, dpr)
+      tctx.translate(-bbox.x1, -bbox.y1)
+
+      drawActionDirect(tctx, action)
+      for (let i = 0; i < action.attachedErasers.length; i++) {
+        drawActionDirect(tctx, action.attachedErasers[i])
+      }
+
+      ctx.save()
+      ctx.globalCompositeOperation = 'source-over'
+      ctx.globalAlpha = 1
+      ctx.drawImage(tempCanvas, 0, 0, pw, ph, bbox.x1, bbox.y1, w, h)
+      ctx.restore()
+      return
+    }
+    drawActionDirect(ctx, action)
+  }
+
+  function drawActionDirect(ctx: CanvasRenderingContext2D, action: DrawAction) {
     ctx.save()
     ctx.globalAlpha = action.opacity
 
@@ -752,7 +805,6 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
         const lineCenterY = action.points[0].y + i * lh
         ctx.fillText(lines[i], x, lineCenterY + baselineOffsetY)
       }
-      drawAttachedErasers(ctx, action)
       ctx.restore()
       return
     }
@@ -762,7 +814,6 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       ctx.beginPath()
       ctx.arc(pts[0].x, pts[0].y, action.lineWidth / 2, 0, Math.PI * 2)
       ctx.fill()
-      drawAttachedErasers(ctx, action)
       ctx.restore()
       return
     }
@@ -808,12 +859,9 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
         break
     }
 
-    drawAttachedErasers(ctx, action)
-
     ctx.restore()
   }
 
-  // Draws only the unsettled tail of a freehand stroke (last 3 points from baked index)
   function drawFreehandTail(ctx: CanvasRenderingContext2D, action: DrawAction) {
     const pts = action.points
     if (pts.length < 2) return
@@ -934,37 +982,33 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     ensureCache()
 
     useDragCanvas = false
-    dragMaskActions = []
     dragOffsetX = 0
     dragOffsetY = 0
     prevDragScreenX = NaN
     prevDragScreenY = NaN
 
-    if (action.tool !== 'eraser') {
-      const canvas = canvasRef.value
-      if (canvas) {
-        const dpr = window.devicePixelRatio || 1
-        const pad = Math.max(20, action.lineWidth / 2 + 10) + 2
-        const bbox = computeBbox(action, pad)
-        dragMaskActions = getDragMaskActions(action, bbox)
-        if (bbox) {
-          const bw = Math.ceil((bbox.x2 - bbox.x1) * dpr)
-          const bh = Math.ceil((bbox.y2 - bbox.y1) * dpr)
-          if (bw > 0 && bh > 0) {
-            dragBboxX = bbox.x1
-            dragBboxY = bbox.y1
-            if (!dragCanvas) dragCanvas = document.createElement('canvas')
-            dragCanvas.width = bw
-            dragCanvas.height = bh
-            dragCtx = dragCanvas.getContext('2d')
-            if (dragCtx) {
-              dragCtx.setTransform(1, 0, 0, 1, 0, 0)
-              dragCtx.clearRect(0, 0, bw, bh)
-              dragCtx.scale(dpr, dpr)
-              dragCtx.translate(-bbox.x1, -bbox.y1)
-              drawPreviewWithMasks(dragCtx, action)
-              useDragCanvas = true
-            }
+    const canvas = canvasRef.value
+    if (canvas) {
+      const dpr = window.devicePixelRatio || 1
+      const pad = Math.max(20, action.lineWidth / 2 + 10) + 2
+      const bbox = computeBbox(action, pad)
+      if (bbox) {
+        const bw = Math.ceil((bbox.x2 - bbox.x1) * dpr)
+        const bh = Math.ceil((bbox.y2 - bbox.y1) * dpr)
+        if (bw > 0 && bh > 0) {
+          dragBboxX = bbox.x1
+          dragBboxY = bbox.y1
+          if (!dragCanvas) dragCanvas = document.createElement('canvas')
+          dragCanvas.width = bw
+          dragCanvas.height = bh
+          dragCtx = dragCanvas.getContext('2d')
+          if (dragCtx) {
+            dragCtx.setTransform(1, 0, 0, 1, 0, 0)
+            dragCtx.clearRect(0, 0, bw, bh)
+            dragCtx.scale(dpr, dpr)
+            dragCtx.translate(-bbox.x1, -bbox.y1)
+            drawActionOn(dragCtx, action)
+            useDragCanvas = true
           }
         }
       }
@@ -982,22 +1026,17 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   function endDrag() {
     if (previewAction.value) {
       const action = previewAction.value
+      const hasMoved = dragOffsetX !== 0 || dragOffsetY !== 0
 
-      if (dragOffsetX !== 0 || dragOffsetY !== 0) {
+      const beforeIdx = history.indexOf(action)
+      const beforeSnap = hasMoved ? takeDragSnapshot(action, beforeIdx) : null
+
+      if (hasMoved) {
         for (const pt of action.points) {
           pt.x += dragOffsetX
           pt.y += dragOffsetY
         }
         offsetAttachedErasers(action, dragOffsetX, dragOffsetY)
-        if (dragMaskActions.length > 0) {
-          const movedMasks = dragMaskActions.map((mask) => ({
-            source: mask,
-            clone: cloneActionWithOffset(mask, dragOffsetX, dragOffsetY),
-          }))
-          action.attachedErasers = action.attachedErasers
-            ? action.attachedErasers.concat(movedMasks)
-            : movedMasks
-        }
         pathCache.delete(action)
       }
 
@@ -1024,10 +1063,15 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
         history.push(action)
       }
       refreshActionInHitGrid(action, movedToTop)
+
+      if (hasMoved && beforeSnap) {
+        const afterSnap = takeDragSnapshot(action, history.indexOf(action))
+        undoStack.push({ type: 'drag', action, from: beforeSnap, to: afterSnap })
+        redoStack.length = 0
+      }
     }
     previewAction.value = null
     useDragCanvas = false
-    dragMaskActions = []
     dragOffsetX = 0
     dragOffsetY = 0
     prevDragScreenX = NaN
@@ -1037,30 +1081,102 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   }
 
   function undo() {
-    if (history.length === 0) return
-    const last = history.pop()!
-    redoStack.push(last)
-    deleteActionFromHitGrid(last)
+    if (undoStack.length === 0) return
+    const entry = undoStack.pop()!
+
+    if (entry.type === 'add') {
+      const idx = history.lastIndexOf(entry.action)
+      if (idx !== -1) {
+        history.splice(idx, 1)
+        deleteActionFromHitGrid(entry.action)
+      }
+    } else if (entry.type === 'remove') {
+      const target = Math.min(entry.index, history.length)
+      history.splice(target, 0, entry.action)
+      appendActionToHitGrid(entry.action)
+    } else if (entry.type === 'drag') {
+      restoreDragSnapshot(entry.action, entry.from)
+      const cur = history.indexOf(entry.action)
+      if (cur !== -1) {
+        history.splice(cur, 1)
+        const target = Math.min(entry.from.index, history.length)
+        history.splice(target, 0, entry.action)
+      }
+      refreshActionInHitGrid(entry.action, true)
+    } else if (entry.type === 'erase') {
+      for (const t of entry.targets) {
+        t.action.attachedErasers = t.before ? [...t.before] : undefined
+        pathCache.delete(t.action)
+      }
+    } else if (entry.type === 'clear') {
+      history.push(...entry.actions)
+      undoStack.push(...entry.prevUndoStack)
+      hitGridDirty = true
+    }
+
+    redoStack.push(entry)
     invalidateCache()
     flushRender()
   }
 
   function redo() {
     if (redoStack.length === 0) return
-    const action = redoStack.pop()!
-    history.push(action)
-    appendActionToHitGrid(action)
-    if (cacheValid && cacheCtx) {
-      drawActionOn(cacheCtx, action)
+    const entry = redoStack.pop()!
+
+    if (entry.type === 'add') {
+      history.push(entry.action)
+      appendActionToHitGrid(entry.action)
+    } else if (entry.type === 'remove') {
+      const idx = history.indexOf(entry.action)
+      if (idx !== -1) {
+        history.splice(idx, 1)
+        deleteActionFromHitGrid(entry.action)
+      }
+    } else if (entry.type === 'drag') {
+      restoreDragSnapshot(entry.action, entry.to)
+      const cur = history.indexOf(entry.action)
+      if (cur !== -1) {
+        history.splice(cur, 1)
+        const target = Math.min(entry.to.index, history.length)
+        history.splice(target, 0, entry.action)
+      }
+      refreshActionInHitGrid(entry.action, true)
+    } else if (entry.type === 'erase') {
+      for (const t of entry.targets) {
+        t.action.attachedErasers = t.after ? [...t.after] : undefined
+        pathCache.delete(t.action)
+      }
+    } else if (entry.type === 'clear') {
+      entry.actions = [...history]
+      entry.prevUndoStack = [...undoStack]
+      history.length = 0
+      undoStack.length = 0
+      clearHitGridState()
+      hitGridDirty = false
     }
+
+    undoStack.push(entry)
+    invalidateCache()
     flushRender()
   }
 
   function clearAll() {
+    if (history.length === 0) return
+
+    const entry: UndoEntry = {
+      type: 'clear',
+      actions: [...history],
+      prevUndoStack: [...undoStack],
+    }
+
     history.length = 0
+    undoStack.length = 0
     redoStack.length = 0
     clearHitGridState()
     hitGridDirty = false
+
+    undoStack.push(entry)
+
     invalidateCache()
     const ctx = getCtx()
     const canvas = canvasRef.value
@@ -1100,7 +1216,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       return p.x >= boxX && p.x <= boxX + textWidth + 20 && p.y >= boxY && p.y <= boxY + lines.length * lh + 20
     }
 
-    if (action.tool === 'pen' || action.tool === 'highlighter' || action.tool === 'eraser') {
+    if (action.tool === 'pen' || action.tool === 'highlighter') {
       if (pts.length === 1) {
         if (Math.hypot(p.x - pts[0].x, p.y - pts[0].y) <= threshold) return true
       } else {
@@ -1210,6 +1326,8 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       const action = history[index]
       history.splice(index, 1)
       deleteActionFromHitGrid(action)
+      undoStack.push({ type: 'remove', action, index })
+      redoStack.length = 0
       invalidateCache()
       flushRender()
     }
@@ -1227,6 +1345,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     strokeCtx = null
     dragCanvas = null
     dragCtx = null
+    tempCanvas = null
   }
 
   return {
