@@ -100,6 +100,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   let dragBboxY = 0
   let useDragCanvas = false
   let tempCanvas: HTMLCanvasElement | null = null
+  let tempCtx: CanvasRenderingContext2D | null = null
   let prevDragScreenX = NaN
   let prevDragScreenY = NaN
   let prevStrokeRect: { x: number, y: number, w: number, h: number } | null = null
@@ -746,12 +747,17 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       const ph = Math.ceil(h * dpr)
       if (pw <= 0 || ph <= 0) return
 
-      if (!tempCanvas) tempCanvas = document.createElement('canvas')
+      if (!tempCanvas) {
+        tempCanvas = document.createElement('canvas')
+        tempCtx = null
+      }
       if (tempCanvas.width < pw || tempCanvas.height < ph) {
         tempCanvas.width = Math.max(tempCanvas.width || 0, pw)
         tempCanvas.height = Math.max(tempCanvas.height || 0, ph)
+        tempCtx = null
       }
-      const tctx = tempCanvas.getContext('2d')
+      if (!tempCtx) tempCtx = tempCanvas.getContext('2d')
+      const tctx = tempCtx
       if (!tctx) { drawActionDirect(ctx, action); return }
 
       tctx.setTransform(1, 0, 0, 1, 0, 0)
@@ -1185,6 +1191,20 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     }
   }
 
+  function hardReset() {
+    history.length = 0
+    undoStack.length = 0
+    redoStack.length = 0
+    clearHitGridState()
+    hitGridDirty = false
+    invalidateCache()
+    const ctx = getCtx()
+    const canvas = canvasRef.value
+    if (ctx && canvas) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+    }
+  }
+
   function distToSeg(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {
     const dx = bx - ax, dy = by - ay
     const l2 = dx * dx + dy * dy
@@ -1346,6 +1366,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     dragCanvas = null
     dragCtx = null
     tempCanvas = null
+    tempCtx = null
   }
 
   return {
@@ -1364,6 +1385,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     undo,
     redo,
     clearAll,
+    hardReset,
     redrawAll,
     requestRedraw,
     scheduleRender,

@@ -111,6 +111,7 @@ const {
   undo,
   redo,
   clearAll,
+  hardReset,
   redrawAll,
   requestRedraw,
   beginDrag,
@@ -489,7 +490,7 @@ onMounted(async () => {
       showSettings.value = false
       showQuickColors.value = false
       textBoxPos.value = null
-      clearAll()
+      hardReset()
       if (isActive) {
         currentTool.value = 'pen'
         nextTick(() => resizeCanvas())
@@ -499,7 +500,7 @@ onMounted(async () => {
 
   unlisteners.push(
     await listen('clear-drawing', () => {
-      clearAll()
+      hardReset()
     })
   )
 })
