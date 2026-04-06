@@ -12,13 +12,14 @@
   IgnorableNamespaces="uap uap2 uap3 uap10 desktop desktop6 rescap">
 
   <Identity
-    Name="MarkerOn"
-    Publisher="CN=Administrator"
-    Version="0.0.9.0" />
+    Name="ifer.MarkerOn"
+    Publisher="CN=1CC39F0D-AB5D-475D-87ED-F37428C133CD"
+    Version="0.0.9.0"
+    ProcessorArchitecture="x64" />
 
   <Properties>
     <DisplayName>MarkerOn</DisplayName>
-    <PublisherDisplayName>ifer47</PublisherDisplayName>
+    <PublisherDisplayName>ifer</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
