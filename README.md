@@ -78,7 +78,7 @@ npm run build
 | <kbd>4</kbd> | ▢ 矩形 | 矩形边框 |
 | <kbd>5</kbd> | ○ 椭圆 | 椭圆边框 |
 | <kbd>6</kbd> | ╱ 直线 | 直线段 |
-| <kbd>7</kbd> | ◎ 橡皮擦 | 擦除标注内容 |
+| <kbd>7</kbd> | ◎ 橡皮擦 | 实时擦除标注内容，擦除效果跟随元素拖拽 |
 | <kbd>T</kbd> | 𝐓 文字 | 双击放置/编辑文字，滚轮调整字号，<kbd>Ctrl</kbd> + <kbd>Enter</kbd> 确认 |
 
 ### 标注模式 — 颜色切换
@@ -98,7 +98,7 @@ npm run build
 | <kbd>Space</kbd> | 呼出 / 隐藏设置面板（工具、颜色、线宽） |
 | <kbd>Ctrl</kbd> + <kbd>Z</kbd> | 撤销 |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd> | 重做 |
-| <kbd>Delete</kbd> | 清除全部标注 |
+| <kbd>Delete</kbd> | 清除全部标注（可通过 <kbd>Ctrl</kbd> + <kbd>Z</kbd> 撤销恢复） |
 | <kbd>Esc</kbd> | 退出标注模式 |
 | <kbd>Alt</kbd> + <kbd>Tab</kbd> | 切换窗口并退出标注模式 |
 | <kbd>Win</kbd> | 打开开始菜单并退出标注模式 |
