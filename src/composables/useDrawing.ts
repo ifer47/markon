@@ -802,14 +802,33 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       ctx.font = `${fs}px "Microsoft YaHei", "PingFang SC", system-ui, sans-serif`
       ctx.globalAlpha = 1
       ctx.fillStyle = action.color
+      // Anchor y matches TextBox.vue (vertical center of each line-height box).
+      // `textBaseline: middle` uses em-square center ≠ CSS line box; fixed offsets drift by font/OS.
+      // Align ink bounding-box center to lineCenterY using TextMetrics (works across PingFang / YaHei).
       ctx.textBaseline = 'alphabetic'
       const lines = (action.text ?? '').split('\n')
       const x = action.points[0].x + 2
       const lh = Math.round(fs * 1.3)
-      const baselineOffsetY = fs * 0.398
       for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
         const lineCenterY = action.points[0].y + i * lh
-        ctx.fillText(lines[i], x, lineCenterY + baselineOffsetY)
+        const sample = line.length > 0 ? line : 'M'
+        const m = ctx.measureText(sample)
+        let ascent = m.actualBoundingBoxAscent
+        let descent = m.actualBoundingBoxDescent
+        if (
+          ascent === undefined ||
+          descent === undefined ||
+          !Number.isFinite(ascent) ||
+          !Number.isFinite(descent) ||
+          (ascent === 0 && descent === 0 && line.length > 0)
+        ) {
+          ascent = fs * 0.74
+          descent = fs * 0.26
+        }
+        // Ink center Y = baseline + (descent - ascent) / 2  →  baseline = lineCenterY - (descent - ascent) / 2
+        const baselineY = lineCenterY - (descent - ascent) / 2
+        ctx.fillText(line, x, baselineY)
       }
       ctx.restore()
       return
