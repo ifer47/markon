@@ -22,9 +22,9 @@
   ],
   "type": "module",
   "scripts": {
-    "dev": "sh -c 'export PATH=\"$HOME/.cargo/bin:$PATH\" && tauri dev'",
+    "dev": "tauri dev",
     "dev:fe": "vite",
-    "build": "sh -c 'export PATH=\"$HOME/.cargo/bin:$PATH\" && tauri build'",
+    "build": "tauri build",
     "build:fe": "vue-tsc --noEmit && vite build"
   },
   "devDependencies": {
