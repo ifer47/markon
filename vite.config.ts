@@ -6,6 +6,9 @@ const host = process.env.TAURI_DEV_HOST
 
 export default defineConfig({
   plugins: [vue(), tailwindcss()],
+  optimizeDeps: {
+    entries: ['index.html'],
+  },
   build: {
     target: 'esnext',
     modulePreload: { polyfill: false },
