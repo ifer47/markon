@@ -8,12 +8,15 @@
 
 ## 📥 下载安装
 
-> 无需安装开发环境，直接下载安装包即可使用。
+<a href="https://get.microsoft.com/installer/download/9n6623x973jv?referrer=appbadge" target="_self" >
+<img src="https://get.microsoft.com/images/zh-cn%20dark.svg" width="200"/>
+</a>
 
 | 平台 | 安装包 | 说明 |
 | :--- | :--- | :--- |
 | Windows x64 | [MarkerOn_0.0.9_x64-setup.exe](https://github.com/ifer47/markeron/releases/download/v0.0.9/MarkerOn_0.0.9_x64-setup.exe) | NSIS 安装程序（推荐） |
 | Windows x64 | [MarkerOn_0.0.9_x64_zh-CN.msi](https://github.com/ifer47/markeron/releases/download/v0.0.9/MarkerOn_0.0.9_x64_zh-CN.msi) | MSI 安装程序 |
+| Mac | 下载源代码，自行 npm run build | / |
 
 也可以前往 [Releases 页面](https://github.com/ifer47/markeron/releases/tag/v0.0.9) 查看所有版本及更新日志。
 
