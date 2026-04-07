@@ -38,3 +38,4 @@ devcert.pfx
 dist_msix/
 *.msix
 *.msixbundle
+.agents/
