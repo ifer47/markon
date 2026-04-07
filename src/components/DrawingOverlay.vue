@@ -155,10 +155,22 @@ function resizeCanvas() {
 
 let toolBeforeModifier: string | null = null
 let resizeTimer: ReturnType<typeof setTimeout> | null = null
+let dprMediaQuery: MediaQueryList | null = null
 
 function debouncedResize() {
   if (resizeTimer) clearTimeout(resizeTimer)
   resizeTimer = setTimeout(resizeCanvas, 100)
+}
+
+function watchDpr() {
+  dprMediaQuery?.removeEventListener('change', onDprChange)
+  dprMediaQuery = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)
+  dprMediaQuery.addEventListener('change', onDprChange)
+}
+
+function onDprChange() {
+  debouncedResize()
+  watchDpr()
 }
 
 function commitCurrentTextBox(cancel = false) {
@@ -467,6 +479,7 @@ onMounted(async () => {
   window.addEventListener('resize', debouncedResize)
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('keyup', onKeyUp)
+  watchDpr()
 
   // Fetch initial config
   try {
@@ -508,6 +521,8 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener('resize', debouncedResize)
   if (resizeTimer) { clearTimeout(resizeTimer); resizeTimer = null }
+  dprMediaQuery?.removeEventListener('change', onDprChange)
+  dprMediaQuery = null
   window.removeEventListener('keydown', onKeyDown)
   window.removeEventListener('keyup', onKeyUp)
   if (hoverRafId !== null) {

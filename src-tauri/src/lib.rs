@@ -84,15 +84,91 @@ fn save_config(app: &AppHandle, config: &AppConfig) {
     }
 }
 
+// ── Cursor / monitor helpers ──
+
+/// Returns (x, y, width, height) of the monitor containing the cursor,
+/// using native Windows APIs for reliable DPI-aware coordinate handling.
+#[cfg(target_os = "windows")]
+fn get_cursor_monitor_rect() -> Option<(i32, i32, u32, u32)> {
+    #[repr(C)]
+    #[derive(Copy, Clone)]
+    struct POINT {
+        x: i32,
+        y: i32,
+    }
+
+    #[repr(C)]
+    struct RECT {
+        left: i32,
+        top: i32,
+        right: i32,
+        bottom: i32,
+    }
+
+    #[repr(C)]
+    struct MONITORINFO {
+        cb_size: u32,
+        rc_monitor: RECT,
+        rc_work: RECT,
+        dw_flags: u32,
+    }
+
+    const MONITOR_DEFAULTTONEAREST: u32 = 2;
+
+    extern "system" {
+        fn GetCursorPos(lp_point: *mut POINT) -> i32;
+        fn MonitorFromPoint(pt: POINT, dw_flags: u32) -> isize;
+        fn GetMonitorInfoW(h_monitor: isize, lpmi: *mut MONITORINFO) -> i32;
+    }
+
+    unsafe {
+        let mut pt = POINT { x: 0, y: 0 };
+        if GetCursorPos(&mut pt) == 0 {
+            return None;
+        }
+
+        let hmon = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+        if hmon == 0 {
+            return None;
+        }
+
+        let mut info: MONITORINFO = std::mem::zeroed();
+        info.cb_size = std::mem::size_of::<MONITORINFO>() as u32;
+        if GetMonitorInfoW(hmon, &mut info) == 0 {
+            return None;
+        }
+
+        let rc = &info.rc_monitor;
+        Some((
+            rc.left,
+            rc.top,
+            (rc.right - rc.left) as u32,
+            (rc.bottom - rc.top) as u32,
+        ))
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn get_cursor_monitor_rect() -> Option<(i32, i32, u32, u32)> {
+    None
+}
+
 // ── Window management ──
 
 fn setup_overlay_size(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("overlay") {
-        if let Some(monitor) = app.primary_monitor().ok().flatten() {
-            let size = monitor.size();
-            let pos = monitor.position();
+        if let Some((x, y, w, h)) = get_cursor_monitor_rect() {
             // Subtract 1 pixel from height to prevent Windows from treating it as a
             // fullscreen exclusive app, which causes the taskbar to lose its Mica/transparency effect.
+            window
+                .set_size(tauri::PhysicalSize::new(w, h.saturating_sub(1)))
+                .ok();
+            window
+                .set_position(tauri::PhysicalPosition::new(x, y))
+                .ok();
+        } else if let Some(monitor) = app.primary_monitor().ok().flatten() {
+            let size = monitor.size();
+            let pos = monitor.position();
             window
                 .set_size(tauri::PhysicalSize::new(size.width, size.height.saturating_sub(1)))
                 .ok();
