@@ -1,167 +1,166 @@
 # <img src="public/icon.png" width="28" height="28" /> MarkerOn
 
-> **轻量级屏幕标注工具** — 按下快捷键，随时在桌面上自由绘画、标注。适用于课堂演示 / 会议讲解 / 录屏批注。
+> **Lightweight screen annotation tool** — press a hotkey to instantly draw, highlight, and annotate anywhere on your desktop. Perfect for classroom demos, meeting presentations, and screencast narration.
 
 <p align="center">
-  <img src="public/screenshot.png" width="520" alt="MarkerOn 设置面板" />
+  <img src="public/screenshot.png" width="520" alt="MarkerOn Settings Panel" />
 </p>
 
-## 📥 下载安装
+<p align="center">
+  <a href="./README_zh.md">中文文档</a>
+</p>
+
+## Download
 
 <a href="https://get.microsoft.com/installer/download/9n6623x973jv?referrer=appbadge" target="_self" >
 <img src="https://get.microsoft.com/images/zh-cn%20dark.svg" width="200"/>
 </a>
 
-| 平台 | 安装包 | 说明 |
+| Platform | Installer | Note |
 | :--- | :--- | :--- |
-| Windows x64 | [MarkerOn_0.0.10_x64-setup.exe](https://github.com/ifer47/markeron/releases/download/v0.0.10/MarkerOn_0.0.10_x64-setup.exe) | NSIS 安装程序（推荐） |
-| Windows x64 | [MarkerOn_0.0.10_x64_zh-CN.msi](https://github.com/ifer47/markeron/releases/download/v0.0.10/MarkerOn_0.0.10_x64_zh-CN.msi) | MSI 安装程序 |
-| macOS x64 | [MarkerOn_0.0.10_x64.dmg](https://github.com/ifer47/markeron/releases/download/v0.0.10/MarkerOn_0.0.10_x64.dmg) | DMG，打开后拖入「应用程序」。Apple 芯片 Mac 首次运行需在「显示简介」中勾选 **使用 Rosetta 打开**（若系统提示） |
+| Windows x64 | [MarkerOn_0.0.10_x64-setup.exe](https://github.com/ifer47/markeron/releases/download/v0.0.10/MarkerOn_0.0.10_x64-setup.exe) | NSIS installer (recommended) |
+| Windows x64 | [MarkerOn_0.0.10_x64_zh-CN.msi](https://github.com/ifer47/markeron/releases/download/v0.0.10/MarkerOn_0.0.10_x64_zh-CN.msi) | MSI installer |
+| macOS x64 | [MarkerOn_0.0.10_x64.dmg](https://github.com/ifer47/markeron/releases/download/v0.0.10/MarkerOn_0.0.10_x64.dmg) | Open the DMG and drag to Applications. On Apple Silicon Macs, you may need to enable **Open using Rosetta** in Get Info on first launch |
 
-也可以前往 [Releases 页面](https://github.com/ifer47/markeron/releases/tag/v0.0.10) 查看所有版本及更新日志。
+You can also visit the [Releases page](https://github.com/ifer47/markeron/releases/tag/v0.0.10) for all versions and changelogs.
 
-## 🚀 快速开始
+## Quick Start
 
 ```bash
-# 安装依赖
 npm install
-
-# 启动开发模式
 npm run dev
-
-# 打包构建（生成安装包）
 npm run build
 ```
 
-启动后应用静默运行在 **系统托盘**，不会弹出任何窗口。
+After launching, the app runs silently in the **system tray** with no window shown.
 
-## ⌨️ 快捷键一览
+## Keyboard Shortcuts
 
-### 全局快捷键
+### Global Shortcuts
 
-> 以下快捷键在任何界面下都可使用：
+> Available system-wide, regardless of the active window:
 
-| 快捷键 | 功能 |
+| Shortcut | Action |
 | :--- | :--- |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> | 开启 / 退出标注模式 |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd> | 清除所有标注 |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> | Toggle annotation mode |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd> | Clear all annotations |
 
-### 标注模式 — 绘制
+### Annotation Mode — Drawing
 
-> 进入标注模式后，通过修饰键 + 鼠标拖动快速绘制不同图形：
+> Hold modifier keys while dragging to quickly draw different shapes:
 
-| 操作 | 绘制内容 |
+| Action | Draws |
 | :--- | :--- |
-| 直接拖动鼠标 | 当前工具（默认画笔） |
-| <kbd>Ctrl</kbd> + 拖动 | 矩形 |
-| <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + 拖动 | 正方形 |
-| <kbd>Shift</kbd> + 拖动 | 椭圆 |
-| <kbd>Shift</kbd> + <kbd>Alt</kbd> + 拖动 | 正圆 |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + 拖动 | 箭头 |
+| Drag | Current tool (default: pen) |
+| <kbd>Ctrl</kbd> + Drag | Rectangle |
+| <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + Drag | Square |
+| <kbd>Shift</kbd> + Drag | Ellipse |
+| <kbd>Shift</kbd> + <kbd>Alt</kbd> + Drag | Circle |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + Drag | Arrow |
 
-### 标注模式 — 编辑与移动
+### Annotation Mode — Edit & Move
 
-> 绘制完成后，无需切换工具即可直接移动或重新编辑已有元素：
+> Move or re-edit existing elements without switching tools:
 
-| 操作 | 功能 |
+| Action | Effect |
 | :--- | :--- |
-| 鼠标悬停在已有元素上并拖动 | **移动**该元素（支持所有形状、线条和文字，需在设置中开启"允许拖拽已有元素"） |
-| 双击已有文字 | 重新进入该文字的**编辑模式** |
-| <kbd>T</kbd> 模式下双击空白处 | 在光标位置新建文字输入框 |
+| Hover over an element and drag | **Move** the element (enable "Allow dragging existing elements" in settings) |
+| Double-click existing text | Re-enter **edit mode** for that text |
+| Double-click empty area in <kbd>T</kbd> mode | Create a new text input at cursor position |
 
-### 标注模式 — 工具切换
+### Annotation Mode — Tool Switching
 
-> 按数字键即时切换，无需打开面板：
+> Press a number key to switch tools instantly:
 
-| 按键 | 工具 | 说明 |
+| Key | Tool | Description |
 | :---: | :--- | :--- |
-| <kbd>1</kbd> | ∕ 画笔 | 自由绘画，平滑曲线 |
-| <kbd>2</kbd> | ∕∕ 荧光笔 | 半透明高亮标记 |
-| <kbd>3</kbd> | ⤤ 箭头 | 带箭头的指示线 |
-| <kbd>4</kbd> | ▢ 矩形 | 矩形边框 |
-| <kbd>5</kbd> | ○ 椭圆 | 椭圆边框 |
-| <kbd>6</kbd> | ╱ 直线 | 直线段 |
-| <kbd>7</kbd> | ◎ 橡皮擦 | 实时擦除标注内容，擦除效果跟随元素拖拽 |
-| <kbd>T</kbd> | 𝐓 文字 | 双击放置/编辑文字，滚轮调整字号，<kbd>Ctrl</kbd> + <kbd>Enter</kbd> 确认 |
+| <kbd>1</kbd> | ∕ Pen | Freehand drawing with smooth curves |
+| <kbd>2</kbd> | ∕∕ Highlighter | Semi-transparent highlight strokes |
+| <kbd>3</kbd> | ⤤ Arrow | Directional arrow lines |
+| <kbd>4</kbd> | ▢ Rectangle | Rectangle outlines |
+| <kbd>5</kbd> | ○ Ellipse | Ellipse outlines |
+| <kbd>6</kbd> | ╱ Line | Straight line segments |
+| <kbd>7</kbd> | ◎ Eraser | Erase annotations in real time; erased area follows element drag |
+| <kbd>T</kbd> | 𝐓 Text | Double-click to place/edit text, scroll to resize, <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to confirm |
 
-### 标注模式 — 颜色切换
+### Annotation Mode — Color Switching
 
-> 彩色光标实时显示当前画笔颜色，切换颜色后底部会短暂提示颜色名称。
+> The cursor color updates in real time. A brief color name tooltip appears at the bottom after switching.
 
-| 操作 | 功能 |
+| Action | Effect |
 | :--- | :--- |
-| <kbd>Q</kbd> | 切换到上一个颜色 |
-| <kbd>E</kbd> | 切换到下一个颜色 |
-| 鼠标右键 | 在光标处弹出快速选色盘（支持 <kbd>Q</kbd> / <kbd>E</kbd> 切换） |
+| <kbd>Q</kbd> | Previous color |
+| <kbd>E</kbd> | Next color |
+| Right-click | Open quick color picker at cursor |
 
-### 标注模式 — 其他操作
+### Annotation Mode — Other Actions
 
-| 快捷键 | 功能 |
+| Shortcut | Action |
 | :--- | :--- |
-| <kbd>Space</kbd> | 呼出 / 隐藏设置面板（工具、颜色、线宽） |
-| <kbd>Ctrl</kbd> + <kbd>C</kbd> | 复制屏幕到剪贴板（桌面 + 标注内容） |
-| <kbd>Ctrl</kbd> + <kbd>Z</kbd> | 撤销 |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd> | 重做 |
-| <kbd>Delete</kbd> | 清除全部标注（可通过 <kbd>Ctrl</kbd> + <kbd>Z</kbd> 撤销恢复） |
-| <kbd>Esc</kbd> | 退出标注模式 |
-| <kbd>Alt</kbd> + <kbd>Tab</kbd> | 切换窗口并退出标注模式 |
-| <kbd>Win</kbd> | 打开开始菜单并退出标注模式 |
+| <kbd>Space</kbd> | Toggle settings panel (tool, color, stroke width) |
+| <kbd>Ctrl</kbd> + <kbd>C</kbd> | Copy screen to clipboard (desktop + annotations) |
+| <kbd>Ctrl</kbd> + <kbd>Z</kbd> | Undo |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd> | Redo |
+| <kbd>Delete</kbd> | Clear all annotations (undoable with <kbd>Ctrl</kbd> + <kbd>Z</kbd>) |
+| <kbd>Esc</kbd> | Exit annotation mode |
+| <kbd>Alt</kbd> + <kbd>Tab</kbd> | Switch window and exit annotation mode |
+| <kbd>Win</kbd> | Open Start menu and exit annotation mode |
 
-> 💡 标注覆盖全屏（包括任务栏区域），退出标注模式时会自动清除所有绘制内容。
+> Annotations cover the entire screen including the taskbar area. All drawings are automatically cleared when exiting annotation mode.
 
-### 设置窗口
+### Settings
 
-右键点击系统托盘图标 → **设置**，即可打开设置窗口。
+Right-click the system tray icon and select **Settings** to open the settings window.
 
-**常规**
+**General**
 
-| 选项 | 说明 |
+| Option | Description |
 | :--- | :--- |
-| 开机自动启动 | 开启后，系统启动时应用会自动在后台静默运行 |
-| 允许拖拽已有元素 | 开启后，可通过鼠标拖动已绘制的图形和文字（默认关闭，避免绘图时误触） |
+| Launch at startup | Automatically start the app in the background on system boot |
+| Allow dragging existing elements | Enable dragging drawn shapes and text (disabled by default to prevent accidental moves) |
 
-**快捷键**
+**Shortcuts**
 
-点击「修改」后按下新的组合键（需含 Ctrl / Alt / Shift 中至少一个，或使用 F1-F12），快捷键即时生效自动保存。若新快捷键与其他应用冲突，会自动回滚并提示。
+Click "Modify", then press a new key combination (must include at least one of Ctrl / Alt / Shift, or use F1–F12). Changes take effect immediately and are auto-saved. If a shortcut conflicts with another application, it will automatically roll back with a notification.
 
-## 🛠️ 技术栈
+## Tech Stack
 
-| 技术 | 用途 |
+| Technology | Role |
 | :--- | :--- |
-| **Tauri v2** | 桌面应用框架 — Rust 后端、系统托盘、全局快捷键、透明置顶窗口 |
-| **Vue 3** | 渲染层 UI 框架 |
-| **Vite** | 极速构建与热更新 |
-| **TypeScript** | 完整类型支持 |
-| **Canvas API** | 高性能绘图引擎 |
+| **Tauri v2** | Desktop framework — Rust backend, system tray, global shortcuts, transparent always-on-top window |
+| **Vue 3** | Frontend UI framework |
+| **Vite** | Fast bundling and HMR |
+| **TypeScript** | Full type safety |
+| **Canvas API** | High-performance drawing engine |
 
-## 📁 项目结构
+## Project Structure
 
 ```
 markeron/
 ├── src-tauri/
 │   ├── src/
-│   │   └── lib.rs               # Rust 后端 — 窗口管理、快捷键、托盘
-│   └── tauri.conf.json          # Tauri 配置文件
+│   │   └── lib.rs               # Rust backend — window management, shortcuts, tray
+│   └── tauri.conf.json          # Tauri configuration
 │
 ├── src/
 │   ├── components/
-│   │   ├── DrawingOverlay.vue   # 绘图覆盖层（Canvas + 交互）
-│   │   ├── SettingsPanel.vue    # 标注模式工具面板（工具 / 颜色 / 线宽）
-│   │   ├── SettingsView.vue     # 设置窗口（快捷键配置 / 侧边栏布局）
-│   │   └── TextBox.vue          # 内联文字输入框
+│   │   ├── DrawingOverlay.vue   # Drawing overlay (Canvas + interactions)
+│   │   ├── SettingsPanel.vue    # Annotation toolbar (tool / color / stroke)
+│   │   ├── SettingsView.vue     # Settings window (shortcut config / sidebar layout)
+│   │   └── TextBox.vue          # Inline text input
 │   ├── composables/
-│   │   └── useDrawing.ts        # 绘图引擎（画笔、形状、文字、撤销重做）
+│   │   └── useDrawing.ts        # Drawing engine (pen, shapes, text, undo/redo)
 │   ├── types/
-│   │   └── app.d.ts             # TypeScript 类型声明
-│   ├── App.vue                  # 根组件
-│   ├── main.ts                  # 渲染进程入口
-│   └── style.css                # 全局样式
+│   │   └── app.d.ts             # TypeScript type declarations
+│   ├── App.vue                  # Root component
+│   ├── main.ts                  # Renderer entry point
+│   └── style.css                # Global styles
 │
-├── index.html                   # HTML 入口
-├── vite.config.ts               # Vite 配置
+├── index.html                   # HTML entry
+├── vite.config.ts               # Vite configuration
 └── package.json
 ```
 
-## 📄 许可证
+## License
 
 [MIT](./LICENSE)
