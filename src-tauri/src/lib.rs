@@ -591,13 +591,11 @@ fn copy_screen() -> Result<(), String> {
     };
 
     // Native screencapture: captures composite screen (incl. overlay) → clipboard, no PNG round-trip
-    let region = format!(
-        "{},{},{},{}",
-        monitor.x(),
-        monitor.y(),
-        monitor.width(),
-        monitor.height()
-    );
+    let x = monitor.x().map_err(|e| format!("{}", e))?;
+    let y = monitor.y().map_err(|e| format!("{}", e))?;
+    let w = monitor.width().map_err(|e| format!("{}", e))?;
+    let h = monitor.height().map_err(|e| format!("{}", e))?;
+    let region = format!("{},{},{},{}", x, y, w, h);
     let status = std::process::Command::new("screencapture")
         .args(["-c", "-x", "-R", &region])
         .status()
