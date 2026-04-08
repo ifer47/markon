@@ -396,6 +396,12 @@ function onKeyDown(e: KeyboardEvent) {
     return
   }
 
+  if (e.ctrlKey && !e.shiftKey && (e.key === 'c' || e.key === 'C')) {
+    e.preventDefault()
+    copyScreen()
+    return
+  }
+
   if (showSettings.value) return
 
   if (e.ctrlKey && e.shiftKey && e.key === 'Z') {
@@ -532,6 +538,30 @@ onUnmounted(() => {
   unlisteners.forEach((fn) => fn())
   destroy()
 })
+
+let isCopying = false
+
+async function copyScreen() {
+  if (isCopying) return
+  isCopying = true
+  try {
+    await invoke('copy_screen')
+    showTip('已复制到剪贴板')
+  } catch (err) {
+    console.error('Copy screen failed:', err)
+    showTip('复制失败')
+  } finally {
+    isCopying = false
+  }
+}
+
+function showTip(text: string) {
+  toolTip.value = text
+  toolTipTool.value = null
+  toolTipColor.value = null
+  if (toolTipTimer) clearTimeout(toolTipTimer)
+  toolTipTimer = setTimeout(() => { toolTip.value = ''; toolTipTool.value = null; toolTipColor.value = null }, 1500)
+}
 
 function exitDrawing() {
   commitCurrentTextBox()

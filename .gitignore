@@ -39,6 +39,7 @@ dist_msix/
 *.msix
 *.msixbundle
 .agents/
+skills-lock.json
 
 # Local macOS DMG from `npm run build` (upload to GitHub Releases, do not commit)
 /MarkerOn_*.dmg
