@@ -1,13 +1,13 @@
 # <img src="public/icon.png" width="28" height="28" /> MarkerOn
 
+<p align="right">
+  <a href="./README.md">English</a> | <strong>中文</strong>
+</p>
+
 > **轻量级屏幕标注工具** — 按下快捷键，随时在桌面上自由绘画、标注。适用于课堂演示 / 会议讲解 / 录屏批注。
 
 <p align="center">
   <img src="public/screenshot.png" width="520" alt="MarkerOn 设置面板" />
-</p>
-
-<p align="center">
-  <a href="./README.md">English</a>
 </p>
 
 ## 📥 下载安装

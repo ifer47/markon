@@ -1,13 +1,13 @@
 # <img src="public/icon.png" width="28" height="28" /> MarkerOn
 
+<p align="right">
+  <strong>English</strong> | <a href="./README_zh.md">中文</a>
+</p>
+
 > **Lightweight screen annotation tool** — press a hotkey to instantly draw, highlight, and annotate anywhere on your desktop. Perfect for classroom demos, meeting presentations, and screencast narration.
 
 <p align="center">
   <img src="public/screenshot.png" width="520" alt="MarkerOn Settings Panel" />
-</p>
-
-<p align="center">
-  <a href="./README_zh.md">中文文档</a>
 </p>
 
 ## Download
