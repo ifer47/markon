@@ -14,11 +14,11 @@
 
 | 平台 | 安装包 | 说明 |
 | :--- | :--- | :--- |
-| Windows x64 | [MarkerOn_0.0.9_x64-setup.exe](https://github.com/ifer47/markeron/releases/download/v0.0.9/MarkerOn_0.0.9_x64-setup.exe) | NSIS 安装程序（推荐） |
-| Windows x64 | [MarkerOn_0.0.9_x64_zh-CN.msi](https://github.com/ifer47/markeron/releases/download/v0.0.9/MarkerOn_0.0.9_x64_zh-CN.msi) | MSI 安装程序 |
+| Windows x64 | [MarkerOn_0.0.10_x64-setup.exe](https://github.com/ifer47/markeron/releases/download/v0.0.10/MarkerOn_0.0.10_x64-setup.exe) | NSIS 安装程序（推荐） |
+| Windows x64 | [MarkerOn_0.0.10_x64_zh-CN.msi](https://github.com/ifer47/markeron/releases/download/v0.0.10/MarkerOn_0.0.10_x64_zh-CN.msi) | MSI 安装程序 |
 | macOS x64 | [MarkerOn_0.0.9_x64.dmg](https://github.com/ifer47/markeron/releases/download/v0.0.9/MarkerOn_0.0.9_x64.dmg) | DMG，打开后拖入「应用程序」。Apple 芯片 Mac 首次运行需在「显示简介」中勾选 **使用 Rosetta 打开**（若系统提示） |
 
-也可以前往 [Releases 页面](https://github.com/ifer47/markeron/releases/tag/v0.0.9) 查看所有版本及更新日志。
+也可以前往 [Releases 页面](https://github.com/ifer47/markeron/releases/tag/v0.0.10) 查看所有版本及更新日志。
 
 ## 🚀 快速开始
 
@@ -99,6 +99,7 @@ npm run build
 | 快捷键 | 功能 |
 | :--- | :--- |
 | <kbd>Space</kbd> | 呼出 / 隐藏设置面板（工具、颜色、线宽） |
+| <kbd>Ctrl</kbd> + <kbd>C</kbd> | 复制屏幕到剪贴板（桌面 + 标注内容） |
 | <kbd>Ctrl</kbd> + <kbd>Z</kbd> | 撤销 |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd> | 重做 |
 | <kbd>Delete</kbd> | 清除全部标注（可通过 <kbd>Ctrl</kbd> + <kbd>Z</kbd> 撤销恢复） |
