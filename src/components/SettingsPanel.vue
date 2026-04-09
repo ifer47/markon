@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { ref, nextTick, onMounted, onUnmounted, type Component } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted, computed, type Component } from 'vue'
 import type { Tool } from '../composables/useDrawing'
+import { isMacOS } from '../utils/platform'
+
+const modKeyLabel = computed(() => (isMacOS() ? 'Command' : 'Ctrl'))
 import {
   Pen, Highlighter, ArrowUpRight, Square, Circle,
   Minus, Eraser, Type,
@@ -235,7 +238,7 @@ onUnmounted(() => {
       <div class="flex flex-col gap-1.5 pt-3 px-3.5 pb-3 border-t border-white/5">
         <div class="flex items-center justify-between text-[10.5px] font-sans">
           <span class="flex items-center gap-1.5 text-white/45">
-            <kbd class="inline-block px-1.5 py-px rounded-[4px] bg-white/10 border border-white/10 text-[9.5px] font-sans text-white/70 leading-[1.4] shadow-sm">Ctrl</kbd>
+            <kbd class="inline-block px-1.5 py-px rounded-[4px] bg-white/10 border border-white/10 text-[9.5px] font-sans text-white/70 leading-[1.4] shadow-sm">{{ modKeyLabel }}</kbd>
             <span class="text-white/30 text-[10px]">+</span>
             <span>拖动</span>
           </span>
@@ -251,7 +254,7 @@ onUnmounted(() => {
         </div>
         <div class="flex items-center justify-between text-[10.5px] font-sans">
           <span class="flex items-center gap-1.5 text-white/45">
-            <kbd class="inline-block px-1.5 py-px rounded-[4px] bg-white/10 border border-white/10 text-[9.5px] font-sans text-white/70 leading-[1.4] shadow-sm">Ctrl</kbd>
+            <kbd class="inline-block px-1.5 py-px rounded-[4px] bg-white/10 border border-white/10 text-[9.5px] font-sans text-white/70 leading-[1.4] shadow-sm">{{ modKeyLabel }}</kbd>
             <span class="text-white/30 text-[10px]">+</span>
             <kbd class="inline-block px-1.5 py-px rounded-[4px] bg-white/10 border border-white/10 text-[9.5px] font-sans text-white/70 leading-[1.4] shadow-sm">Shift</kbd>
             <span class="text-white/30 text-[10px]">+</span>

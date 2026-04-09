@@ -1,8 +1,17 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { enable, isEnabled, disable } from '@tauri-apps/plugin-autostart'
 import type { AppConfig, SaveResult } from '../types/app'
+import { isMacOS } from '../utils/platform'
+
+const modLabel = computed(() => (isMacOS() ? 'Command' : 'Ctrl'))
+
+const defaultShortcutStrings = computed(() =>
+  isMacOS()
+    ? { toggleDrawing: 'Command+Shift+D', clearDrawing: 'Command+Shift+C' }
+    : { toggleDrawing: 'Ctrl+Shift+D', clearDrawing: 'Ctrl+Shift+C' },
+)
 
 const activeTab = ref('general')
 
@@ -58,7 +67,7 @@ function onKeyDown(e: KeyboardEvent) {
   if (e.ctrlKey) parts.push('Ctrl')
   if (e.altKey) parts.push('Alt')
   if (e.shiftKey) parts.push('Shift')
-  if (e.metaKey) parts.push('Super')
+  if (e.metaKey) parts.push(isMacOS() ? 'Command' : 'Super')
 
   const k = e.key
   if (['Control', 'Alt', 'Shift', 'Meta'].includes(k)) {
@@ -104,15 +113,16 @@ async function saveShortcuts() {
 }
 
 async function resetDefaults() {
+  const d = defaultShortcutStrings.value
   const res = await invoke<SaveResult>('save_shortcuts', {
     shortcuts: {
-      toggleDrawing: 'Ctrl+Shift+D',
-      clearDrawing: 'Ctrl+Shift+C',
+      toggleDrawing: d.toggleDrawing,
+      clearDrawing: d.clearDrawing,
     },
   })
   if (res.ok) {
-    shortcuts.toggleDrawing = 'Ctrl+Shift+D'
-    shortcuts.clearDrawing = 'Ctrl+Shift+C'
+    shortcuts.toggleDrawing = d.toggleDrawing
+    shortcuts.clearDrawing = d.clearDrawing
     message.value = { type: 'success', text: '已恢复默认快捷键' }
     setTimeout(() => { message.value = null }, 3000)
   }
@@ -210,7 +220,7 @@ onUnmounted(() => {
             </svg>
             <div class="absolute left-full top-1/2 -translate-y-1/2 ml-2 mt-4 w-[248px] p-2.5 bg-[#2a2a2c] border border-white/10 rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.4)] opacity-0 scale-95 invisible group-hover:opacity-100 group-hover:scale-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none origin-left">
               <p class="text-[10.5px] text-white/75 leading-[1.6] m-0 text-left font-sans">
-                点击「修改」后按下新的组合键（需含 Ctrl / Alt / Shift 中至少一个），F1-F12 可单独使用。
+                点击「修改」后按下新的组合键（需含 {{ modLabel }} / Alt / Shift 中至少一个），F1-F12 可单独使用。
               </p>
             </div>
           </div>

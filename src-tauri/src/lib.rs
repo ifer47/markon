@@ -39,13 +39,27 @@ pub struct AppConfig {
     pub general: GeneralConfig,
 }
 
+fn default_shortcuts() -> Shortcuts {
+    #[cfg(target_os = "macos")]
+    {
+        Shortcuts {
+            toggle_drawing: "Command+Shift+D".into(),
+            clear_drawing: "Command+Shift+C".into(),
+        }
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        Shortcuts {
+            toggle_drawing: "Ctrl+Shift+D".into(),
+            clear_drawing: "Ctrl+Shift+C".into(),
+        }
+    }
+}
+
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
-            shortcuts: Shortcuts {
-                toggle_drawing: "Ctrl+Shift+D".into(),
-                clear_drawing: "Ctrl+Shift+C".into(),
-            },
+            shortcuts: default_shortcuts(),
             general: GeneralConfig::default(),
         }
     }

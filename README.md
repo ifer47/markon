@@ -36,27 +36,29 @@ After launching, the app runs silently in the **system tray** with no window sho
 
 ## Keyboard Shortcuts
 
+On **macOS**, use <kbd>Command</kbd> (⌘) where **Windows** uses <kbd>Ctrl</kbd> for the shortcuts below.
+
 ### Global Shortcuts
 
 > Available system-wide, regardless of the active window:
 
-| Shortcut | Action |
-| :--- | :--- |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> | Toggle annotation mode |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd> | Clear all annotations |
+| Action | Windows | macOS |
+| :--- | :--- | :--- |
+| Toggle annotation mode | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> |
+| Clear all annotations | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd> |
 
 ### Annotation Mode — Drawing
 
 > Hold modifier keys while dragging to quickly draw different shapes:
 
-| Action | Draws |
-| :--- | :--- |
-| Drag | Current tool (default: pen) |
-| <kbd>Ctrl</kbd> + Drag | Rectangle |
-| <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + Drag | Square |
-| <kbd>Shift</kbd> + Drag | Ellipse |
-| <kbd>Shift</kbd> + <kbd>Alt</kbd> + Drag | Circle |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + Drag | Arrow |
+| Draws | Windows | macOS |
+| :--- | :--- | :--- |
+| Current tool (default: pen) | Drag | Drag |
+| Rectangle | <kbd>Ctrl</kbd> + Drag | <kbd>Command</kbd> + Drag |
+| Square | <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + Drag | <kbd>Command</kbd> + <kbd>Option</kbd> + Drag |
+| Ellipse | <kbd>Shift</kbd> + Drag | <kbd>Shift</kbd> + Drag |
+| Circle | <kbd>Shift</kbd> + <kbd>Alt</kbd> + Drag | <kbd>Shift</kbd> + <kbd>Option</kbd> + Drag |
+| Arrow | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + Drag | <kbd>Command</kbd> + <kbd>Shift</kbd> + Drag |
 
 ### Annotation Mode — Edit & Move
 
@@ -81,7 +83,7 @@ After launching, the app runs silently in the **system tray** with no window sho
 | <kbd>5</kbd> | ○ Ellipse | Ellipse outlines |
 | <kbd>6</kbd> | ╱ Line | Straight line segments |
 | <kbd>7</kbd> | ◎ Eraser | Erase annotations in real time; erased area follows element drag |
-| <kbd>T</kbd> | 𝐓 Text | Double-click to place/edit text, scroll to resize, <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to confirm |
+| <kbd>T</kbd> | 𝐓 Text | Double-click to place/edit text, scroll to resize; confirm with <kbd>Ctrl</kbd> + <kbd>Enter</kbd> (Windows) or <kbd>Command</kbd> + <kbd>Return</kbd> (macOS) |
 
 ### Annotation Mode — Color Switching
 
@@ -95,16 +97,16 @@ After launching, the app runs silently in the **system tray** with no window sho
 
 ### Annotation Mode — Other Actions
 
-| Shortcut | Action |
-| :--- | :--- |
-| <kbd>Space</kbd> | Toggle settings panel (tool, color, stroke width) |
-| <kbd>Ctrl</kbd> + <kbd>C</kbd> | Copy screen to clipboard (desktop + annotations) |
-| <kbd>Ctrl</kbd> + <kbd>Z</kbd> | Undo |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd> | Redo |
-| <kbd>Delete</kbd> | Clear all annotations (undoable with <kbd>Ctrl</kbd> + <kbd>Z</kbd>) |
-| <kbd>Esc</kbd> | Exit annotation mode |
-| <kbd>Alt</kbd> + <kbd>Tab</kbd> | Switch window and exit annotation mode |
-| <kbd>Win</kbd> | Open Start menu and exit annotation mode |
+| Action | Windows | macOS |
+| :--- | :--- | :--- |
+| Toggle settings panel (tool, color, stroke width) | <kbd>Space</kbd> | <kbd>Space</kbd> |
+| Copy screen to clipboard (desktop + annotations) | <kbd>Ctrl</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>C</kbd> |
+| Undo | <kbd>Ctrl</kbd> + <kbd>Z</kbd> | <kbd>Command</kbd> + <kbd>Z</kbd> |
+| Redo | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Command</kbd> + <kbd>Y</kbd> |
+| Clear all annotations (undo to restore) | <kbd>Delete</kbd> | <kbd>Delete</kbd> |
+| Exit annotation mode | <kbd>Esc</kbd> | <kbd>Esc</kbd> |
+| Switch window and exit annotation mode | <kbd>Alt</kbd> + <kbd>Tab</kbd> | <kbd>Command</kbd> + <kbd>Tab</kbd> |
+| Open Start menu and exit annotation mode | <kbd>Win</kbd> | — (use Mission Control, Spotlight, or the Dock; leaving focus exits mode) |
 
 > Annotations cover the entire screen including the taskbar area. All drawings are automatically cleared when exiting annotation mode.
 
@@ -121,7 +123,7 @@ Right-click the system tray icon and select **Settings** to open the settings wi
 
 **Shortcuts**
 
-Click "Modify", then press a new key combination (must include at least one of Ctrl / Alt / Shift, or use F1–F12). Changes take effect immediately and are auto-saved. If a shortcut conflicts with another application, it will automatically roll back with a notification.
+Click "Modify", then press a new key combination (must include at least one of **Ctrl** (Windows) / **Command** (macOS), **Alt** / **Option**, or **Shift**, or use F1–F12). Changes take effect immediately and are auto-saved. If a shortcut conflicts with another application, it will automatically roll back with a notification.
 
 ## Tech Stack
 

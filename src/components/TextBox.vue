@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
+import { isMacOS } from '../utils/platform'
 
 const props = defineProps<{
   x: number
@@ -54,7 +55,7 @@ function onKeyDown(e: KeyboardEvent) {
     e.preventDefault()
     emit('cancel')
   }
-  if (e.key === 'Enter' && e.ctrlKey) {
+  if (e.key === 'Enter' && (e.ctrlKey || (isMacOS() && e.metaKey))) {
     e.preventDefault()
     commitText()
   }
