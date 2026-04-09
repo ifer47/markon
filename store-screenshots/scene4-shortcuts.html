@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>MarkerOn - Keyboard Shortcuts</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  background: #111114;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 120px 40px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+.header .accent-line {
+  width: 40px;
+  height: 4px;
+  background: #FF3B30;
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+.header h1 {
+  font-size: 44px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+}
+.header .subtitle {
+  font-size: 16px;
+  color: rgba(255,255,255,0.35);
+}
+
+.shortcuts-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+  width: 100%;
+  flex: 1;
+}
+
+.shortcut-group {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 28px 30px;
+}
+.group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 22px;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+}
+.group-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.shortcut-item:last-child { border-bottom: none; }
+
+.key-combo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 28px;
+  padding: 0 8px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  font-family: "Microsoft YaHei", sans-serif;
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+.key-separator {
+  color: rgba(255,255,255,0.2);
+  font-size: 12px;
+}
+.shortcut-desc {
+  font-size: 13px;
+  color: rgba(255,255,255,0.4);
+}
+
+/* Bottom note */
+.bottom-note {
+  margin-top: 24px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.2);
+  text-align: center;
+}
+
+/* MarkerOn branding */
+.markeron-brand {
+  position: absolute;
+  bottom: 28px;
+  right: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255,255,255,0.25);
+  font-size: 13px;
+}
+.markeron-brand svg { width: 16px; height: 16px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="accent-line"></div>
+  <h1>全键盘操作，效率翻倍</h1>
+  <div class="subtitle">覆盖标注模式全流程，无需离开键盘</div>
+</div>
+
+<div class="shortcuts-layout">
+  <!-- Column 1: Global & Drawing shortcuts -->
+  <div style="display:flex; flex-direction:column; gap:24px;">
+    <div class="shortcut-group">
+      <div class="group-title"><div class="group-dot" style="background:#FF3B30;"></div> 全局快捷键</div>
+      <div class="shortcut-item">
+        <div class="key-combo"><kbd>Ctrl</kbd><span class="key-separator">+</span><kbd>Shift</kbd><span class="key-separator">+</span><kbd>D</kbd></div>
+        <span class="shortcut-desc">开启 / 退出标注模式</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="key-combo"><kbd>Ctrl</kbd><span class="key-separator">+</span><kbd>Shift</kbd><span class="key-separator">+</span><kbd>C</kbd></div>
+        <span class="shortcut-desc">清除所有标注</span>
+      </div>
+    </div>
+
+    <div class="shortcut-group">
+      <div class="group-title"><div class="group-dot" style="background:#FF6B35;"></div> 绘制快捷键</div>
+      <div class="shortcut-item">
+        <div class="key-combo"><kbd>Ctrl</kbd><span class="key-separator">+</span>拖动</div>
+        <span class="shortcut-desc">绘制矩形</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="key-combo"><kbd>Shift</kbd><span class="key-separator">+</span>拖动</div>
+        <span class="shortcut-desc">绘制椭圆</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="key-combo"><kbd>Ctrl</kbd><span class="key-separator">+</span><kbd>Shift</kbd><span class="key-separator">+</span>拖动</div>
+        <span class="shortcut-desc">绘制箭头</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="key-combo"><kbd>Ctrl</kbd><span class="key-separator">+</span><kbd>Alt</kbd><span class="key-separator">+</span>拖动</div>
+        <span class="shortcut-desc">绘制正方形</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="key-combo"><kbd>Shift</kbd><span class="key-separator">+</span><kbd>Alt</kbd><span class="key-separator">+</span>拖动</div>
+        <span class="shortcut-desc">绘制正圆</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Column 2: Tool switching -->
+  <div class="shortcut-group">
+    <div class="group-title"><div class="group-dot" style="background:#007AFF;"></div> 工具切换</div>
+    <div class="shortcut-item">
+      <div class="key-combo"><kbd>1</kbd></div>
+      <span class="shortcut-desc">画笔 — 自由绘画</span>
+    </div>
+    <div class="shortcut-item">
+      <div class="key-combo"><kbd>2</kbd></div>
+      <span class="shortcut-desc">荧光笔 — 半透明高亮</span>
+    </div>
+    <div class="shortcut-item">
+      <div class="key-combo"><kbd>3</kbd></div>
+      <span class="shortcut-desc">箭头 — 指示线</span>
+    </div>
+    <div class="shortcut-item">
+      <div class="key-combo"><kbd>4</kbd></div>
+      <span class="shortcut-desc">矩形 — 方框标注</span>
+    </div>
+    <div class="shortcut-item">
+      <div class="key-combo"><kbd>5</kbd></div>
+      <span class="shortcut-desc">椭圆 — 圆框标注</span>
+    </div>
+    <div class="shortcut-item">
+      <div class="key-combo"><kbd>6</kbd></div>
+      <span class="shortcut-desc">直线 — 线段</span>
+    </div>
+    <div class="shortcut-item">
+      <div class="key-combo"><kbd>7</kbd></div>
+      <span class="shortcut-desc">橡皮擦 — 实时擦除</span>
+    </div>
+    <div class="shortcut-item">
+      <div class="key-combo"><kbd>T</kbd></div>
+      <span class="shortcut-desc">文字 — 双击放置</span>
+    </div>
+  </div>
+
+  <!-- Column 3: Operations & Colors -->
+  <div style="display:flex; flex-direction:column; gap:24px;">
+    <div class="shortcut-group">
+      <div class="group-title"><div class="group-dot" style="background:#34C759;"></div> 操作快捷键</div>
+      <div class="shortcut-item">
+        <div class="key-combo"><kbd>Ctrl</kbd><span class="key-separator">+</span><kbd>Z</kbd></div>
+        <span class="shortcut-desc">撤销</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="key-combo"><kbd>Ctrl</kbd><span class="key-separator">+</span><kbd>Shift</kbd><span class="key-separator">+</span><kbd>Z</kbd></div>
+        <span class="shortcut-desc">重做</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="key-combo"><kbd>Ctrl</kbd><span class="key-separator">+</span><kbd>Y</kbd></div>
+        <span class="shortcut-desc">重做（备选）</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="key-combo"><kbd>Delete</kbd></div>
+        <span class="shortcut-desc">清除全部（可撤销）</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="key-combo"><kbd>Space</kbd></div>
+        <span class="shortcut-desc">呼出 / 隐藏面板</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="key-combo"><kbd>Esc</kbd></div>
+        <span class="shortcut-desc">退出标注模式</span>
+      </div>
+    </div>
+
+    <div class="shortcut-group">
+      <div class="group-title"><div class="group-dot" style="background:#AF52DE;"></div> 颜色切换</div>
+      <div class="shortcut-item">
+        <div class="key-combo"><kbd>Q</kbd></div>
+        <span class="shortcut-desc">上一个颜色</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="key-combo"><kbd>E</kbd></div>
+        <span class="shortcut-desc">下一个颜色</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="key-combo">鼠标右键</div>
+        <span class="shortcut-desc">弹出快速选色盘</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-note">
+  ✦ 标注覆盖全屏（包括任务栏区域），退出标注模式时自动清除所有标注内容
+</div>
+
+<!-- Branding -->
+<div class="markeron-brand">
+  <svg viewBox="0 0 1024 1024" fill="currentColor"><path d="M659.498667 412.8l-6.101334-6.058667a233.6 233.6 0 0 0-101.973333-57.557333c-124.032-33.237333-243.157333 37.077333-276.992 163.413333-1.834667 6.826667-2.816 14.506667-4.437333 33.749334-6.570667 79.786667-25.344 139.306667-76.8 199.68 96.426667 37.888 210.688 64.597333 297.557333 64.597333a234.88 234.88 0 0 0 226.56-174.037333 234.538667 234.538667 0 0 0-57.856-223.786667z m-92.501334-147.712l210.730667-163.925333a42.666667 42.666667 0 0 1 56.32 3.541333l127.786667 127.744a42.666667 42.666667 0 0 1 3.498666 56.32l-163.84 210.730667a320.213333 320.213333 0 0 1-310.741333 396.458666C341.333333 895.957333 149.333333 831.872 42.666667 767.872c169.813333-128 130.005333-205.226667 149.333333-277.333333 45.141333-168.533333 206.592-267.008 374.997333-225.450667zM712.533333 345.258667c2.816 2.688 5.546667 5.461333 8.277334 8.234666L769.28 401.92l105.6-135.765333-74.496-74.496-135.765333 105.6L712.533333 345.258667z"/></svg>
+  MarkerOn
+</div>
+
+</body>
+</html>

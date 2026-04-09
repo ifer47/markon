@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>MarkerOn - 8 Annotation Tools</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  background: #111114;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 100px 40px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+.header .accent-line {
+  width: 40px;
+  height: 4px;
+  background: #FF3B30;
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+.header h1 {
+  font-size: 44px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+}
+.header .subtitle {
+  font-size: 16px;
+  color: rgba(255,255,255,0.45);
+}
+.header .subtitle kbd {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: rgba(255,255,255,0.6);
+}
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 20px;
+  width: 100%;
+  flex: 1;
+}
+
+.tool-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  padding: 24px 28px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.tool-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.tool-card-header h3 {
+  font-size: 17px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+}
+.tool-key {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: rgba(255,255,255,0.45);
+  font-weight: 500;
+}
+.tool-desc {
+  font-size: 13px;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 18px;
+}
+.tool-demo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+}
+.tool-demo svg {
+  width: 100%;
+  height: 100%;
+  max-height: 160px;
+}
+
+/* MarkerOn branding */
+.markeron-brand {
+  position: absolute;
+  bottom: 28px;
+  right: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255,255,255,0.25);
+  font-size: 13px;
+}
+.markeron-brand svg { width: 16px; height: 16px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="accent-line"></div>
+  <h1>8 种标注工具，覆盖所有场景</h1>
+  <div class="subtitle">按数字键 <kbd>1-7</kbd> / <kbd>T</kbd> 即时切换，无需打开菜单</div>
+</div>
+
+<div class="tools-grid">
+  <!-- 1. Pen -->
+  <div class="tool-card">
+    <div class="tool-card-header"><h3>画笔</h3><div class="tool-key">1</div></div>
+    <div class="tool-desc">自由绘画，平滑曲线</div>
+    <div class="tool-demo">
+      <svg viewBox="0 0 340 140" fill="none">
+        <path d="M30,100 C60,20 100,120 140,60 C180,0 220,130 260,50 C290,0 310,80 330,40"
+          stroke="#FF3B30" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <path d="M20,80 C50,110 90,30 130,90 C170,140 210,20 250,70 C290,110 310,50 340,60"
+          stroke="#007AFF" stroke-width="3" stroke-linecap="round" fill="none"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 2. Highlighter -->
+  <div class="tool-card">
+    <div class="tool-card-header"><h3>荧光笔</h3><div class="tool-key">2</div></div>
+    <div class="tool-desc">半透明高亮标记</div>
+    <div class="tool-demo">
+      <svg viewBox="0 0 340 140" fill="none">
+        <rect x="30" y="30" width="280" height="22" rx="2" fill="rgba(255,204,2,0.35)"/>
+        <text x="40" y="47" font-family="Microsoft YaHei" font-size="14" fill="rgba(255,255,255,0.8)">重要的文本内容</text>
+        <rect x="30" y="65" width="280" height="22" rx="2" fill="rgba(52,199,89,0.35)"/>
+        <text x="40" y="82" font-family="Microsoft YaHei" font-size="14" fill="rgba(255,255,255,0.8)">需要高亮标记的</text>
+        <rect x="30" y="100" width="280" height="22" rx="2" fill="rgba(255,59,48,0.35)"/>
+        <text x="40" y="117" font-family="Microsoft YaHei" font-size="14" fill="rgba(255,255,255,0.8)">关键信息在这里</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 3. Arrow -->
+  <div class="tool-card">
+    <div class="tool-card-header"><h3>箭头</h3><div class="tool-key">3</div></div>
+    <div class="tool-desc">带箭头的指示线</div>
+    <div class="tool-demo">
+      <svg viewBox="0 0 340 140" fill="none">
+        <line x1="60" y1="120" x2="240" y2="30" stroke="#34C759" stroke-width="3"/>
+        <polygon points="240,30 225,22 230,42" fill="#34C759"/>
+        <line x1="280" y1="20" x2="100" y2="110" stroke="#FF3B30" stroke-width="3"/>
+        <polygon points="100,110 118,115 112,96" fill="#FF3B30"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 4. Rectangle -->
+  <div class="tool-card">
+    <div class="tool-card-header"><h3>矩形</h3><div class="tool-key">4</div></div>
+    <div class="tool-desc">矩形边框标注</div>
+    <div class="tool-demo">
+      <svg viewBox="0 0 340 140" fill="none">
+        <rect x="40" y="20" width="100" height="80" rx="2" stroke="#FF3B30" stroke-width="2.5" fill="none"/>
+        <rect x="110" y="40" width="100" height="80" rx="2" stroke="#FF6B35" stroke-width="2.5" fill="none"/>
+        <rect x="190" y="25" width="110" height="90" rx="2" stroke="#007AFF" stroke-width="2.5" fill="none" stroke-dasharray="8,4"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 5. Ellipse -->
+  <div class="tool-card">
+    <div class="tool-card-header"><h3>椭圆</h3><div class="tool-key">5</div></div>
+    <div class="tool-desc">椭圆边框标注</div>
+    <div class="tool-demo">
+      <svg viewBox="0 0 340 140" fill="none">
+        <ellipse cx="100" cy="70" rx="70" ry="45" stroke="#FF3B30" stroke-width="2.5"/>
+        <ellipse cx="200" cy="60" rx="50" ry="50" stroke="#AF52DE" stroke-width="2.5"/>
+        <ellipse cx="270" cy="80" rx="55" ry="35" stroke="#34C759" stroke-width="2.5"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 6. Line -->
+  <div class="tool-card">
+    <div class="tool-card-header"><h3>直线</h3><div class="tool-key">6</div></div>
+    <div class="tool-desc">直线段</div>
+    <div class="tool-demo">
+      <svg viewBox="0 0 340 140" fill="none">
+        <line x1="30" y1="110" x2="310" y2="30" stroke="#007AFF" stroke-width="3" stroke-linecap="round"/>
+        <line x1="30" y1="70" x2="310" y2="70" stroke="#FFCC02" stroke-width="3" stroke-linecap="round"/>
+        <line x1="170" y1="15" x2="170" y2="130" stroke="#34C759" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 7. Eraser -->
+  <div class="tool-card">
+    <div class="tool-card-header"><h3>橡皮擦</h3><div class="tool-key">7</div></div>
+    <div class="tool-desc">实时擦除，效果跟随线路</div>
+    <div class="tool-demo">
+      <svg viewBox="0 0 340 140" fill="none">
+        <path d="M30,100 C80,20 130,120 180,60 C230,0 280,100 320,40"
+          stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round" stroke-dasharray="6,4"/>
+        <path d="M30,100 C80,20 130,120 160,75"
+          stroke="#FF3B30" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="180" cy="60" r="16" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-dasharray="3,3" fill="none"/>
+        <line x1="174" y1="54" x2="186" y2="66" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+        <line x1="186" y1="54" x2="174" y2="66" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 8. Text -->
+  <div class="tool-card">
+    <div class="tool-card-header"><h3>文字</h3><div class="tool-key">T</div></div>
+    <div class="tool-desc">双击放置，支持英字号</div>
+    <div class="tool-demo" style="flex-direction:column; gap:8px; align-items:flex-start; padding:10px 20px;">
+      <span style="font-size:28px; font-weight:700; color:#FF3B30;">标注文字</span>
+      <span style="font-size:18px; font-weight:600; color:#FFCC02;">支持多种字号</span>
+      <span style="font-size:13px; color:rgba(255,255,255,0.4); margin-top:4px;">Ctrl+Enter 确认输入</span>
+    </div>
+  </div>
+</div>
+
+<!-- MarkerOn Branding -->
+<div class="markeron-brand">
+  <svg viewBox="0 0 1024 1024" fill="currentColor"><path d="M659.498667 412.8l-6.101334-6.058667a233.6 233.6 0 0 0-101.973333-57.557333c-124.032-33.237333-243.157333 37.077333-276.992 163.413333-1.834667 6.826667-2.816 14.506667-4.437333 33.749334-6.570667 79.786667-25.344 139.306667-76.8 199.68 96.426667 37.888 210.688 64.597333 297.557333 64.597333a234.88 234.88 0 0 0 226.56-174.037333 234.538667 234.538667 0 0 0-57.856-223.786667z m-92.501334-147.712l210.730667-163.925333a42.666667 42.666667 0 0 1 56.32 3.541333l127.786667 127.744a42.666667 42.666667 0 0 1 3.498666 56.32l-163.84 210.730667a320.213333 320.213333 0 0 1-310.741333 396.458666C341.333333 895.957333 149.333333 831.872 42.666667 767.872c169.813333-128 130.005333-205.226667 149.333333-277.333333 45.141333-168.533333 206.592-267.008 374.997333-225.450667zM712.533333 345.258667c2.816 2.688 5.546667 5.461333 8.277334 8.234666L769.28 401.92l105.6-135.765333-74.496-74.496-135.765333 105.6L712.533333 345.258667z"/></svg>
+  MarkerOn
+</div>
+
+</body>
+</html>

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>MarkerOn - Settings Panel</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  background: #111114;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Simulated desktop with annotation overlay active */
+.desktop-layer {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 40% 50%, rgba(20, 50, 100, 0.4) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 70% 60%, rgba(30, 40, 80, 0.3) 0%, transparent 60%),
+    #0c0c14;
+  /* Darkened overlay to show annotation mode is active */
+}
+.overlay-dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.15);
+}
+
+/* Some annotations already drawn on the "desktop" */
+.existing-annotations {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+}
+
+/* The Settings Panel - matching actual app UI */
+.settings-panel {
+  position: relative;
+  z-index: 50;
+  width: 272px;
+  background: rgba(30,30,32,0.97);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 16px 64px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.3);
+  padding: 0;
+  overflow: hidden;
+  margin-right: 500px;
+}
+
+/* Drag handle */
+.panel-drag {
+  height: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: grab;
+}
+.panel-drag-indicator {
+  width: 32px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.12);
+}
+
+/* Panel content */
+.panel-content {
+  padding: 2px 16px 16px;
+}
+
+/* Section: Tools */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+}
+.section-hint {
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+}
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-bottom: 18px;
+}
+.tool-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 54px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.05);
+  border: none;
+  cursor: pointer;
+  position: relative;
+  gap: 3px;
+}
+.tool-btn.active {
+  background: rgba(10,132,255,0.3);
+  box-shadow: inset 0 0 0 1.5px rgba(10,132,255,0.5);
+}
+.tool-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: rgba(255,255,255,0.8);
+  stroke-width: 2;
+  fill: none;
+}
+.tool-btn.active svg { stroke: #fff; }
+.tool-btn .tool-label {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+}
+.tool-btn.active .tool-label { color: rgba(255,255,255,0.9); }
+.tool-btn .tool-shortcut {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  font-size: 9px;
+  color: rgba(255,255,255,0.25);
+}
+
+/* Section: Colors */
+.section-sep {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin: 0 -16px 14px;
+}
+.color-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 10px;
+}
+.color-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.color-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  position: relative;
+}
+.color-dot.active {
+  border-color: rgba(255,255,255,0.3);
+}
+.color-dot.active::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+.custom-color {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  margin-bottom: 14px;
+}
+.custom-color-circle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+  position: relative;
+}
+.custom-color-circle::after {
+  content: '+';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  text-shadow: 0 0 4px rgba(0,0,0,0.8);
+}
+.custom-color-text {
+  font-size: 12px;
+  color: rgba(255,255,255,0.45);
+}
+
+/* Section: Line Width */
+.width-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 10px;
+}
+.width-row {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.width-btn {
+  flex: 1;
+  height: 40px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.width-btn.active {
+  background: rgba(10,132,255,0.35);
+  box-shadow: inset 0 0 0 1.5px rgba(10,132,255,0.5);
+}
+.width-bar {
+  border-radius: 2px;
+  background: rgba(255,255,255,0.7);
+}
+.width-btn.active .width-bar { background: #fff; }
+
+/* Footer shortcuts */
+.panel-footer {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 12px;
+}
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.35);
+}
+.shortcut-row kbd {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: inherit;
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+}
+.shortcut-row .desc {
+  color: rgba(255,255,255,0.3);
+}
+
+/* Right side feature descriptions */
+.features-side {
+  position: relative;
+  z-index: 50;
+  margin-left: 80px;
+  max-width: 440px;
+}
+.features-side .accent-line {
+  width: 32px;
+  height: 3px;
+  background: #FF3B30;
+  border-radius: 2px;
+  margin-bottom: 18px;
+}
+.features-side h2 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.35;
+  margin-bottom: 12px;
+}
+.features-side .sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 40px;
+}
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.feature-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.feature-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+  fill: none;
+}
+.feature-text h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 4px;
+}
+.feature-text p {
+  font-size: 13px;
+  color: rgba(255,255,255,0.35);
+  line-height: 1.5;
+}
+
+/* MarkerOn branding */
+.markeron-brand {
+  position: absolute;
+  bottom: 28px;
+  right: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255,255,255,0.25);
+  font-size: 13px;
+  z-index: 100;
+}
+.markeron-brand svg { width: 16px; height: 16px; }
+</style>
+</head>
+<body>
+
+<div class="desktop-layer"></div>
+<div class="overlay-dim"></div>
+
+<!-- Some existing annotations drawn on screen -->
+<svg class="existing-annotations" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <path d="M200,200 C250,150 300,250 350,180 C400,120 450,210 500,170"
+    stroke="#FF3B30" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.5"/>
+  <rect x="1500" y="150" width="200" height="120" rx="3" stroke="#007AFF" stroke-width="2" fill="none" opacity="0.4"/>
+  <line x1="1600" y1="400" x2="1700" y2="320" stroke="#34C759" stroke-width="2.5" opacity="0.4"/>
+  <polygon points="1700,320 1688,315 1692,332" fill="#34C759" opacity="0.4"/>
+</svg>
+
+<!-- The Actual Settings Panel -->
+<div class="settings-panel">
+  <div class="panel-drag"><div class="panel-drag-indicator"></div></div>
+  <div class="panel-content">
+    <!-- Tools Section -->
+    <div class="section-header">
+      <span class="section-title">工具</span>
+      <span class="section-hint">按 1-7 / T 切换</span>
+    </div>
+    <div class="tools-grid">
+      <div class="tool-btn active">
+        <svg viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+        <span class="tool-label">画笔</span>
+        <span class="tool-shortcut">1</span>
+      </div>
+      <div class="tool-btn">
+        <svg viewBox="0 0 24 24"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
+        <span class="tool-label">荧光笔</span>
+        <span class="tool-shortcut">2</span>
+      </div>
+      <div class="tool-btn">
+        <svg viewBox="0 0 24 24"><path d="M7 7h10"/><path d="M7 7v10"/><path d="M7 7l10 10"/></svg>
+        <span class="tool-label">箭头</span>
+        <span class="tool-shortcut">3</span>
+      </div>
+      <div class="tool-btn">
+        <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>
+        <span class="tool-label">矩形</span>
+        <span class="tool-shortcut">4</span>
+      </div>
+      <div class="tool-btn">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+        <span class="tool-label">椭圆</span>
+        <span class="tool-shortcut">5</span>
+      </div>
+      <div class="tool-btn">
+        <svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>
+        <span class="tool-label">直线</span>
+        <span class="tool-shortcut">6</span>
+      </div>
+      <div class="tool-btn">
+        <svg viewBox="0 0 24 24"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
+        <span class="tool-label">橡皮擦</span>
+        <span class="tool-shortcut">7</span>
+      </div>
+      <div class="tool-btn">
+        <svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg>
+        <span class="tool-label">文字</span>
+        <span class="tool-shortcut">T</span>
+      </div>
+    </div>
+
+    <!-- Colors Section -->
+    <div class="section-sep"></div>
+    <div class="color-section-title">颜色</div>
+    <div class="color-row">
+      <div class="color-dot" style="background:#FF3B30;"></div>
+      <div class="color-dot active" style="background:#FF6B35;"></div>
+      <div class="color-dot" style="background:#FFCC02;"></div>
+      <div class="color-dot" style="background:#34C759;"></div>
+      <div class="color-dot" style="background:#007AFF;"></div>
+      <div class="color-dot" style="background:#5856D6;"></div>
+      <div class="color-dot" style="background:#FFFFFF;"></div>
+    </div>
+    <div class="color-row">
+      <div class="color-dot" style="background:#AF52DE;"></div>
+      <div class="color-dot" style="background:#FF2D55;"></div>
+      <div class="color-dot" style="background:#00C7BE;"></div>
+      <div class="color-dot" style="background:#8E8E93;"></div>
+      <div class="color-dot" style="background:#636366;"></div>
+      <div class="color-dot" style="background:#3A3A3C;"></div>
+      <div class="color-dot" style="background:#000000; border-color: rgba(255,255,255,0.15);"></div>
+    </div>
+    <div class="custom-color">
+      <div class="custom-color-circle"></div>
+      <span class="custom-color-text">自定义颜色</span>
+    </div>
+
+    <!-- Line Width Section -->
+    <div class="section-sep"></div>
+    <div class="width-section-title">线宽</div>
+    <div class="width-row">
+      <div class="width-btn"><div class="width-bar" style="width:28px; height:1px;"></div></div>
+      <div class="width-btn"><div class="width-bar" style="width:28px; height:2px;"></div></div>
+      <div class="width-btn active"><div class="width-bar" style="width:28px; height:3px;"></div></div>
+      <div class="width-btn"><div class="width-bar" style="width:28px; height:5px; border-radius:3px;"></div></div>
+      <div class="width-btn"><div class="width-bar" style="width:28px; height:8px; border-radius:4px;"></div></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="panel-footer">
+      <div class="shortcut-row"><span><kbd>Ctrl</kbd> + 拖动</span><span class="desc">矩形</span></div>
+      <div class="shortcut-row"><span><kbd>Shift</kbd> + 拖动</span><span class="desc">椭圆</span></div>
+      <div class="shortcut-row"><span><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + 拖动</span><span class="desc">箭头</span></div>
+      <div class="shortcut-row"><span><kbd>Q</kbd> / <kbd>E</kbd> / 右键</span><span class="desc">切换颜色</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Right side features -->
+<div class="features-side">
+  <div class="accent-line"></div>
+  <h2>直观的工具面板<br>所见即所得</h2>
+  <div class="sub">按 <kbd style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); border-radius:4px; padding:1px 5px; font-family:inherit; font-size:13px; color:rgba(255,255,255,0.5);">Space</kbd> 呼出设置面板，涵盖工具、颜色、线宽全部选项。</div>
+
+  <div class="feature-item">
+    <div class="feature-icon" style="background:rgba(255,59,48,0.12);">
+      <svg viewBox="0 0 24 24" stroke="#FF3B30"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </div>
+    <div class="feature-text">
+      <h4>14 种预设颜色 + 自定义</h4>
+      <p>按 Q / E 快速切换，右键弹出选色盘</p>
+    </div>
+  </div>
+
+  <div class="feature-item">
+    <div class="feature-icon" style="background:rgba(10,132,255,0.12);">
+      <svg viewBox="0 0 24 24" stroke="#007AFF"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>
+    </div>
+    <div class="feature-text">
+      <h4>6 级线宽调节</h4>
+      <p>从极细到极粗精确控制，适配各种标注</p>
+    </div>
+  </div>
+
+  <div class="feature-item">
+    <div class="feature-icon" style="background:rgba(52,199,89,0.12);">
+      <svg viewBox="0 0 24 24" stroke="#34C759"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/></svg>
+    </div>
+    <div class="feature-text">
+      <h4>全键盘操作</h4>
+      <p>无需点击菜单，数字键 + 修饰键覆盖所有操作</p>
+    </div>
+  </div>
+
+  <div class="feature-item">
+    <div class="feature-icon" style="background:rgba(88,86,214,0.12);">
+      <svg viewBox="0 0 24 24" stroke="#5856D6"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+    </div>
+    <div class="feature-text">
+      <h4>完整撤销 / 重做</h4>
+      <p>Ctrl+Z 撤销、Ctrl+Shift+Z 重做，支持删除与清屏的恢复</p>
+    </div>
+  </div>
+</div>
+
+<!-- Branding -->
+<div class="markeron-brand">
+  <svg viewBox="0 0 1024 1024" fill="currentColor"><path d="M659.498667 412.8l-6.101334-6.058667a233.6 233.6 0 0 0-101.973333-57.557333c-124.032-33.237333-243.157333 37.077333-276.992 163.413333-1.834667 6.826667-2.816 14.506667-4.437333 33.749334-6.570667 79.786667-25.344 139.306667-76.8 199.68 96.426667 37.888 210.688 64.597333 297.557333 64.597333a234.88 234.88 0 0 0 226.56-174.037333 234.538667 234.538667 0 0 0-57.856-223.786667z m-92.501334-147.712l210.730667-163.925333a42.666667 42.666667 0 0 1 56.32 3.541333l127.786667 127.744a42.666667 42.666667 0 0 1 3.498666 56.32l-163.84 210.730667a320.213333 320.213333 0 0 1-310.741333 396.458666C341.333333 895.957333 149.333333 831.872 42.666667 767.872c169.813333-128 130.005333-205.226667 149.333333-277.333333 45.141333-168.533333 206.592-267.008 374.997333-225.450667zM712.533333 345.258667c2.816 2.688 5.546667 5.461333 8.277334 8.234666L769.28 401.92l105.6-135.765333-74.496-74.496-135.765333 105.6L712.533333 345.258667z"/></svg>
+  MarkerOn
+</div>
+
+</body>
+</html>
