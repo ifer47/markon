@@ -10,6 +10,11 @@ import {
   Pen, Highlighter, ArrowUpRight, Square, Circle,
   Minus, Eraser, Type,
 } from 'lucide-vue-next'
+import { isMacOS } from '../utils/platform'
+
+function modDown(e: PointerEvent | KeyboardEvent): boolean {
+  return e.ctrlKey || (isMacOS() && e.metaKey)
+}
 
 const toolIconMap: Record<Tool, Component> = {
   pen: Pen,
@@ -258,10 +263,10 @@ function onPointerDown(e: PointerEvent) {
     return
   }
 
-  if (e.ctrlKey && e.shiftKey) {
+  if (modDown(e) && e.shiftKey) {
     toolBeforeModifier = currentTool.value
     currentTool.value = 'arrow'
-  } else if (e.ctrlKey) {
+  } else if (modDown(e)) {
     toolBeforeModifier = currentTool.value
     currentTool.value = 'rect'
   } else if (e.shiftKey) {
@@ -396,7 +401,7 @@ function onKeyDown(e: KeyboardEvent) {
     return
   }
 
-  if (e.ctrlKey && !e.shiftKey && (e.key === 'c' || e.key === 'C')) {
+  if (modDown(e) && !e.shiftKey && (e.key === 'c' || e.key === 'C')) {
     e.preventDefault()
     copyScreen()
     return
@@ -404,13 +409,13 @@ function onKeyDown(e: KeyboardEvent) {
 
   if (showSettings.value) return
 
-  if (e.ctrlKey && e.shiftKey && e.key === 'Z') {
+  if (modDown(e) && e.shiftKey && e.key === 'Z') {
     e.preventDefault()
     redo()
-  } else if (e.ctrlKey && e.key === 'z') {
+  } else if (modDown(e) && e.key === 'z') {
     e.preventDefault()
     undo()
-  } else if (e.ctrlKey && e.key === 'y') {
+  } else if (modDown(e) && e.key === 'y') {
     e.preventDefault()
     redo()
   } else if (e.key === 'Delete') {

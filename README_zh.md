@@ -41,27 +41,29 @@ npm run build
 
 ## ⌨️ 快捷键一览
 
+在 **macOS** 上，下文中的 <kbd>Ctrl</kbd> 对应 **Windows** 时请改用 <kbd>Command</kbd>（⌘）；<kbd>Alt</kbd> 对应 <kbd>Option</kbd>（⌥）。
+
 ### 全局快捷键
 
 > 以下快捷键在任何界面下都可使用：
 
-| 快捷键 | 功能 |
-| :--- | :--- |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> | 开启 / 退出标注模式 |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd> | 清除所有标注 |
+| 功能 | Windows | macOS |
+| :--- | :--- | :--- |
+| 开启 / 退出标注模式 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> |
+| 清除所有标注 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd> |
 
 ### 标注模式 — 绘制
 
 > 进入标注模式后，通过修饰键 + 鼠标拖动快速绘制不同图形：
 
-| 操作 | 绘制内容 |
-| :--- | :--- |
-| 直接拖动鼠标 | 当前工具（默认画笔） |
-| <kbd>Ctrl</kbd> + 拖动 | 矩形 |
-| <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + 拖动 | 正方形 |
-| <kbd>Shift</kbd> + 拖动 | 椭圆 |
-| <kbd>Shift</kbd> + <kbd>Alt</kbd> + 拖动 | 正圆 |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + 拖动 | 箭头 |
+| 绘制内容 | Windows | macOS |
+| :--- | :--- | :--- |
+| 当前工具（默认画笔） | 直接拖动 | 直接拖动 |
+| 矩形 | <kbd>Ctrl</kbd> + 拖动 | <kbd>Command</kbd> + 拖动 |
+| 正方形 | <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + 拖动 | <kbd>Command</kbd> + <kbd>Option</kbd> + 拖动 |
+| 椭圆 | <kbd>Shift</kbd> + 拖动 | <kbd>Shift</kbd> + 拖动 |
+| 正圆 | <kbd>Shift</kbd> + <kbd>Alt</kbd> + 拖动 | <kbd>Shift</kbd> + <kbd>Option</kbd> + 拖动 |
+| 箭头 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + 拖动 | <kbd>Command</kbd> + <kbd>Shift</kbd> + 拖动 |
 
 ### 标注模式 — 编辑与移动
 
@@ -86,7 +88,7 @@ npm run build
 | <kbd>5</kbd> | ○ 椭圆 | 椭圆边框 |
 | <kbd>6</kbd> | ╱ 直线 | 直线段 |
 | <kbd>7</kbd> | ◎ 橡皮擦 | 实时擦除标注内容，擦除效果跟随元素拖拽 |
-| <kbd>T</kbd> | 𝐓 文字 | 双击放置/编辑文字，滚轮调整字号，<kbd>Ctrl</kbd> + <kbd>Enter</kbd> 确认 |
+| <kbd>T</kbd> | 𝐓 文字 | 双击放置/编辑文字，滚轮调整字号；Windows 用 <kbd>Ctrl</kbd> + <kbd>Enter</kbd>，macOS 用 <kbd>Command</kbd> + <kbd>Return</kbd> 确认 |
 
 ### 标注模式 — 颜色切换
 
@@ -100,16 +102,16 @@ npm run build
 
 ### 标注模式 — 其他操作
 
-| 快捷键 | 功能 |
-| :--- | :--- |
-| <kbd>Space</kbd> | 呼出 / 隐藏设置面板（工具、颜色、线宽） |
-| <kbd>Ctrl</kbd> + <kbd>C</kbd> | 复制屏幕到剪贴板（桌面 + 标注内容） |
-| <kbd>Ctrl</kbd> + <kbd>Z</kbd> | 撤销 |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd> | 重做 |
-| <kbd>Delete</kbd> | 清除全部标注（可通过 <kbd>Ctrl</kbd> + <kbd>Z</kbd> 撤销恢复） |
-| <kbd>Esc</kbd> | 退出标注模式 |
-| <kbd>Alt</kbd> + <kbd>Tab</kbd> | 切换窗口并退出标注模式 |
-| <kbd>Win</kbd> | 打开开始菜单并退出标注模式 |
+| 功能 | Windows | macOS |
+| :--- | :--- | :--- |
+| 呼出 / 隐藏设置面板（工具、颜色、线宽） | <kbd>Space</kbd> | <kbd>Space</kbd> |
+| 复制屏幕到剪贴板（桌面 + 标注内容） | <kbd>Ctrl</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>C</kbd> |
+| 撤销 | <kbd>Ctrl</kbd> + <kbd>Z</kbd> | <kbd>Command</kbd> + <kbd>Z</kbd> |
+| 重做 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Command</kbd> + <kbd>Y</kbd> |
+| 清除全部标注（可用撤销恢复） | <kbd>Delete</kbd> | <kbd>Delete</kbd> |
+| 退出标注模式 | <kbd>Esc</kbd> | <kbd>Esc</kbd> |
+| 切换窗口并退出标注模式 | <kbd>Alt</kbd> + <kbd>Tab</kbd> | <kbd>Command</kbd> + <kbd>Tab</kbd> |
+| 打开开始菜单并退出标注模式 | <kbd>Win</kbd> | —（可用调度中心、聚焦或程序坞等让焦点离开，效果类似） |
 
 > 💡 标注覆盖全屏（包括任务栏区域），退出标注模式时会自动清除所有绘制内容。
 
@@ -126,7 +128,7 @@ npm run build
 
 **快捷键**
 
-点击「修改」后按下新的组合键（需含 Ctrl / Alt / Shift 中至少一个，或使用 F1-F12），快捷键即时生效自动保存。若新快捷键与其他应用冲突，会自动回滚并提示。
+点击「修改」后按下新的组合键（需含 **Ctrl**（Windows）/ **Command**（macOS）、**Alt** / **Option**、**Shift** 中至少一个，或使用 F1-F12），快捷键即时生效自动保存。若新快捷键与其他应用冲突，会自动回滚并提示。
 
 ## 🛠️ 技术栈
 
