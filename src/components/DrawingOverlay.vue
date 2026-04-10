@@ -142,13 +142,28 @@ let dragStartY = 0
 let lastPointerX = 0
 let lastPointerY = 0
 
+// Cap total canvas bitmap pixels to keep drawImage / clearRect fast on
+// high-resolution displays with low scale factors (e.g. 4K @ 150% → 2560×1440
+// CSS viewport, 8.3M bitmap pixels). The budget is set so that typical laptop
+// displays (e.g. 2880×1800 @ 200%) are unaffected.
+const MAX_CANVAS_PIXELS = 6_000_000
+
+function getEffectiveDpr(): number {
+  const rawDpr = window.devicePixelRatio || 1
+  const cssW = window.innerWidth
+  const cssH = window.innerHeight
+  const rawPixels = cssW * rawDpr * cssH * rawDpr
+  if (rawPixels <= MAX_CANVAS_PIXELS) return rawDpr
+  return Math.max(1, Math.sqrt(MAX_CANVAS_PIXELS / (cssW * cssH)))
+}
+
 function resizeCanvas() {
   const canvas = canvasRef.value
   if (!canvas) return
 
-  const dpr = window.devicePixelRatio || 1
-  canvas.width = window.innerWidth * dpr
-  canvas.height = window.innerHeight * dpr
+  const dpr = getEffectiveDpr()
+  canvas.width = Math.round(window.innerWidth * dpr)
+  canvas.height = Math.round(window.innerHeight * dpr)
   canvas.style.width = window.innerWidth + 'px'
   canvas.style.height = window.innerHeight + 'px'
 

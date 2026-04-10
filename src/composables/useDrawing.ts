@@ -29,8 +29,28 @@ export interface DrawAction {
   ellipseHit?: { cx: number, cy: number, rx: number, ry: number }
 }
 
-const MIN_DIST_SQ = 4
 const HIT_GRID_SIZE = 192
+
+// Adaptive point sampling: large CSS viewports (e.g. 4K@150%) generate far more
+// pointer events per physical pen-movement than small ones (e.g. 2880×1800@200%).
+// Scale the minimum squared-distance threshold proportionally so the point density
+// stays consistent regardless of viewport size.
+const BASE_VIEWPORT_AREA = 1440 * 900
+const BASE_MIN_DIST_SQ = 4
+let cachedMinDistSq = BASE_MIN_DIST_SQ
+let cachedViewportArea = 0
+
+function getMinDistSq(): number {
+  const area = window.innerWidth * window.innerHeight
+  if (area !== cachedViewportArea) {
+    cachedViewportArea = area
+    const scale = area / BASE_VIEWPORT_AREA
+    cachedMinDistSq = scale > 1.5
+      ? Math.round(BASE_MIN_DIST_SQ * Math.min(scale, 4))
+      : BASE_MIN_DIST_SQ
+  }
+  return cachedMinDistSq
+}
 
 export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   const currentTool = ref<Tool>('pen')
@@ -104,6 +124,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   let prevDragScreenX = NaN
   let prevDragScreenY = NaN
   let prevStrokeRect: { x: number, y: number, w: number, h: number } | null = null
+  let prevShapeRect: { x: number, y: number, w: number, h: number } | null = null
   const pathCache = new WeakMap<DrawAction, Path2D>()
   let hitGridDirty = true
   const hitGrid = new Map<string, DrawAction[]>()
@@ -111,6 +132,16 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   const hitGridCells = new WeakMap<DrawAction, string[] | null>()
   const hitGridOrder = new WeakMap<DrawAction, number>()
   let nextHitGridOrder = 1
+
+  // Derive the effective DPR from the canvas bitmap/CSS size ratio so that
+  // all offscreen canvases automatically honour the pixel-budget cap applied
+  // by DrawingOverlay.vue's resizeCanvas().
+  function getEffectiveDpr(): number {
+    const canvas = canvasRef.value
+    if (!canvas || !canvas.style.width) return window.devicePixelRatio || 1
+    const cssW = parseFloat(canvas.style.width)
+    return cssW > 0 ? canvas.width / cssW : (window.devicePixelRatio || 1)
+  }
 
   function getCtx(): CanvasRenderingContext2D | null {
     const canvas = canvasRef.value
@@ -338,7 +369,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       cacheCanvas.width = canvas.width
       cacheCanvas.height = canvas.height
       cacheCtx = cacheCanvas.getContext('2d')
-      const dpr = window.devicePixelRatio || 1
+      const dpr = getEffectiveDpr()
       if (cacheCtx) cacheCtx.scale(dpr, dpr)
       cacheValid = false
     }
@@ -364,7 +395,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     strokeCanvas.width = canvas.width
     strokeCanvas.height = canvas.height
     strokeCtx = strokeCanvas.getContext('2d')
-    const dpr = window.devicePixelRatio || 1
+    const dpr = getEffectiveDpr()
     if (strokeCtx) strokeCtx.scale(dpr, dpr)
     lastBakedPtIdx = 0
   }
@@ -424,9 +455,10 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
     if (preview && useDragCanvas && dragCanvas) {
       prevStrokeRect = null
+      prevShapeRect = null
       ensureCache()
 
-      const dpr = window.devicePixelRatio || 1
+      const dpr = getEffectiveDpr()
       const newX = Math.round((dragBboxX + dragOffsetX) * dpr)
       const newY = Math.round((dragBboxY + dragOffsetY) * dpr)
       const dw = dragCanvas.width
@@ -476,7 +508,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     ensureCache()
 
     if (isFreehandDirtyRect) {
-      const dpr = window.devicePixelRatio || 1
+      const dpr = getEffectiveDpr()
       const pts = action.points
       const pad = Math.max(20, action.lineWidth / 2 + 12)
       const bbox = computePointsBbox(pts, Math.max(0, lastBakedPtIdx - 1), pts.length - 1, pad)
@@ -519,6 +551,52 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
     prevStrokeRect = null
 
+    // For active shapes / early freehand strokes, use a local dirty rect instead
+    // of the full-canvas clear+blit to avoid copying millions of unchanged pixels.
+    if (action && !preview && action.points.length >= 1) {
+      const usesIncrementalStroke = action.tool === 'pen' || action.tool === 'highlighter'
+      if (usesIncrementalStroke && activeStrokeCanvas && action.points.length > 3) {
+        ctx.save()
+        ctx.setTransform(1, 0, 0, 1, 0, 0)
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        if (cacheCanvas) ctx.drawImage(cacheCanvas, 0, 0)
+        ctx.drawImage(activeStrokeCanvas, 0, 0)
+        ctx.restore()
+        drawFreehandTail(ctx, action)
+        return
+      }
+
+      const dpr = getEffectiveDpr()
+      const pad = Math.max(24, action.lineWidth / 2 + 16)
+      const curBbox = computeBbox(action, pad)
+      if (curBbox) {
+        const nx = Math.max(0, Math.floor(curBbox.x1 * dpr))
+        const ny = Math.max(0, Math.floor(curBbox.y1 * dpr))
+        const nr = Math.min(canvas.width, Math.ceil(curBbox.x2 * dpr))
+        const nb = Math.min(canvas.height, Math.ceil(curBbox.y2 * dpr))
+
+        const ux = prevShapeRect ? Math.min(prevShapeRect.x, nx) : nx
+        const uy = prevShapeRect ? Math.min(prevShapeRect.y, ny) : ny
+        const ur = prevShapeRect ? Math.max(prevShapeRect.x + prevShapeRect.w, nr) : nr
+        const ub = prevShapeRect ? Math.max(prevShapeRect.y + prevShapeRect.h, nb) : nb
+        const uw = ur - ux
+        const uh = ub - uy
+
+        if (uw > 0 && uh > 0 && uw * uh < canvas.width * canvas.height * 0.5) {
+          ctx.save()
+          ctx.setTransform(1, 0, 0, 1, 0, 0)
+          ctx.clearRect(ux, uy, uw, uh)
+          if (cacheCanvas) ctx.drawImage(cacheCanvas, ux, uy, uw, uh, ux, uy, uw, uh)
+          ctx.restore()
+          drawActionOn(ctx, action)
+          prevShapeRect = { x: nx, y: ny, w: nr - nx, h: nb - ny }
+          return
+        }
+      }
+    }
+
+    prevShapeRect = null
+
     ctx.save()
     ctx.setTransform(1, 0, 0, 1, 0, 0)
     ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -528,16 +606,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     ctx.restore()
 
     if (action) {
-      const usesIncrementalStroke = action.tool === 'pen' || action.tool === 'highlighter'
-      if (usesIncrementalStroke && activeStrokeCanvas && action.points.length > 3) {
-        ctx.save()
-        ctx.setTransform(1, 0, 0, 1, 0, 0)
-        ctx.drawImage(activeStrokeCanvas, 0, 0)
-        ctx.restore()
-        drawFreehandTail(ctx, action)
-      } else {
-        drawActionOn(ctx, action)
-      }
+      drawActionOn(ctx, action)
     }
 
     if (preview) {
@@ -650,7 +719,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
         const dx = x - last.x
         const dy = y - last.y
-        if (dx * dx + dy * dy < MIN_DIST_SQ) continue
+        if (dx * dx + dy * dy < getMinDistSq()) continue
         const nextPoint = { x, y }
         pts.push(nextPoint)
         last = nextPoint
@@ -694,6 +763,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     const action = currentAction.value
     if (!action) return
     isDrawing.value = false
+    prevShapeRect = null
 
     const pad = Math.max(20, action.lineWidth / 2 + 10)
     action.bbox = computeBbox(action, pad)
@@ -740,7 +810,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       const bbox = action.bbox
       if (!bbox) { drawActionDirect(ctx, action); return }
 
-      const dpr = window.devicePixelRatio || 1
+      const dpr = getEffectiveDpr()
       const w = bbox.x2 - bbox.x1
       const h = bbox.y2 - bbox.y1
       const pw = Math.ceil(w * dpr)
@@ -1010,7 +1080,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
     const canvas = canvasRef.value
     if (canvas) {
-      const dpr = window.devicePixelRatio || 1
+      const dpr = getEffectiveDpr()
       const pad = Math.max(20, action.lineWidth / 2 + 10) + 2
       const bbox = computeBbox(action, pad)
       if (bbox) {
