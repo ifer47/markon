@@ -25,6 +25,8 @@
     "dev": "tauri dev",
     "dev:fe": "vite",
     "build": "tauri build",
+    "build:msix": "bash scripts/build-msix.sh",
+    "build:all": "tauri build && bash scripts/build-msix.sh",
     "build:fe": "vue-tsc --noEmit && vite build"
   },
   "devDependencies": {
