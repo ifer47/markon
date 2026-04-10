@@ -14,7 +14,8 @@ const defaultShortcutStrings = computed(() =>
     : { toggleDrawing: 'Ctrl+Shift+D', clearDrawing: 'Ctrl+Shift+C' },
 )
 
-const activeTab = ref('general')
+const hashTab = window.location.hash.split('/')[1]
+const activeTab = ref(hashTab && ['general', 'shortcuts', 'help'].includes(hashTab) ? hashTab : 'general')
 
 const tabs = [
   { id: 'general', label: '常规', icon: '⚙' },

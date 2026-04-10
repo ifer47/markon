@@ -6,7 +6,7 @@ import SettingsView from './components/SettingsView.vue'
 const mode = ref<'overlay' | 'settings'>('overlay')
 
 onMounted(() => {
-  if (window.location.hash === '#settings') {
+  if (window.location.hash.startsWith('#settings')) {
     mode.value = 'settings'
     document.documentElement.classList.add('settings')
   }

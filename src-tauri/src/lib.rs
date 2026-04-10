@@ -223,12 +223,23 @@ fn clear_drawing(app: &AppHandle) {
 }
 
 fn open_settings(app: &AppHandle) {
+    open_settings_tab(app, None);
+}
+
+fn open_settings_tab(app: &AppHandle, tab: Option<&str>) {
     if let Some(win) = app.get_webview_window("settings") {
         win.set_focus().ok();
+        if let Some(t) = tab {
+            app.emit("switch-tab", t).ok();
+        }
         return;
     }
 
-    let url = WebviewUrl::App("index.html#settings".into());
+    let hash = match tab {
+        Some(t) => format!("index.html#settings/{}", t),
+        None => "index.html#settings".to_string(),
+    };
+    let url = WebviewUrl::App(hash.into());
     let builder = WebviewWindowBuilder::new(app, "settings", url)
         .title("MarkerOn 设置")
         .inner_size(600.0, 450.0)
@@ -697,10 +708,7 @@ pub fn run() {
                 tray.set_menu(Some(menu))?;
                 tray.on_menu_event(move |app, event| match event.id().as_ref() {
                     "settings" => open_settings(app),
-                    "help" => {
-                        open_settings(app);
-                        app.emit("switch-tab", "help").ok();
-                    }
+                    "help" => open_settings_tab(app, Some("help")),
                     "quit" => app.exit(0),
                     _ => {}
                 });
