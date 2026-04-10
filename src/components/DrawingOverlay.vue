@@ -27,7 +27,8 @@ const toolIconMap: Record<Tool, Component> = {
   text: Type,
 }
 
-const canvasRef = ref<HTMLCanvasElement | null>(null)
+const historyCanvasRef = ref<HTMLCanvasElement | null>(null)
+const previewCanvasRef = ref<HTMLCanvasElement | null>(null)
 const containerRef = ref<HTMLDivElement | null>(null)
 const textBoxRef = ref<InstanceType<typeof TextBox> | null>(null)
 const active = ref(false)
@@ -118,12 +119,11 @@ const {
   clearAll,
   hardReset,
   redrawAll,
-  requestRedraw,
   beginDrag,
   updateDragOffset,
   endDrag,
   destroy,
-} = useDrawing(canvasRef)
+} = useDrawing(historyCanvasRef, previewCanvasRef)
 
 const textFontSize = computed(() => Math.max(16, lineWidth.value * 6))
 
@@ -131,6 +131,15 @@ const activeTextBoxColor = ref('#FF0000')
 const activeTextBoxFontSize = ref(24)
 const activeTextBoxInitialText = ref('')
 const editingOriginalAction = shallowRef<DrawAction | null>(null)
+
+function setSettingsVisible(visible: boolean) {
+  if (showSettings.value === visible) return
+  showSettings.value = visible
+}
+
+function toggleSettingsVisible() {
+  setSettingsVisible(!showSettings.value)
+}
 
 const hoveredActionInfo = shallowRef<{ action: DrawAction, index: number } | null>(null)
 const isMoving = ref(false)
@@ -158,17 +167,17 @@ function getEffectiveDpr(): number {
 }
 
 function resizeCanvas() {
-  const canvas = canvasRef.value
-  if (!canvas) return
+  const historyCanvas = historyCanvasRef.value
+  const previewCanvas = previewCanvasRef.value
+  if (!historyCanvas || !previewCanvas) return
 
   const dpr = getEffectiveDpr()
-  canvas.width = Math.round(window.innerWidth * dpr)
-  canvas.height = Math.round(window.innerHeight * dpr)
-  canvas.style.width = window.innerWidth + 'px'
-  canvas.style.height = window.innerHeight + 'px'
-
-  const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true })
-  if (ctx) ctx.scale(dpr, dpr)
+  for (const canvas of [historyCanvas, previewCanvas]) {
+    canvas.width = Math.round(window.innerWidth * dpr)
+    canvas.height = Math.round(window.innerHeight * dpr)
+    canvas.style.width = window.innerWidth + 'px'
+    canvas.style.height = window.innerHeight + 'px'
+  }
 
   redrawAll()
 }
@@ -269,7 +278,7 @@ function onPointerDown(e: PointerEvent) {
     dragStartY = e.clientY
     isMoving.value = true
     beginDrag(hoveredActionInfo.value.action)
-    canvasRef.value?.setPointerCapture(e.pointerId)
+    previewCanvasRef.value?.setPointerCapture(e.pointerId)
     return
   }
 
@@ -292,7 +301,7 @@ function onPointerDown(e: PointerEvent) {
     currentTool.value = 'line'
   }
 
-  canvasRef.value?.setPointerCapture(e.pointerId)
+  previewCanvasRef.value?.setPointerCapture(e.pointerId)
   startDraw({ x: e.clientX, y: e.clientY })
 }
 
@@ -335,7 +344,7 @@ function onPointerMove(e: PointerEvent) {
 }
 
 function onPointerUp(e: PointerEvent) {
-  canvasRef.value?.releasePointerCapture(e.pointerId)
+  previewCanvasRef.value?.releasePointerCapture(e.pointerId)
 
   if (isDragging) {
     isDragging = false
@@ -375,7 +384,7 @@ function onKeyDown(e: KeyboardEvent) {
       e.preventDefault()
       mousePos.value = { ...quickColorsPos.value }
       showQuickColors.value = false
-      showSettings.value = !showSettings.value
+      toggleSettingsVisible()
     }
     return
   }
@@ -390,7 +399,7 @@ function onKeyDown(e: KeyboardEvent) {
   if (e.key === ' ') {
     e.preventDefault()
     mousePos.value = { x: lastPointerX, y: lastPointerY }
-    showSettings.value = !showSettings.value
+    toggleSettingsVisible()
     return
   }
 
@@ -406,7 +415,7 @@ function onKeyDown(e: KeyboardEvent) {
   if (e.key === 't' || e.key === 'T') {
     currentTool.value = 'text'
     showToolTip('text')
-    showSettings.value = false
+    setSettingsVisible(false)
     return
   }
 
@@ -415,7 +424,7 @@ function onKeyDown(e: KeyboardEvent) {
     const tool = toolMap[parseInt(e.key) - 1]
     currentTool.value = tool
     showToolTip(tool)
-    showSettings.value = false
+    setSettingsVisible(false)
     return
   }
 
@@ -602,7 +611,12 @@ function exitDrawing() {
     :class="active ? 'pointer-events-auto' : 'pointer-events-none'"
   >
     <canvas
-      ref="canvasRef"
+      ref="historyCanvasRef"
+      class="absolute top-0 left-0 w-full h-full pointer-events-none"
+      style="contain: strict"
+    />
+    <canvas
+      ref="previewCanvasRef"
       class="absolute top-0 left-0 w-full h-full touch-none"
       style="contain: strict"
       :style="{ cursor: cursorStyle }"
@@ -695,7 +709,7 @@ function exitDrawing() {
       @select-tool="(t: Tool) => { currentTool = t }"
       @select-color="(c: string) => { currentColor = c; showColorTip(c) }"
       @update-line-width="(w: number) => { lineWidth = w }"
-      @close="showSettings = false"
+      @close="setSettingsVisible(false)"
     />
   </div>
 </template>

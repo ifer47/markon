@@ -52,7 +52,10 @@ function getMinDistSq(): number {
   return cachedMinDistSq
 }
 
-export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
+export function useDrawing(
+  historyCanvasRef: Ref<HTMLCanvasElement | null>,
+  previewCanvasRef: Ref<HTMLCanvasElement | null>,
+) {
   const currentTool = ref<Tool>('pen')
   const currentColor = ref('#FF0000')
   const lineWidth = ref(3)
@@ -102,9 +105,12 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
   let cacheCanvas: HTMLCanvasElement | null = null
   let cacheCtx: CanvasRenderingContext2D | null = null
-  let mainCtx: CanvasRenderingContext2D | null = null
+  let historyCtx: CanvasRenderingContext2D | null = null
+  let previewCtx: CanvasRenderingContext2D | null = null
   let cacheValid = false
   let rafId: number | null = null
+  let historyDirty = true
+  let previewDirty = true
 
   // Incremental stroke cache for pen only.
   let strokeCanvas: HTMLCanvasElement | null = null
@@ -121,10 +127,6 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   let useDragCanvas = false
   let tempCanvas: HTMLCanvasElement | null = null
   let tempCtx: CanvasRenderingContext2D | null = null
-  let prevDragScreenX = NaN
-  let prevDragScreenY = NaN
-  let prevStrokeRect: { x: number, y: number, w: number, h: number } | null = null
-  let prevShapeRect: { x: number, y: number, w: number, h: number } | null = null
   const pathCache = new WeakMap<DrawAction, Path2D>()
 
   // O(1) action→history-index lookup (replaces O(n) lastIndexOf in findActionAt).
@@ -158,7 +160,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   let cachedDprCanvasW = 0
 
   function getEffectiveDpr(): number {
-    const canvas = canvasRef.value
+    const canvas = previewCanvasRef.value ?? historyCanvasRef.value
     if (!canvas) return window.devicePixelRatio || 1
     if (canvas.width === cachedDprCanvasW && cachedDpr > 0) return cachedDpr
     const cssW = parseFloat(canvas.style.width)
@@ -167,16 +169,28 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     return cachedDpr
   }
 
-  function getCtx(): CanvasRenderingContext2D | null {
-    const canvas = canvasRef.value
+  function getHistoryCtx(): CanvasRenderingContext2D | null {
+    const canvas = historyCanvasRef.value
     if (!canvas) {
-      mainCtx = null
+      historyCtx = null
       return null
     }
-    if (!mainCtx) {
-      mainCtx = canvas.getContext('2d', { alpha: true, desynchronized: true })
+    if (!historyCtx) {
+      historyCtx = canvas.getContext('2d', { alpha: true, desynchronized: true })
     }
-    return mainCtx
+    return historyCtx
+  }
+
+  function getPreviewCtx(): CanvasRenderingContext2D | null {
+    const canvas = previewCanvasRef.value
+    if (!canvas) {
+      previewCtx = null
+      return null
+    }
+    if (!previewCtx) {
+      previewCtx = canvas.getContext('2d', { alpha: true, desynchronized: true })
+    }
+    return previewCtx
   }
 
   function computeBbox(action: DrawAction, pad: number): DrawAction['bbox'] {
@@ -382,7 +396,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   }
 
   function ensureCache() {
-    const canvas = canvasRef.value
+    const canvas = historyCanvasRef.value
     if (!canvas) return
 
     if (!cacheCanvas) {
@@ -410,10 +424,11 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
   function invalidateCache() {
     cacheValid = false
+    historyDirty = true
   }
 
   function initStrokeCanvas() {
-    const canvas = canvasRef.value
+    const canvas = previewCanvasRef.value
     if (!canvas) return
     if (!strokeCanvas) strokeCanvas = document.createElement('canvas')
     strokeCanvas.width = canvas.width
@@ -470,201 +485,56 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     lastBakedPtIdx = targetIdx
   }
 
-  function renderFrame() {
-    const ctx = getCtx()
-    const canvas = canvasRef.value
+  function renderHistoryFrame() {
+    const ctx = getHistoryCtx()
+    const canvas = historyCanvasRef.value
     if (!ctx || !canvas) return
 
-    const preview = previewAction.value
-
-    if (preview && useDragCanvas && dragCanvas) {
-      prevStrokeRect = null
-      prevShapeRect = null
-      ensureCache()
-
-      const dpr = getEffectiveDpr()
-      const newX = Math.round((dragBboxX + dragOffsetX) * dpr)
-      const newY = Math.round((dragBboxY + dragOffsetY) * dpr)
-      const dw = dragCanvas.width
-      const dh = dragCanvas.height
-
-      if (newX === prevDragScreenX && newY === prevDragScreenY) return
-
-      ctx.save()
-      ctx.setTransform(1, 0, 0, 1, 0, 0)
-
-      if (!isNaN(prevDragScreenX)) {
-        const ux = Math.max(0, Math.min(prevDragScreenX, newX))
-        const uy = Math.max(0, Math.min(prevDragScreenY, newY))
-        const ur = Math.min(canvas.width, Math.max(prevDragScreenX + dw, newX + dw))
-        const ub = Math.min(canvas.height, Math.max(prevDragScreenY + dh, newY + dh))
-
-        if (ur > ux && ub > uy) {
-          const uw = ur - ux, uh = ub - uy
-          ctx.clearRect(ux, uy, uw, uh)
-          if (cacheCanvas) ctx.drawImage(cacheCanvas, ux, uy, uw, uh, ux, uy, uw, uh)
-        }
-      } else {
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
-        if (cacheCanvas) ctx.drawImage(cacheCanvas, 0, 0)
-      }
-
-      ctx.drawImage(dragCanvas, newX, newY)
-      ctx.restore()
-
-      prevDragScreenX = newX
-      prevDragScreenY = newY
-      return
-    }
-
-    prevDragScreenX = NaN
-    prevDragScreenY = NaN
-
-    const action = currentAction.value
-    const activeStrokeCanvas = strokeCanvas
-    const isFreehandDirtyRect =
-      !preview &&
-      action &&
-      activeStrokeCanvas &&
-      action.tool === 'pen' &&
-      action.points.length > 3
-
     ensureCache()
-
-    if (isFreehandDirtyRect) {
-      const dpr = getEffectiveDpr()
-      const pts = action.points
-      const pad = Math.max(20, action.lineWidth / 2 + 12)
-      const bbox = computePointsBbox(pts, Math.max(0, lastBakedPtIdx - 1), pts.length - 1, pad)
-
-      if (bbox) {
-        const nextRect = {
-          x: Math.max(0, Math.floor(bbox.x1 * dpr)),
-          y: Math.max(0, Math.floor(bbox.y1 * dpr)),
-          w: Math.min(canvas.width, Math.ceil(bbox.x2 * dpr)) - Math.max(0, Math.floor(bbox.x1 * dpr)),
-          h: Math.min(canvas.height, Math.ceil(bbox.y2 * dpr)) - Math.max(0, Math.floor(bbox.y1 * dpr)),
-        }
-
-        const ux = prevStrokeRect ? Math.min(prevStrokeRect.x, nextRect.x) : nextRect.x
-        const uy = prevStrokeRect ? Math.min(prevStrokeRect.y, nextRect.y) : nextRect.y
-        const ur = prevStrokeRect ? Math.max(prevStrokeRect.x + prevStrokeRect.w, nextRect.x + nextRect.w) : nextRect.x + nextRect.w
-        const ub = prevStrokeRect ? Math.max(prevStrokeRect.y + prevStrokeRect.h, nextRect.y + nextRect.h) : nextRect.y + nextRect.h
-        const uw = ur - ux
-        const uh = ub - uy
-
-        if (uw > 0 && uh > 0) {
-          ctx.save()
-          ctx.setTransform(1, 0, 0, 1, 0, 0)
-          ctx.clearRect(ux, uy, uw, uh)
-          if (cacheCanvas) ctx.drawImage(cacheCanvas, ux, uy, uw, uh, ux, uy, uw, uh)
-          ctx.drawImage(activeStrokeCanvas, ux, uy, uw, uh, ux, uy, uw, uh)
-          ctx.restore()
-
-          ctx.save()
-          ctx.beginPath()
-          ctx.rect(ux / dpr, uy / dpr, uw / dpr, uh / dpr)
-          ctx.clip()
-          drawFreehandTail(ctx, action)
-          ctx.restore()
-        }
-
-        prevStrokeRect = nextRect
-        return
-      }
-    }
-
-    prevStrokeRect = null
-
-    // For active shapes / early freehand strokes / freehand fallback, use a local
-    // dirty rect instead of the full-canvas clear+blit to avoid copying millions
-    // of unchanged pixels on large canvases.
-    if (action && !preview && action.points.length >= 1) {
-      const usesIncrementalStroke = action.tool === 'pen'
-
-      // Freehand > 3 fallback (isFreehandDirtyRect bbox was null): use full-stroke
-      // bbox for a localized blit instead of full-canvas.
-      if (usesIncrementalStroke && activeStrokeCanvas && action.points.length > 3) {
-        const dpr = getEffectiveDpr()
-        const pad = Math.max(20, action.lineWidth / 2 + 12)
-        const strokeBbox = computeBbox(action, pad)
-        if (strokeBbox) {
-          const sx = Math.max(0, Math.floor(strokeBbox.x1 * dpr))
-          const sy = Math.max(0, Math.floor(strokeBbox.y1 * dpr))
-          const sr = Math.min(canvas.width, Math.ceil(strokeBbox.x2 * dpr))
-          const sb = Math.min(canvas.height, Math.ceil(strokeBbox.y2 * dpr))
-          const sw = sr - sx
-          const sh = sb - sy
-          if (sw > 0 && sh > 0 && sw * sh < canvas.width * canvas.height * 0.5) {
-            ctx.save()
-            ctx.setTransform(1, 0, 0, 1, 0, 0)
-            ctx.clearRect(sx, sy, sw, sh)
-            if (cacheCanvas) ctx.drawImage(cacheCanvas, sx, sy, sw, sh, sx, sy, sw, sh)
-            ctx.drawImage(activeStrokeCanvas, sx, sy, sw, sh, sx, sy, sw, sh)
-            ctx.restore()
-            ctx.save()
-            ctx.beginPath()
-            ctx.rect(sx / dpr, sy / dpr, sw / dpr, sh / dpr)
-            ctx.clip()
-            drawFreehandTail(ctx, action)
-            ctx.restore()
-            return
-          }
-        }
-        // Full-canvas fallback for very long strokes
-        ctx.save()
-        ctx.setTransform(1, 0, 0, 1, 0, 0)
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
-        if (cacheCanvas) ctx.drawImage(cacheCanvas, 0, 0)
-        ctx.drawImage(activeStrokeCanvas, 0, 0)
-        ctx.restore()
-        drawFreehandTail(ctx, action)
-        return
-      }
-
-      const dpr = getEffectiveDpr()
-      const pad = Math.max(24, action.lineWidth / 2 + 16)
-      const curBbox = computeBbox(action, pad)
-      if (curBbox) {
-        const nx = Math.max(0, Math.floor(curBbox.x1 * dpr))
-        const ny = Math.max(0, Math.floor(curBbox.y1 * dpr))
-        const nr = Math.min(canvas.width, Math.ceil(curBbox.x2 * dpr))
-        const nb = Math.min(canvas.height, Math.ceil(curBbox.y2 * dpr))
-
-        const ux = prevShapeRect ? Math.min(prevShapeRect.x, nx) : nx
-        const uy = prevShapeRect ? Math.min(prevShapeRect.y, ny) : ny
-        const ur = prevShapeRect ? Math.max(prevShapeRect.x + prevShapeRect.w, nr) : nr
-        const ub = prevShapeRect ? Math.max(prevShapeRect.y + prevShapeRect.h, nb) : nb
-        const uw = ur - ux
-        const uh = ub - uy
-
-        if (uw > 0 && uh > 0 && uw * uh < canvas.width * canvas.height * 0.5) {
-          ctx.save()
-          ctx.setTransform(1, 0, 0, 1, 0, 0)
-          ctx.clearRect(ux, uy, uw, uh)
-          if (cacheCanvas) ctx.drawImage(cacheCanvas, ux, uy, uw, uh, ux, uy, uw, uh)
-          ctx.restore()
-          drawActionOn(ctx, action)
-          prevShapeRect = { x: nx, y: ny, w: nr - nx, h: nb - ny }
-          return
-        }
-      }
-    }
-
-    prevShapeRect = null
 
     ctx.save()
     ctx.setTransform(1, 0, 0, 1, 0, 0)
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    if (cacheCanvas) {
-      ctx.drawImage(cacheCanvas, 0, 0)
-    }
+    if (cacheCanvas) ctx.drawImage(cacheCanvas, 0, 0)
     ctx.restore()
+    historyDirty = false
+  }
+
+  function renderPreviewFrame() {
+    const ctx = getPreviewCtx()
+    const canvas = previewCanvasRef.value
+    if (!ctx || !canvas) return
+
+    const action = currentAction.value
+    const preview = previewAction.value
+    const dpr = getEffectiveDpr()
+
+    ctx.save()
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    if (preview && useDragCanvas && dragCanvas) {
+      const drawX = Math.round((dragBboxX + dragOffsetX) * dpr)
+      const drawY = Math.round((dragBboxY + dragOffsetY) * dpr)
+      ctx.drawImage(dragCanvas, drawX, drawY)
+      ctx.restore()
+      previewDirty = false
+      return
+    }
 
     if (action) {
-      drawActionOn(ctx, action)
+      if (action.tool === 'pen' && strokeCanvas && action.points.length > 3) {
+        ctx.drawImage(strokeCanvas, 0, 0)
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+        drawFreehandTail(ctx, action)
+      } else {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+        drawActionOn(ctx, action)
+      }
     }
 
     if (preview) {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       if (dragOffsetX !== 0 || dragOffsetY !== 0) {
         ctx.save()
         ctx.translate(dragOffsetX, dragOffsetY)
@@ -674,6 +544,14 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
         drawActionOn(ctx, preview)
       }
     }
+
+    ctx.restore()
+    previewDirty = false
+  }
+
+  function renderFrame() {
+    if (historyDirty) renderHistoryFrame()
+    if (previewDirty) renderPreviewFrame()
   }
 
   function scheduleRender() {
@@ -703,7 +581,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       fontSize,
     }
 
-    const ctx = getCtx()
+    const ctx = getPreviewCtx()
     if (ctx) {
       ctx.font = `${fontSize}px "Microsoft YaHei", "PingFang SC", system-ui, sans-serif`
       const lines = text.split('\n')
@@ -727,6 +605,8 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     trackHistoryPush(action)
     undoStack.push({ type: 'add', action })
     appendActionToHitGrid(action)
+    historyDirty = true
+    previewDirty = true
     flushRender()
   }
 
@@ -749,6 +629,8 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       opacity,
       points: [point],
     }
+    previewDirty = true
+    scheduleRender()
   }
 
   function draw(point: Point, isPerfect = false) {
@@ -812,6 +694,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       }
     }
 
+    previewDirty = true
     scheduleRender()
   }
 
@@ -820,7 +703,6 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     const action = currentAction.value
     if (!action) return
     isDrawing.value = false
-    prevShapeRect = null
 
     const pad = Math.max(20, action.lineWidth / 2 + 10)
     action.bbox = computeBbox(action, pad)
@@ -857,9 +739,11 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       trackHistoryPush(action)
       undoStack.push({ type: 'add', action })
       appendActionToHitGrid(action)
+      historyDirty = true
     }
 
     currentAction.value = null
+    previewDirty = true
     flushRender()
   }
 
@@ -1121,11 +1005,12 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
   function redrawAll() {
     invalidateCache()
+    previewDirty = true
     flushRender()
   }
 
   function requestRedraw() {
-    invalidateCache()
+    previewDirty = true
     scheduleRender()
   }
 
@@ -1137,10 +1022,8 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     useDragCanvas = false
     dragOffsetX = 0
     dragOffsetY = 0
-    prevDragScreenX = NaN
-    prevDragScreenY = NaN
 
-    const canvas = canvasRef.value
+    const canvas = previewCanvasRef.value
     if (canvas) {
       const dpr = getEffectiveDpr()
       const pad = Math.max(20, action.lineWidth / 2 + 10) + 2
@@ -1167,12 +1050,14 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       }
     }
 
+    previewDirty = true
     scheduleRender()
   }
 
   function updateDragOffset(dx: number, dy: number) {
     dragOffsetX = dx
     dragOffsetY = dy
+    previewDirty = true
     scheduleRender()
   }
 
@@ -1228,9 +1113,8 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     useDragCanvas = false
     dragOffsetX = 0
     dragOffsetY = 0
-    prevDragScreenX = NaN
-    prevDragScreenY = NaN
     invalidateCache()
+    previewDirty = true
     flushRender()
   }
 
@@ -1335,11 +1219,10 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     undoStack.push(entry)
 
     invalidateCache()
-    const ctx = getCtx()
-    const canvas = canvasRef.value
-    if (ctx && canvas) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-    }
+    currentAction.value = null
+    previewAction.value = null
+    previewDirty = true
+    flushRender()
   }
 
   function hardReset() {
@@ -1350,11 +1233,14 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     clearHitGridState()
     hitGridDirty = false
     invalidateCache()
-    const ctx = getCtx()
-    const canvas = canvasRef.value
-    if (ctx && canvas) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-    }
+    currentAction.value = null
+    previewAction.value = null
+    useDragCanvas = false
+    dragOffsetX = 0
+    dragOffsetY = 0
+    clearStrokeCanvas()
+    previewDirty = true
+    flushRender()
   }
 
   function distToSeg(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {
@@ -1511,7 +1397,8 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     }
     cacheCanvas = null
     cacheCtx = null
-    mainCtx = null
+    historyCtx = null
+    previewCtx = null
     strokeCanvas = null
     strokeCtx = null
     dragCanvas = null
