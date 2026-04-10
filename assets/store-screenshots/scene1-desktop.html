@@ -6,32 +6,34 @@
 <title>MarkerOn - Desktop Annotation Scene</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  width: 1920px;
-  height: 1080px;
-  overflow: hidden;
-  font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
-  background: #0a0a12;
-  position: relative;
-}
-
-/* Windows 11 Desktop Wallpaper - Dark Blue Abstract */
-.desktop-bg {
-  position: absolute;
-  inset: 0;
+html {
+  overflow: hidden; height: 100vh;
   background:
     radial-gradient(ellipse 80% 60% at 30% 70%, rgba(20, 60, 120, 0.7) 0%, transparent 70%),
     radial-gradient(ellipse 60% 50% at 70% 40%, rgba(40, 80, 160, 0.5) 0%, transparent 60%),
     radial-gradient(ellipse 90% 80% at 50% 50%, rgba(10, 30, 80, 0.8) 0%, transparent 80%),
     linear-gradient(135deg, #0a0e1a 0%, #0d1528 30%, #111d3a 60%, #0a1020 100%);
 }
+body {
+  width: 1920px;
+  height: 1080px;
+  /* overflow: hidden; */
+  font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  background: transparent;
+  position: relative;
+}
+
+/* Windows 11 Desktop Wallpaper - Dark Blue Abstract */
+.desktop-bg {
+  display: none;
+}
 
 /* Windows 11 Taskbar */
 .taskbar {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: calc(-1 * var(--oy, 0px));
+  left: calc(-1 * var(--ox, 0px));
+  right: calc(-1 * var(--ox, 0px));
   height: 48px;
   background: rgba(32, 32, 32, 0.85);
   backdrop-filter: blur(20px);
@@ -176,7 +178,7 @@ body {
   background: linear-gradient(90deg, #f59e0b, #f59e0b);
   border-radius: 3px;
   margin-top: 4px;
-  margin-bottom: 8px;
+  margin-bottom: -16px;
   width: 220px;
 }
 
@@ -314,8 +316,8 @@ body {
 /* MarkerOn branding */
 .markeron-brand {
   position: absolute;
-  bottom: 70px;
-  right: 40px;
+  bottom: calc(70px - var(--oy, 0px));
+  right: calc(40px - var(--ox, 0px));
   z-index: 200;
   display: flex;
   align-items: center;
@@ -416,38 +418,38 @@ body {
 <!-- MarkerOn Annotation Overlay -->
 <svg class="annotation-layer" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
   <!-- Red rectangle around Q4 title -->
-  <rect x="330" y="196" width="430" height="58" rx="3"
+  <rect x="346" y="235" width="310" height="52" rx="3"
     fill="none" stroke="#FF3B30" stroke-width="3"/>
 
   <!-- Red text "重点!" next to the title -->
-  <text x="780" y="230" font-family="Microsoft YaHei, sans-serif" font-size="30" font-weight="700" fill="#FF3B30">重点!</text>
+  <text x="670" y="275" font-family="Microsoft YaHei, sans-serif" font-size="30" font-weight="700" fill="#FF3B30">重点!</text>
 
   <!-- Yellow highlight over "156 家" text -->
-  <rect x="555" y="310" width="110" height="26" rx="2"
+  <rect x="465" y="380" width="60" height="24" rx="2"
     fill="rgba(255,204,2,0.35)" stroke="none"/>
 
+  <!-- Freehand pen stroke - a wavy underline under the data row -->
+  <path d="M357,446 Q390,440 430,446 T520,446"
+    fill="none" stroke="#FF3B30" stroke-width="2.5" stroke-linecap="round"/>
+
   <!-- Green dashed rectangle around conversion rate card in dashboard -->
-  <rect x="1292" y="390" width="220" height="118" rx="6"
+  <rect x="1324" y="405" width="269" height="125" rx="6"
     fill="none" stroke="#34C759" stroke-width="2.5" stroke-dasharray="8,5"/>
 
   <!-- Blue arrow pointing to the conversion rate -->
-  <line x1="1530" y1="448" x2="1600" y2="448" stroke="#007AFF" stroke-width="3"/>
-  <polygon points="1600,440 1620,448 1600,456" fill="#007AFF"/>
+  <line x1="1660" y1="467" x2="1610" y2="467" stroke="#007AFF" stroke-width="3"/>
+  <polygon points="1610,459 1590,467 1610,475" fill="#007AFF"/>
 
   <!-- Blue text annotation next to arrow -->
-  <text x="1630" y="454" font-family="Microsoft YaHei, sans-serif" font-size="16" font-weight="600" fill="#007AFF">← 关键数据对比</text>
+  <text x="1670" y="473" font-family="Microsoft YaHei, sans-serif" font-size="16" font-weight="600" fill="#007AFF">关键数据对比</text>
 
   <!-- Red freehand circle around the chart trend -->
-  <ellipse cx="1370" cy="700" rx="160" ry="40"
-    fill="none" stroke="#FF3B30" stroke-width="2.5" transform="rotate(-8, 1370, 700)"
+  <ellipse cx="1400" cy="650" rx="150" ry="40"
+    fill="none" stroke="#FF3B30" stroke-width="2.5" transform="rotate(-6, 1400, 650)"
     stroke-dasharray="0" stroke-linecap="round"/>
 
   <!-- Green text near the chart -->
-  <text x="1270" y="760" font-family="Microsoft YaHei, sans-serif" font-size="15" fill="#34C759">○ 增长趋势明显</text>
-
-  <!-- Freehand pen stroke - a wavy underline under data bar -->
-  <path d="M340,410 Q380,405 420,412 Q460,420 500,408 Q540,398 570,410"
-    fill="none" stroke="#FF3B30" stroke-width="2.5" stroke-linecap="round"/>
+  <text x="1300" y="715" font-family="Microsoft YaHei, sans-serif" font-size="15" fill="#34C759">○ 增长趋势明显</text>
 </svg>
 
 <!-- MarkerOn Tooltip -->
@@ -466,7 +468,7 @@ body {
   <div class="taskbar-icon active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><ellipse cx="12" cy="12" rx="5" ry="10"/></svg></div>
   <div class="taskbar-time">
     <div>15:42</div>
-    <div style="font-size:11px;">2025/12/18</div>
+    <div style="font-size:11px;">2026/4/10</div>
   </div>
 </div>
 
@@ -476,5 +478,17 @@ body {
   MarkerOn
 </div>
 
+<script>
+(function fitToScreen() {
+  var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+  var ox = (window.innerWidth - 1920 * s) / 2;
+  var oy = (window.innerHeight - 1080 * s) / 2;
+  document.body.style.transformOrigin = 'top left';
+  document.body.style.transform = 'translate(' + ox + 'px,' + oy + 'px) scale(' + s + ')';
+  document.documentElement.style.setProperty('--ox', (ox / s) + 'px');
+  document.documentElement.style.setProperty('--oy', (oy / s) + 'px');
+  window.addEventListener('resize', fitToScreen);
+})();
+</script>
 </body>
 </html>

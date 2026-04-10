@@ -6,17 +6,28 @@
 <title>MarkerOn - Keyboard Shortcuts</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
+html {
+  overflow: hidden; height: 100vh;
+  background:
+    radial-gradient(ellipse 80% 60% at 30% 70%, rgba(20, 60, 120, 0.7) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 70% 40%, rgba(40, 80, 160, 0.5) 0%, transparent 60%),
+    radial-gradient(ellipse 90% 80% at 50% 50%, rgba(10, 30, 80, 0.8) 0%, transparent 80%),
+    linear-gradient(135deg, #0a0e1a 0%, #0d1528 30%, #111d3a 60%, #0a1020 100%);
+}
 body {
   width: 1920px;
   height: 1080px;
-  overflow: hidden;
+  /* overflow: hidden; */
   font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
-  background: #111114;
+  background: transparent;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 60px 120px 40px;
+}
+.desktop-bg {
+  display: none;
 }
 
 .header {
@@ -46,21 +57,20 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 24px;
-  width: 100%;
-  flex: 1;
+  width: 1360px;
 }
 
 .shortcut-group {
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.06);
   border-radius: 16px;
-  padding: 28px 30px;
+  padding: 24px 28px;
 }
 .group-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 22px;
+  margin-bottom: 16px;
   font-size: 15px;
   font-weight: 600;
   color: rgba(255,255,255,0.9);
@@ -75,7 +85,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 0;
+  padding: 8px 0;
   border-bottom: 1px solid rgba(255,255,255,0.04);
 }
 .shortcut-item:last-child { border-bottom: none; }
@@ -84,6 +94,8 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
+  color: rgba(255,255,255,0.7);
+  font-size: 13px;
 }
 kbd {
   display: inline-flex;
@@ -112,27 +124,76 @@ kbd {
 
 /* Bottom note */
 .bottom-note {
-  margin-top: 24px;
+  margin-top: auto;
+  margin-bottom: 24px;
   font-size: 13px;
   color: rgba(255,255,255,0.2);
   text-align: center;
 }
 
+/* Windows 11 Taskbar */
+.taskbar {
+  position: absolute;
+  bottom: calc(-1 * var(--oy, 0px));
+  left: calc(-1 * var(--ox, 0px));
+  right: calc(-1 * var(--ox, 0px));
+  height: 48px;
+  background: rgba(32, 32, 32, 0.85);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  z-index: 1;
+}
+.taskbar-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.9);
+  position: relative;
+}
+.taskbar-icon.active { background: rgba(255,255,255,0.08); }
+.taskbar-icon.active::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  background: #60cdff;
+}
+.taskbar-time {
+  position: absolute;
+  right: 16px;
+  color: rgba(255,255,255,0.9);
+  font-size: 12px;
+  text-align: right;
+  line-height: 1.4;
+}
+
 /* MarkerOn branding */
 .markeron-brand {
   position: absolute;
-  bottom: 28px;
-  right: 40px;
+  bottom: calc(70px - var(--oy, 0px));
+  right: calc(40px - var(--ox, 0px));
   display: flex;
   align-items: center;
   gap: 8px;
   color: rgba(255,255,255,0.25);
   font-size: 13px;
+  z-index: 100;
 }
 .markeron-brand svg { width: 16px; height: 16px; }
 </style>
 </head>
 <body>
+
+<div class="desktop-bg"></div>
 
 <div class="header">
   <div class="accent-line"></div>
@@ -269,11 +330,37 @@ kbd {
   ✦ 标注覆盖全屏（包括任务栏区域），退出标注模式时自动清除所有标注内容
 </div>
 
+<!-- Taskbar -->
+<div class="taskbar">
+  <div class="taskbar-icon">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><rect x="1" y="1" width="8" height="8" rx="1"/><rect x="11" y="1" width="8" height="8" rx="1"/><rect x="1" y="11" width="8" height="8" rx="1"/><rect x="11" y="11" width="8" height="8" rx="1"/></svg>
+  </div>
+  <div class="taskbar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+  <div class="taskbar-icon active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg></div>
+  <div class="taskbar-icon active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><ellipse cx="12" cy="12" rx="5" ry="10"/></svg></div>
+  <div class="taskbar-time">
+    <div>15:42</div>
+    <div style="font-size:11px;">2026/4/10</div>
+  </div>
+</div>
+
 <!-- Branding -->
 <div class="markeron-brand">
   <svg viewBox="0 0 1024 1024" fill="currentColor"><path d="M659.498667 412.8l-6.101334-6.058667a233.6 233.6 0 0 0-101.973333-57.557333c-124.032-33.237333-243.157333 37.077333-276.992 163.413333-1.834667 6.826667-2.816 14.506667-4.437333 33.749334-6.570667 79.786667-25.344 139.306667-76.8 199.68 96.426667 37.888 210.688 64.597333 297.557333 64.597333a234.88 234.88 0 0 0 226.56-174.037333 234.538667 234.538667 0 0 0-57.856-223.786667z m-92.501334-147.712l210.730667-163.925333a42.666667 42.666667 0 0 1 56.32 3.541333l127.786667 127.744a42.666667 42.666667 0 0 1 3.498666 56.32l-163.84 210.730667a320.213333 320.213333 0 0 1-310.741333 396.458666C341.333333 895.957333 149.333333 831.872 42.666667 767.872c169.813333-128 130.005333-205.226667 149.333333-277.333333 45.141333-168.533333 206.592-267.008 374.997333-225.450667zM712.533333 345.258667c2.816 2.688 5.546667 5.461333 8.277334 8.234666L769.28 401.92l105.6-135.765333-74.496-74.496-135.765333 105.6L712.533333 345.258667z"/></svg>
   MarkerOn
 </div>
 
+<script>
+(function fitToScreen() {
+  var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+  var ox = (window.innerWidth - 1920 * s) / 2;
+  var oy = (window.innerHeight - 1080 * s) / 2;
+  document.body.style.transformOrigin = 'top left';
+  document.body.style.transform = 'translate(' + ox + 'px,' + oy + 'px) scale(' + s + ')';
+  document.documentElement.style.setProperty('--ox', (ox / s) + 'px');
+  document.documentElement.style.setProperty('--oy', (oy / s) + 'px');
+  window.addEventListener('resize', fitToScreen);
+})();
+</script>
 </body>
 </html>
