@@ -41,9 +41,9 @@ mkdir -p "$STAGING/Assets"
 
 cp "$EXE" "$STAGING/"
 cp "$ROOT/appxmanifest.xml" "$STAGING/AppxManifest.xml"
-cp "$ROOT"/Assets/StoreLogo.png \
-   "$ROOT"/Assets/Square150x150Logo.png \
-   "$ROOT"/Assets/Square44x44Logo.png \
+cp "$ROOT"/assets/StoreLogo.png \
+   "$ROOT"/assets/Square150x150Logo.png \
+   "$ROOT"/assets/Square44x44Logo.png \
    "$STAGING/Assets/"
 
 OUTDIR="$RELEASE_DIR/bundle/msix"
