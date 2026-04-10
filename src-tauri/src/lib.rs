@@ -682,10 +682,13 @@ pub fn run() {
             // Setup tray
             let settings_item =
                 MenuItemBuilder::with_id("settings", "设置").build(app)?;
+            let help_item =
+                MenuItemBuilder::with_id("help", "使用帮助").build(app)?;
             let quit_item =
                 MenuItemBuilder::with_id("quit", "退出").build(app)?;
             let menu = MenuBuilder::new(app)
                 .item(&settings_item)
+                .item(&help_item)
                 .separator()
                 .item(&quit_item)
                 .build()?;
@@ -694,6 +697,10 @@ pub fn run() {
                 tray.set_menu(Some(menu))?;
                 tray.on_menu_event(move |app, event| match event.id().as_ref() {
                     "settings" => open_settings(app),
+                    "help" => {
+                        open_settings(app);
+                        app.emit("switch-tab", "help").ok();
+                    }
                     "quit" => app.exit(0),
                     _ => {}
                 });

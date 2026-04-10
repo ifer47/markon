@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
+import { listen } from '@tauri-apps/api/event'
 import { enable, isEnabled, disable } from '@tauri-apps/plugin-autostart'
 import type { AppConfig, SaveResult } from '../types/app'
 import { isMacOS } from '../utils/platform'
@@ -157,11 +158,17 @@ async function toggleDragging() {
   }
 }
 
+let unlistenSwitchTab: (() => void) | null = null
+
 onMounted(async () => {
   const cfg = await invoke<AppConfig>('get_config')
   Object.assign(shortcuts, cfg.shortcuts)
   enableDragging.value = cfg.general?.enableDragging ?? false
   window.addEventListener('keydown', onKeyDown, true)
+
+  unlistenSwitchTab = await listen<string>('switch-tab', (e) => {
+    activeTab.value = e.payload
+  })
   
   try {
     autoStartEnabled.value = await isEnabled()
@@ -172,6 +179,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', onKeyDown, true)
+  unlistenSwitchTab?.()
 })
 </script>
 
