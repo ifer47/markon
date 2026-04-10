@@ -17,7 +17,7 @@ const defaultShortcutStrings = computed(() =>
 const hashTab = window.location.hash.split('/')[1]
 const activeTab = ref(hashTab && ['general', 'shortcuts', 'help', 'about'].includes(hashTab) ? hashTab : 'general')
 
-const APP_VERSION = '0.1.4'
+const APP_VERSION = '0.1.5'
 
 const tabs = [
   { id: 'general', label: '常规' },
@@ -403,6 +403,7 @@ onUnmounted(() => {
           <table class="help-table">
             <thead><tr><th>图形</th><th>Windows</th><th>macOS</th></tr></thead>
             <tbody>
+              <tr><td>直线</td><td><kbd class="help-kbd">Alt</kbd> + 拖动</td><td><kbd class="help-kbd">⌥</kbd> + 拖动</td></tr>
               <tr><td>矩形</td><td><kbd class="help-kbd">Ctrl</kbd> + 拖动</td><td><kbd class="help-kbd">⌘</kbd> + 拖动</td></tr>
               <tr><td>正方形</td><td><kbd class="help-kbd">Ctrl+Alt</kbd> + 拖动</td><td><kbd class="help-kbd">⌘+⌥</kbd> + 拖动</td></tr>
               <tr><td>椭圆</td><td><kbd class="help-kbd">Shift</kbd> + 拖动</td><td><kbd class="help-kbd">⇧</kbd> + 拖动</td></tr>

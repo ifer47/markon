@@ -18,12 +18,12 @@
 
 | Platform | Installer | Note |
 | :--- | :--- | :--- |
-| Windows x64 | [MarkerOn_0.1.4_x64-setup.exe](https://github.com/ifer47/markeron/releases/download/v0.1.4/MarkerOn_0.1.4_x64-setup.exe) | NSIS installer (recommended) |
-| Windows x64 | [MarkerOn_0.1.4_x64_zh-CN.msi](https://github.com/ifer47/markeron/releases/download/v0.1.4/MarkerOn_0.1.4_x64_zh-CN.msi) | MSI installer |
+| Windows x64 | [MarkerOn_0.1.5_x64-setup.exe](https://github.com/ifer47/markeron/releases/download/v0.1.5/MarkerOn_0.1.5_x64-setup.exe) | NSIS installer (recommended) |
+| Windows x64 | [MarkerOn_0.1.5_x64_zh-CN.msi](https://github.com/ifer47/markeron/releases/download/v0.1.5/MarkerOn_0.1.5_x64_zh-CN.msi) | MSI installer |
 | macOS arm64 (Apple Silicon) | [MarkerOn_0.1.4_aarch64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.4/MarkerOn_0.1.4_aarch64.dmg) | Native build for M1 / M2 / M3 / M4 series. Open the DMG and drag to Applications. |
 | macOS x64 (Intel) | [MarkerOn_0.1.4_x64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.4/MarkerOn_0.1.4_x64.dmg) | For Intel-based Macs. On Apple Silicon, prefer the arm64 DMG above; the x64 app runs via Rosetta if needed. |
 
-You can also visit the [Releases page](https://github.com/ifer47/markeron/releases/tag/v0.1.4) for all versions and changelogs.
+You can also visit the [Releases page](https://github.com/ifer47/markeron/releases/tag/v0.1.5) for all versions and changelogs.
 
 ## Quick Start
 
@@ -55,6 +55,7 @@ On **macOS**, use <kbd>Command</kbd> (⌘) where **Windows** uses <kbd>Ctrl</kbd
 | Draws | Windows | macOS |
 | :--- | :--- | :--- |
 | Current tool (default: pen) | Drag | Drag |
+| Line | <kbd>Alt</kbd> + Drag | <kbd>Option</kbd> + Drag |
 | Rectangle | <kbd>Ctrl</kbd> + Drag | <kbd>Command</kbd> + Drag |
 | Square | <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + Drag | <kbd>Command</kbd> + <kbd>Option</kbd> + Drag |
 | Ellipse | <kbd>Shift</kbd> + Drag | <kbd>Shift</kbd> + Drag |

@@ -106,7 +106,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   let cacheValid = false
   let rafId: number | null = null
 
-  // Incremental stroke cache for pen/highlighter only.
+  // Incremental stroke cache for pen only.
   let strokeCanvas: HTMLCanvasElement | null = null
   let strokeCtx: CanvasRenderingContext2D | null = null
   let lastBakedPtIdx = 0
@@ -526,7 +526,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       !preview &&
       action &&
       activeStrokeCanvas &&
-      (action.tool === 'pen' || action.tool === 'highlighter') &&
+      action.tool === 'pen' &&
       action.points.length > 3
 
     ensureCache()
@@ -579,7 +579,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     // dirty rect instead of the full-canvas clear+blit to avoid copying millions
     // of unchanged pixels on large canvases.
     if (action && !preview && action.points.length >= 1) {
-      const usesIncrementalStroke = action.tool === 'pen' || action.tool === 'highlighter'
+      const usesIncrementalStroke = action.tool === 'pen'
 
       // Freehand > 3 fallback (isFreehandDirtyRect bbox was null): use full-stroke
       // bbox for a localized blit instead of full-canvas.
@@ -735,7 +735,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     isDrawing.value = true
     redoStack.length = 0
 
-    const useIncrementalStroke = currentTool.value === 'pen' || currentTool.value === 'highlighter'
+    const useIncrementalStroke = currentTool.value === 'pen'
     if (useIncrementalStroke) initStrokeCanvas()
 
     const opacity = currentTool.value === 'highlighter' ? 0.35 : 1
@@ -784,7 +784,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       }
 
       if (!appended) return
-      if (action.tool === 'pen' || action.tool === 'highlighter') {
+      if (action.tool === 'pen') {
         bakeIncrementalStroke(action)
       }
     } else {

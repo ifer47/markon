@@ -287,6 +287,9 @@ function onPointerDown(e: PointerEvent) {
   } else if (e.shiftKey) {
     toolBeforeModifier = currentTool.value
     currentTool.value = 'ellipse'
+  } else if (e.altKey) {
+    toolBeforeModifier = currentTool.value
+    currentTool.value = 'line'
   }
 
   canvasRef.value?.setPointerCapture(e.pointerId)
