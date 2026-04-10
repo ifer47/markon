@@ -18,12 +18,12 @@
 
 | Platform | Installer | Note |
 | :--- | :--- | :--- |
-| Windows x64 | [MarkerOn_0.1.2_x64-setup.exe](https://github.com/ifer47/markeron/releases/download/v0.1.2/MarkerOn_0.1.2_x64-setup.exe) | NSIS installer (recommended) |
-| Windows x64 | [MarkerOn_0.1.2_x64_zh-CN.msi](https://github.com/ifer47/markeron/releases/download/v0.1.2/MarkerOn_0.1.2_x64_zh-CN.msi) | MSI installer |
-| macOS arm64 (Apple Silicon) | [MarkerOn_0.1.2_aarch64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.2/MarkerOn_0.1.2_aarch64.dmg) | Native build for M1 / M2 / M3 / M4 series. Open the DMG and drag to Applications. |
-| macOS x64 (Intel) | [MarkerOn_0.1.2_x64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.2/MarkerOn_0.1.2_x64.dmg) | For Intel-based Macs. On Apple Silicon, prefer the arm64 DMG above; the x64 app runs via Rosetta if needed. |
+| Windows x64 | [MarkerOn_0.1.3_x64-setup.exe](https://github.com/ifer47/markeron/releases/download/v0.1.3/MarkerOn_0.1.3_x64-setup.exe) | NSIS installer (recommended) |
+| Windows x64 | [MarkerOn_0.1.3_x64_zh-CN.msi](https://github.com/ifer47/markeron/releases/download/v0.1.3/MarkerOn_0.1.3_x64_zh-CN.msi) | MSI installer |
+| macOS arm64 (Apple Silicon) | [MarkerOn_0.1.3_aarch64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.3/MarkerOn_0.1.3_aarch64.dmg) | Native build for M1 / M2 / M3 / M4 series. Open the DMG and drag to Applications. |
+| macOS x64 (Intel) | [MarkerOn_0.1.3_x64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.3/MarkerOn_0.1.3_x64.dmg) | For Intel-based Macs. On Apple Silicon, prefer the arm64 DMG above; the x64 app runs via Rosetta if needed. |
 
-You can also visit the [Releases page](https://github.com/ifer47/markeron/releases/tag/v0.1.2) for all versions and changelogs.
+You can also visit the [Releases page](https://github.com/ifer47/markeron/releases/tag/v0.1.3) for all versions and changelogs.
 
 ## Quick Start
 

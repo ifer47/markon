@@ -14,7 +14,7 @@
   <Identity
     Name="ifer.MarkerOn"
     Publisher="CN=1CC39F0D-AB5D-475D-87ED-F37428C133CD"
-    Version="0.1.2.0"
+    Version="0.1.3.0"
     ProcessorArchitecture="x64" />
 
   <Properties>
