@@ -18,6 +18,7 @@ const activeTab = ref('general')
 const tabs = [
   { id: 'general', label: '常规', icon: '⚙' },
   { id: 'shortcuts', label: '快捷键', icon: '⌨' },
+  { id: 'help', label: '使用帮助', icon: '?' },
 ]
 
 const shortcuts = reactive<AppConfig['shortcuts']>({
@@ -337,6 +338,103 @@ onUnmounted(() => {
           </div>
         </div>
       </div>
+
+      <div v-else-if="activeTab === 'help'" class="flex-1 flex flex-col px-7 py-6 overflow-y-auto help-scroll">
+
+        <!-- 基本用法 -->
+        <section class="mb-5">
+          <h2 class="text-[14px] font-semibold text-white/75 mb-3">基本用法</h2>
+          <div class="rounded-lg border border-white/5 bg-white/2 px-4 py-3 text-[11.5px] text-white/55 leading-[1.8]">
+            <p class="m-0">启动后应用静默运行在<strong class="text-white/70">系统托盘</strong>，按下全局快捷键即可进入标注模式。</p>
+            <p class="m-0 mt-1.5">标注覆盖全屏（含任务栏），按 <kbd class="help-kbd">Esc</kbd> 退出并自动清除所有标注。</p>
+          </div>
+        </section>
+
+        <!-- 全局快捷键 -->
+        <section class="mb-5">
+          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">全局快捷键</h3>
+          <table class="help-table">
+            <thead><tr><th>功能</th><th>Windows</th><th>macOS</th></tr></thead>
+            <tbody>
+              <tr><td>开启 / 退出标注</td><td><kbd class="help-kbd">Ctrl+Shift+D</kbd></td><td><kbd class="help-kbd">⌘+⇧+D</kbd></td></tr>
+              <tr><td>清除所有标注</td><td><kbd class="help-kbd">Ctrl+Shift+C</kbd></td><td><kbd class="help-kbd">⌘+⇧+C</kbd></td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 工具切换 -->
+        <section class="mb-5">
+          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">工具切换</h3>
+          <table class="help-table">
+            <thead><tr><th>按键</th><th>工具</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td><kbd class="help-kbd">1</kbd></td><td>画笔</td><td>自由绘画，贝塞尔曲线平滑</td></tr>
+              <tr><td><kbd class="help-kbd">2</kbd></td><td>荧光笔</td><td>半透明高亮标记</td></tr>
+              <tr><td><kbd class="help-kbd">3</kbd></td><td>箭头</td><td>带箭头指示线</td></tr>
+              <tr><td><kbd class="help-kbd">4</kbd></td><td>矩形</td><td>矩形边框</td></tr>
+              <tr><td><kbd class="help-kbd">5</kbd></td><td>椭圆</td><td>椭圆边框</td></tr>
+              <tr><td><kbd class="help-kbd">6</kbd></td><td>直线</td><td>直线段</td></tr>
+              <tr><td><kbd class="help-kbd">7</kbd></td><td>橡皮擦</td><td>实时擦除，效果跟随拖拽</td></tr>
+              <tr><td><kbd class="help-kbd">T</kbd></td><td>文字</td><td>双击放置，滚轮调字号</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 修饰键绘制 -->
+        <section class="mb-5">
+          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">修饰键 + 拖动绘制</h3>
+          <table class="help-table">
+            <thead><tr><th>图形</th><th>Windows</th><th>macOS</th></tr></thead>
+            <tbody>
+              <tr><td>矩形</td><td><kbd class="help-kbd">Ctrl</kbd> + 拖动</td><td><kbd class="help-kbd">⌘</kbd> + 拖动</td></tr>
+              <tr><td>正方形</td><td><kbd class="help-kbd">Ctrl+Alt</kbd> + 拖动</td><td><kbd class="help-kbd">⌘+⌥</kbd> + 拖动</td></tr>
+              <tr><td>椭圆</td><td><kbd class="help-kbd">Shift</kbd> + 拖动</td><td><kbd class="help-kbd">⇧</kbd> + 拖动</td></tr>
+              <tr><td>正圆</td><td><kbd class="help-kbd">Shift+Alt</kbd> + 拖动</td><td><kbd class="help-kbd">⇧+⌥</kbd> + 拖动</td></tr>
+              <tr><td>箭头</td><td><kbd class="help-kbd">Ctrl+Shift</kbd> + 拖动</td><td><kbd class="help-kbd">⌘+⇧</kbd> + 拖动</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 颜色 -->
+        <section class="mb-5">
+          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">颜色切换</h3>
+          <table class="help-table">
+            <thead><tr><th>操作</th><th>功能</th></tr></thead>
+            <tbody>
+              <tr><td><kbd class="help-kbd">Q</kbd></td><td>上一个颜色</td></tr>
+              <tr><td><kbd class="help-kbd">E</kbd></td><td>下一个颜色</td></tr>
+              <tr><td>鼠标右键</td><td>弹出快速选色盘</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 编辑操作 -->
+        <section class="mb-5">
+          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">编辑与其他</h3>
+          <table class="help-table">
+            <thead><tr><th>功能</th><th>Windows</th><th>macOS</th></tr></thead>
+            <tbody>
+              <tr><td>设置面板</td><td><kbd class="help-kbd">Space</kbd></td><td><kbd class="help-kbd">Space</kbd></td></tr>
+              <tr><td>复制屏幕到剪贴板</td><td><kbd class="help-kbd">Ctrl+C</kbd></td><td><kbd class="help-kbd">⌘+C</kbd></td></tr>
+              <tr><td>撤销</td><td><kbd class="help-kbd">Ctrl+Z</kbd></td><td><kbd class="help-kbd">⌘+Z</kbd></td></tr>
+              <tr><td>重做</td><td><kbd class="help-kbd">Ctrl+Shift+Z</kbd></td><td><kbd class="help-kbd">⌘+⇧+Z</kbd></td></tr>
+              <tr><td>清除全部标注</td><td><kbd class="help-kbd">Delete</kbd></td><td><kbd class="help-kbd">Delete</kbd></td></tr>
+              <tr><td>退出标注模式</td><td><kbd class="help-kbd">Esc</kbd></td><td><kbd class="help-kbd">Esc</kbd></td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 拖拽与文字 -->
+        <section class="mb-5">
+          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">拖拽与文字</h3>
+          <div class="rounded-lg border border-white/5 bg-white/2 px-4 py-3 text-[11.5px] text-white/55 leading-[1.8]">
+            <p class="m-0"><strong class="text-white/70">拖拽元素</strong> — 在设置中开启「允许拖拽已有元素」后，鼠标悬停在已有元素上拖动即可移动。</p>
+            <p class="m-0 mt-1.5"><strong class="text-white/70">编辑文字</strong> — 双击已有文字重新进入编辑模式；<kbd class="help-kbd">T</kbd> 模式下双击空白处新建文字。</p>
+            <p class="m-0 mt-1.5"><strong class="text-white/70">确认文字</strong> — <kbd class="help-kbd">Ctrl+Enter</kbd>（macOS 为 <kbd class="help-kbd">⌘+Return</kbd>）。</p>
+          </div>
+        </section>
+
+      </div>
     </div>
   </div>
 </template>
@@ -350,5 +448,46 @@ onUnmounted(() => {
 .msg-leave-to {
   opacity: 0;
   transform: translateY(-4px);
+}
+
+.help-scroll::-webkit-scrollbar { width: 4px; }
+.help-scroll::-webkit-scrollbar-track { background: transparent; }
+.help-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
+
+.help-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.05);
+}
+.help-table th {
+  text-align: left;
+  padding: 6px 12px;
+  color: rgba(255,255,255,.4);
+  font-weight: 500;
+  background: rgba(255,255,255,.03);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.help-table td {
+  padding: 5px 12px;
+  color: rgba(255,255,255,.5);
+  border-bottom: 1px solid rgba(255,255,255,.03);
+}
+.help-table tr:last-child td { border-bottom: none; }
+.help-table tbody tr:hover td { background: rgba(255,255,255,.02); }
+
+.help-kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  color: rgba(255,255,255,.6);
+  line-height: 1.5;
+  white-space: nowrap;
 }
 </style>
