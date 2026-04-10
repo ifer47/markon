@@ -18,11 +18,11 @@
 
 | 平台 | 安装包 | 说明 |
 | :--- | :--- | :--- |
-| Windows x64 | [MarkerOn_0.1.1_x64-setup.exe](https://github.com/ifer47/markeron/releases/download/v0.1.1/MarkerOn_0.1.1_x64-setup.exe) | NSIS 安装程序（推荐） |
-| Windows x64 | [MarkerOn_0.1.1_x64_zh-CN.msi](https://github.com/ifer47/markeron/releases/download/v0.1.1/MarkerOn_0.1.1_x64_zh-CN.msi) | MSI 安装程序 |
+| Windows x64 | [MarkerOn_0.1.2_x64-setup.exe](https://github.com/ifer47/markeron/releases/download/v0.1.2/MarkerOn_0.1.2_x64-setup.exe) | NSIS 安装程序（推荐） |
+| Windows x64 | [MarkerOn_0.1.2_x64_zh-CN.msi](https://github.com/ifer47/markeron/releases/download/v0.1.2/MarkerOn_0.1.2_x64_zh-CN.msi) | MSI 安装程序 |
 | macOS x64 | [MarkerOn_0.1.0_x64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.0/MarkerOn_0.1.0_x64.dmg) | DMG，打开后拖入「应用程序」。Apple 芯片 Mac 首次运行需在「显示简介」中勾选 **使用 Rosetta 打开**（若系统提示） |
 
-也可以前往 [Releases 页面](https://github.com/ifer47/markeron/releases/tag/v0.1.1) 查看所有版本及更新日志。
+也可以前往 [Releases 页面](https://github.com/ifer47/markeron/releases/tag/v0.1.2) 查看所有版本及更新日志。
 
 ## 🚀 快速开始
 
