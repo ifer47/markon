@@ -1392,13 +1392,8 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       if (pts.length === 1) {
         if (Math.hypot(p.x - pts[0].x, p.y - pts[0].y) <= threshold) return true
       } else {
-        const segCount = pts.length - 1
-        const step = segCount > 50 ? Math.ceil(segCount / 50) : 1
-        for (let j = 0; j < segCount; j += step) {
+        for (let j = 0, end = pts.length - 1; j < end; j++) {
           if (distToSeg(p.x, p.y, pts[j].x, pts[j].y, pts[j + 1].x, pts[j + 1].y) <= threshold) return true
-        }
-        if (step > 1 && distToSeg(p.x, p.y, pts[segCount - 1].x, pts[segCount - 1].y, pts[segCount].x, pts[segCount].y) <= threshold) {
-          return true
         }
       }
       return false
