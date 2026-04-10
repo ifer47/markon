@@ -20,8 +20,8 @@
 | :--- | :--- | :--- |
 | Windows x64 | [MarkerOn_0.1.4_x64-setup.exe](https://github.com/ifer47/markeron/releases/download/v0.1.4/MarkerOn_0.1.4_x64-setup.exe) | NSIS 安装程序（推荐） |
 | Windows x64 | [MarkerOn_0.1.4_x64_zh-CN.msi](https://github.com/ifer47/markeron/releases/download/v0.1.4/MarkerOn_0.1.4_x64_zh-CN.msi) | MSI 安装程序 |
-| macOS arm64（Apple 芯片） | [MarkerOn_0.1.3_aarch64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.3/MarkerOn_0.1.3_aarch64.dmg) | M1 / M2 / M3 / M4 等原生构建，打开 DMG 拖入「应用程序」即可。 |
-| macOS x64（Intel） | [MarkerOn_0.1.3_x64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.3/MarkerOn_0.1.3_x64.dmg) | 适用于 Intel Mac；Apple 芯片机型请优先使用上一行 arm64 包，若使用 x64 版本需通过 Rosetta 运行。 |
+| macOS arm64（Apple 芯片） | [MarkerOn_0.1.4_aarch64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.4/MarkerOn_0.1.4_aarch64.dmg) | M1 / M2 / M3 / M4 等原生构建，打开 DMG 拖入「应用程序」即可。 |
+| macOS x64（Intel） | [MarkerOn_0.1.4_x64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.4/MarkerOn_0.1.4_x64.dmg) | 适用于 Intel Mac；Apple 芯片机型请优先使用上一行 arm64 包，若使用 x64 版本需通过 Rosetta 运行。 |
 
 也可以前往 [Releases 页面](https://github.com/ifer47/markeron/releases/tag/v0.1.4) 查看所有版本及更新日志。
 
