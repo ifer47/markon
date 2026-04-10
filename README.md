@@ -20,7 +20,7 @@
 | :--- | :--- | :--- |
 | Windows x64 | [MarkerOn_0.1.2_x64-setup.exe](https://github.com/ifer47/markeron/releases/download/v0.1.2/MarkerOn_0.1.2_x64-setup.exe) | NSIS installer (recommended) |
 | Windows x64 | [MarkerOn_0.1.2_x64_zh-CN.msi](https://github.com/ifer47/markeron/releases/download/v0.1.2/MarkerOn_0.1.2_x64_zh-CN.msi) | MSI installer |
-| macOS x64 | [MarkerOn_0.1.0_x64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.0/MarkerOn_0.1.0_x64.dmg) | Open the DMG and drag to Applications. On Apple Silicon Macs, you may need to enable **Open using Rosetta** in Get Info on first launch |
+| macOS x64 | [MarkerOn_0.1.2_x64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.2/MarkerOn_0.1.2_x64.dmg) | Open the DMG and drag to Applications. On Apple Silicon Macs, you may need to enable **Open using Rosetta** in Get Info on first launch |
 
 You can also visit the [Releases page](https://github.com/ifer47/markeron/releases/tag/v0.1.2) for all versions and changelogs.
 
