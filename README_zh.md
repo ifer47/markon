@@ -20,7 +20,8 @@
 | :--- | :--- | :--- |
 | Windows x64 | [MarkerOn_0.1.2_x64-setup.exe](https://github.com/ifer47/markeron/releases/download/v0.1.2/MarkerOn_0.1.2_x64-setup.exe) | NSIS 安装程序（推荐） |
 | Windows x64 | [MarkerOn_0.1.2_x64_zh-CN.msi](https://github.com/ifer47/markeron/releases/download/v0.1.2/MarkerOn_0.1.2_x64_zh-CN.msi) | MSI 安装程序 |
-| macOS x64 | [MarkerOn_0.1.2_x64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.2/MarkerOn_0.1.2_x64.dmg) | DMG，打开后拖入「应用程序」。Apple 芯片 Mac 首次运行需在「显示简介」中勾选 **使用 Rosetta 打开**（若系统提示） |
+| macOS arm64（Apple 芯片） | [MarkerOn_0.1.2_aarch64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.2/MarkerOn_0.1.2_aarch64.dmg) | M1 / M2 / M3 / M4 等原生构建，打开 DMG 拖入「应用程序」即可。 |
+| macOS x64（Intel） | [MarkerOn_0.1.2_x64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.2/MarkerOn_0.1.2_x64.dmg) | 适用于 Intel Mac；Apple 芯片机型请优先使用上一行 arm64 包，若使用 x64 版本需通过 Rosetta 运行。 |
 
 也可以前往 [Releases 页面](https://github.com/ifer47/markeron/releases/tag/v0.1.2) 查看所有版本及更新日志。
 
