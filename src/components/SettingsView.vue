@@ -15,12 +15,15 @@ const defaultShortcutStrings = computed(() =>
 )
 
 const hashTab = window.location.hash.split('/')[1]
-const activeTab = ref(hashTab && ['general', 'shortcuts', 'help'].includes(hashTab) ? hashTab : 'general')
+const activeTab = ref(hashTab && ['general', 'shortcuts', 'help', 'about'].includes(hashTab) ? hashTab : 'general')
+
+const APP_VERSION = '0.1.4'
 
 const tabs = [
-  { id: 'general', label: '常规', icon: '⚙' },
-  { id: 'shortcuts', label: '快捷键', icon: '⌨' },
-  { id: 'help', label: '使用帮助', icon: '?' },
+  { id: 'general', label: '常规' },
+  { id: 'shortcuts', label: '快捷键' },
+  { id: 'help', label: '使用帮助' },
+  { id: 'about', label: '关于' },
 ]
 
 const shortcuts = reactive<AppConfig['shortcuts']>({
@@ -147,6 +150,10 @@ async function toggleAutoStart() {
   }
 }
 
+async function openUrl(url: string) {
+  await invoke('open_url', { url })
+}
+
 async function toggleDragging() {
   enableDragging.value = !enableDragging.value
   try {
@@ -207,14 +214,15 @@ onUnmounted(() => {
             v-if="activeTab === tab.id"
             class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-3.5 bg-accent rounded-r-md"
           ></div>
-          <span class="text-sm leading-none opacity-70">{{ tab.icon }}</span>
+          <svg v-if="tab.id === 'general'" class="w-[14px] h-[14px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <svg v-else-if="tab.id === 'shortcuts'" class="w-[14px] h-[14px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h.001M12 12h.001M16 12h.001M7 16h10"/></svg>
+          <svg v-else-if="tab.id === 'help'" class="w-[14px] h-[14px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <svg v-else-if="tab.id === 'about'" class="w-[14px] h-[14px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
           {{ tab.label }}
         </button>
       </nav>
 
-      <div class="mt-auto px-4 pb-4">
-        <span class="text-[11px] text-white/30 font-mono tracking-wider">v0.1.3</span>
-      </div>
+      <div class="mt-auto"></div>
     </div>
 
     <!-- Content -->
@@ -443,6 +451,52 @@ onUnmounted(() => {
           </div>
         </section>
 
+      </div>
+
+      <div v-else-if="activeTab === 'about'" class="flex-1 flex flex-col items-center px-7 py-8 overflow-y-auto">
+        <!-- Icon -->
+        <div class="w-16 h-16 rounded-2xl bg-linear-to-br from-accent/20 to-accent/5 flex items-center justify-center mb-4 shadow-lg shadow-accent/5 border border-accent/10">
+          <svg class="w-8 h-8 text-accent" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M659.498667 412.8l-6.101334-6.058667a233.6 233.6 0 0 0-101.973333-57.557333c-124.032-33.237333-243.157333 37.077333-276.992 163.413333-1.834667 6.826667-2.816 14.506667-4.437333 33.749334-6.570667 79.786667-25.344 139.306667-76.8 199.68 96.426667 37.888 210.688 64.597333 297.557333 64.597333a234.88 234.88 0 0 0 226.56-174.037333 234.538667 234.538667 0 0 0-57.856-223.786667z m-92.501334-147.712l210.730667-163.925333a42.666667 42.666667 0 0 1 56.32 3.541333l127.786667 127.744a42.666667 42.666667 0 0 1 3.498666 56.32l-163.84 210.730667a320.213333 320.213333 0 0 1-310.741333 396.458666C341.333333 895.957333 149.333333 831.872 42.666667 767.872c169.813333-128 130.005333-205.226667 149.333333-277.333333 45.141333-168.533333 206.592-267.008 374.997333-225.450667zM712.533333 345.258667c2.816 2.688 5.546667 5.461333 8.277334 8.234666L769.28 401.92l105.6-135.765333-74.496-74.496-135.765333 105.6L712.533333 345.258667z" fill="currentColor"/></svg>
+        </div>
+
+        <!-- Name & Version -->
+        <h1 class="text-[18px] font-semibold text-white/85 tracking-wide mb-1">MarkerOn</h1>
+        <span class="text-[12px] text-white/30 font-mono tracking-wider mb-1.5">v{{ APP_VERSION }}</span>
+        <p class="text-[11.5px] text-white/40 mb-6">轻量级屏幕标注工具</p>
+
+        <!-- Info Card -->
+        <div class="w-full max-w-[340px] rounded-xl border border-white/5 bg-white/2 overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-3 border-b border-white/5 hover:bg-white/3 transition-colors">
+            <span class="text-[12px] text-white/45">作者</span>
+            <span class="text-[12px] text-white/65">ifer47</span>
+          </div>
+          <div class="flex items-center justify-between px-4 py-3 border-b border-white/5 hover:bg-white/3 transition-colors">
+            <span class="text-[12px] text-white/45">开源协议</span>
+            <span class="text-[12px] text-white/65">MIT License</span>
+          </div>
+          <button
+            class="w-full flex items-center justify-between px-4 py-3 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-x-0 border-t-0"
+            @click="openUrl('https://github.com/ifer47/markeron')"
+          >
+            <span class="text-[12px] text-white/45">GitHub</span>
+            <span class="flex items-center gap-1.5 text-[12px] text-accent/70">
+              ifer47/markeron
+              <svg class="w-3 h-3 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </span>
+          </button>
+          <button
+            class="w-full flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+            @click="openUrl('https://github.com/ifer47/markeron/issues')"
+          >
+            <span class="text-[12px] text-white/45">反馈问题</span>
+            <svg class="w-3.5 h-3.5 text-white/25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+
+        <!-- Footer -->
+        <p class="mt-auto pt-6 text-[10.5px] text-white/20 tracking-wide">
+          &copy; 2026 ifer47 &middot; Open Source
+        </p>
       </div>
     </div>
   </div>

@@ -397,6 +397,25 @@ fn set_ignore_mouse(app: AppHandle, ignore: bool) {
     }
 }
 
+#[tauri::command]
+fn open_url(url: String) {
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("cmd")
+            .args(["/c", "start", "", &url])
+            .spawn()
+            .ok();
+    }
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open").arg(&url).spawn().ok();
+    }
+    #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+    {
+        std::process::Command::new("xdg-open").arg(&url).spawn().ok();
+    }
+}
+
 // ── Screen copy ──
 
 #[cfg(target_os = "windows")]
@@ -671,6 +690,7 @@ pub fn run() {
             exit_drawing,
             set_ignore_mouse,
             copy_screen,
+            open_url,
         ])
         .setup(|app| {
             let handle = app.handle().clone();
@@ -695,11 +715,14 @@ pub fn run() {
                 MenuItemBuilder::with_id("settings", "设置").build(app)?;
             let help_item =
                 MenuItemBuilder::with_id("help", "使用帮助").build(app)?;
+            let about_item =
+                MenuItemBuilder::with_id("about", "关于").build(app)?;
             let quit_item =
                 MenuItemBuilder::with_id("quit", "退出").build(app)?;
             let menu = MenuBuilder::new(app)
                 .item(&settings_item)
                 .item(&help_item)
+                .item(&about_item)
                 .separator()
                 .item(&quit_item)
                 .build()?;
@@ -709,6 +732,7 @@ pub fn run() {
                 tray.on_menu_event(move |app, event| match event.id().as_ref() {
                     "settings" => open_settings(app),
                     "help" => open_settings_tab(app, Some("help")),
+                    "about" => open_settings_tab(app, Some("about")),
                     "quit" => app.exit(0),
                     _ => {}
                 });
