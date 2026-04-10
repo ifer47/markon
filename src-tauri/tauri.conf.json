@@ -32,6 +32,7 @@
     "trayIcon": {
       "id": "main",
       "iconPath": "icons/icon.png",
+      "iconAsTemplate": true,
       "tooltip": "MarkerOn - 屏幕标注工具",
       "menuOnLeftClick": false
     }
