@@ -664,6 +664,10 @@ pub fn run() {
         .setup(|app| {
             let handle = app.handle().clone();
 
+            // Hide dock icon on macOS (menu bar / tray-only app)
+            #[cfg(target_os = "macos")]
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
             // Load config
             let config = load_config(&handle);
             {
