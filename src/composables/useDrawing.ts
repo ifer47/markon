@@ -126,6 +126,24 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   let prevStrokeRect: { x: number, y: number, w: number, h: number } | null = null
   let prevShapeRect: { x: number, y: number, w: number, h: number } | null = null
   const pathCache = new WeakMap<DrawAction, Path2D>()
+
+  // O(1) action→history-index lookup (replaces O(n) lastIndexOf in findActionAt).
+  // Lazily rebuilt when splice operations invalidate it.
+  const historyIndexMap = new WeakMap<DrawAction, number>()
+  let historyIndexDirty = true
+
+  function ensureHistoryIndex() {
+    if (!historyIndexDirty) return
+    for (let i = 0; i < history.length; i++) {
+      historyIndexMap.set(history[i], i)
+    }
+    historyIndexDirty = false
+  }
+
+  function trackHistoryPush(action: DrawAction) {
+    historyIndexMap.set(action, history.length - 1)
+  }
+
   let hitGridDirty = true
   const hitGrid = new Map<string, DrawAction[]>()
   let hitGridOverflow: DrawAction[] = []
@@ -133,14 +151,20 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   const hitGridOrder = new WeakMap<DrawAction, number>()
   let nextHitGridOrder = 1
 
-  // Derive the effective DPR from the canvas bitmap/CSS size ratio so that
-  // all offscreen canvases automatically honour the pixel-budget cap applied
-  // by DrawingOverlay.vue's resizeCanvas().
+  // Effective DPR cached to avoid repeated parseFloat(canvas.style.width)
+  // inside renderFrame (called 3-5× per frame). Invalidated automatically
+  // when canvas.width changes (i.e. after resizeCanvas).
+  let cachedDpr = 0
+  let cachedDprCanvasW = 0
+
   function getEffectiveDpr(): number {
     const canvas = canvasRef.value
-    if (!canvas || !canvas.style.width) return window.devicePixelRatio || 1
+    if (!canvas) return window.devicePixelRatio || 1
+    if (canvas.width === cachedDprCanvasW && cachedDpr > 0) return cachedDpr
     const cssW = parseFloat(canvas.style.width)
-    return cssW > 0 ? canvas.width / cssW : (window.devicePixelRatio || 1)
+    cachedDpr = cssW > 0 ? canvas.width / cssW : (window.devicePixelRatio || 1)
+    cachedDprCanvasW = canvas.width
+    return cachedDpr
   }
 
   function getCtx(): CanvasRenderingContext2D | null {
@@ -551,11 +575,42 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
     prevStrokeRect = null
 
-    // For active shapes / early freehand strokes, use a local dirty rect instead
-    // of the full-canvas clear+blit to avoid copying millions of unchanged pixels.
+    // For active shapes / early freehand strokes / freehand fallback, use a local
+    // dirty rect instead of the full-canvas clear+blit to avoid copying millions
+    // of unchanged pixels on large canvases.
     if (action && !preview && action.points.length >= 1) {
       const usesIncrementalStroke = action.tool === 'pen' || action.tool === 'highlighter'
+
+      // Freehand > 3 fallback (isFreehandDirtyRect bbox was null): use full-stroke
+      // bbox for a localized blit instead of full-canvas.
       if (usesIncrementalStroke && activeStrokeCanvas && action.points.length > 3) {
+        const dpr = getEffectiveDpr()
+        const pad = Math.max(20, action.lineWidth / 2 + 12)
+        const strokeBbox = computeBbox(action, pad)
+        if (strokeBbox) {
+          const sx = Math.max(0, Math.floor(strokeBbox.x1 * dpr))
+          const sy = Math.max(0, Math.floor(strokeBbox.y1 * dpr))
+          const sr = Math.min(canvas.width, Math.ceil(strokeBbox.x2 * dpr))
+          const sb = Math.min(canvas.height, Math.ceil(strokeBbox.y2 * dpr))
+          const sw = sr - sx
+          const sh = sb - sy
+          if (sw > 0 && sh > 0 && sw * sh < canvas.width * canvas.height * 0.5) {
+            ctx.save()
+            ctx.setTransform(1, 0, 0, 1, 0, 0)
+            ctx.clearRect(sx, sy, sw, sh)
+            if (cacheCanvas) ctx.drawImage(cacheCanvas, sx, sy, sw, sh, sx, sy, sw, sh)
+            ctx.drawImage(activeStrokeCanvas, sx, sy, sw, sh, sx, sy, sw, sh)
+            ctx.restore()
+            ctx.save()
+            ctx.beginPath()
+            ctx.rect(sx / dpr, sy / dpr, sw / dpr, sh / dpr)
+            ctx.clip()
+            drawFreehandTail(ctx, action)
+            ctx.restore()
+            return
+          }
+        }
+        // Full-canvas fallback for very long strokes
         ctx.save()
         ctx.setTransform(1, 0, 0, 1, 0, 0)
         ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -669,6 +724,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     ensureCache()
     if (cacheCtx) drawActionOn(cacheCtx, action)
     history.push(action)
+    trackHistoryPush(action)
     undoStack.push({ type: 'add', action })
     appendActionToHitGrid(action)
     flushRender()
@@ -710,6 +766,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     if (isFreehand) {
       let last = pts[pts.length - 1]
       let appended = false
+      const minDist = getMinDistSq()
 
       for (let i = 0; i < points.length; i++) {
         const point = points[i]
@@ -719,8 +776,8 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
         const dx = x - last.x
         const dy = y - last.y
-        if (dx * dx + dy * dy < getMinDistSq()) continue
-        const nextPoint = { x, y }
+        if (dx * dx + dy * dy < minDist) continue
+        const nextPoint: Point = { x, y }
         pts.push(nextPoint)
         last = nextPoint
         appended = true
@@ -797,6 +854,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       ensureCache()
       if (cacheCtx) drawActionOn(cacheCtx, action)
       history.push(action)
+      trackHistoryPush(action)
       undoStack.push({ type: 'add', action })
       appendActionToHitGrid(action)
     }
@@ -821,9 +879,13 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
         tempCanvas = document.createElement('canvas')
         tempCtx = null
       }
+      // Round up to 256px multiples to avoid frequent GPU texture reallocation
+      // when many erased strokes of varying sizes trigger cache rebuilds.
+      const alignedW = (pw + 255) & ~255
+      const alignedH = (ph + 255) & ~255
       if (tempCanvas.width < pw || tempCanvas.height < ph) {
-        tempCanvas.width = Math.max(tempCanvas.width || 0, pw)
-        tempCanvas.height = Math.max(tempCanvas.height || 0, ph)
+        tempCanvas.width = Math.max(tempCanvas.width || 0, alignedW)
+        tempCanvas.height = Math.max(tempCanvas.height || 0, alignedH)
         tempCtx = null
       }
       if (!tempCtx) tempCtx = tempCanvas.getContext('2d')
@@ -1152,6 +1214,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       if (idx !== -1 && idx !== history.length - 1) {
         history.splice(idx, 1)
         history.push(action)
+        historyIndexDirty = true
       }
       refreshActionInHitGrid(action, movedToTop)
 
@@ -1173,6 +1236,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
   function undo() {
     if (undoStack.length === 0) return
+    historyIndexDirty = true
     const entry = undoStack.pop()!
 
     if (entry.type === 'add') {
@@ -1212,6 +1276,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
   function redo() {
     if (redoStack.length === 0) return
+    historyIndexDirty = true
     const entry = redoStack.pop()!
 
     if (entry.type === 'add') {
@@ -1253,6 +1318,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
   function clearAll() {
     if (history.length === 0) return
+    historyIndexDirty = true
 
     const entry: UndoEntry = {
       type: 'clear',
@@ -1277,6 +1343,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
   }
 
   function hardReset() {
+    historyIndexDirty = true
     history.length = 0
     undoStack.length = 0
     redoStack.length = 0
@@ -1396,6 +1463,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
 
   function findActionAt(p: Point): { action: DrawAction, index: number } | null {
     ensureHitGrid()
+    ensureHistoryIndex()
 
     const bucket = hitGrid.get(`${Math.floor(p.x / HIT_GRID_SIZE)},${Math.floor(p.y / HIT_GRID_SIZE)}`)
     let bucketPos = bucket ? bucket.length - 1 : -1
@@ -1418,8 +1486,10 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
       }
 
       if (hitTestAction(action, p)) {
-        const index = history.lastIndexOf(action)
-        if (index !== -1) return { action, index }
+        const index = historyIndexMap.get(action)
+        if (index !== undefined && index < history.length && history[index] === action) {
+          return { action, index }
+        }
       }
     }
 
@@ -1430,6 +1500,7 @@ export function useDrawing(canvasRef: Ref<HTMLCanvasElement | null>) {
     if (index >= 0 && index < history.length) {
       const action = history[index]
       history.splice(index, 1)
+      historyIndexDirty = true
       deleteActionFromHitGrid(action)
       undoStack.push({ type: 'remove', action, index })
       redoStack.length = 0
