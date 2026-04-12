@@ -74,6 +74,7 @@
 | 呼出设置面板 | <kbd>Space</kbd> | <kbd>Space</kbd> |
 | 复制屏幕 | <kbd>Ctrl</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>C</kbd> |
 | 撤销 / 重做 | <kbd>Ctrl</kbd> + <kbd>Z</kbd> / <kbd>Y</kbd> | <kbd>Command</kbd> + <kbd>Z</kbd> / <kbd>Y</kbd> |
+| 调整线宽 | <kbd>Ctrl</kbd> + 滚轮 | <kbd>Command</kbd> + 滚轮 |
 | 清除全部 | <kbd>Delete</kbd> | <kbd>Delete</kbd> |
 | 退出标注 | <kbd>Esc</kbd> | <kbd>Esc</kbd> |
 
@@ -111,6 +112,7 @@
 
 | 功能 | Windows | macOS |
 | :--- | :--- | :--- |
+| 调整线宽 | <kbd>Ctrl</kbd> + 滚轮 | <kbd>Command</kbd> + 滚轮 |
 | 重做（备用） | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> |
 | 切换窗口并退出 | <kbd>Alt</kbd> + <kbd>Tab</kbd> | <kbd>Command</kbd> + <kbd>Tab</kbd> |
 
