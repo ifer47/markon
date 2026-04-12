@@ -1,33 +1,11 @@
 import { ref, shallowRef, type Ref } from 'vue'
+import { computeBbox, bboxesIntersect, offsetAttachedErasers, updateShapeHitCache, hitTestAction } from './drawingGeometry'
+import { drawActionDirect } from './drawingRender'
 
-export type Tool = 'pen' | 'highlighter' | 'arrow' | 'rect' | 'ellipse' | 'line' | 'eraser' | 'text'
+export type { Tool, Point, DrawAction } from './drawingTypes'
+export type { InputPointLike } from './drawingTypes'
 
-export interface Point {
-  x: number
-  y: number
-}
-
-interface InputPointLike {
-  x?: number
-  y?: number
-  clientX?: number
-  clientY?: number
-}
-
-export interface DrawAction {
-  tool: Tool
-  color: string
-  lineWidth: number
-  opacity: number
-  points: Point[]
-  attachedErasers?: DrawAction[]
-  text?: string
-  fontSize?: number
-  textWidth?: number
-  bbox?: { x1: number, y1: number, x2: number, y2: number }
-  rectHit?: { x0: number, y0: number, x1: number, y1: number }
-  ellipseHit?: { cx: number, cy: number, rx: number, ry: number }
-}
+import type { Tool, Point, DrawAction, InputPointLike } from './drawingTypes'
 
 const HIT_GRID_SIZE = 192
 
@@ -191,91 +169,6 @@ export function useDrawing(
       previewCtx = canvas.getContext('2d', { alpha: true, desynchronized: true })
     }
     return previewCtx
-  }
-
-  function computeBbox(action: DrawAction, pad: number): DrawAction['bbox'] {
-    const pts = action.points
-    if (pts.length === 0) return undefined
-    let x1 = pts[0].x, y1 = pts[0].y, x2 = pts[0].x, y2 = pts[0].y
-    for (let i = 1; i < pts.length; i++) {
-      if (pts[i].x < x1) x1 = pts[i].x
-      if (pts[i].y < y1) y1 = pts[i].y
-      if (pts[i].x > x2) x2 = pts[i].x
-      if (pts[i].y > y2) y2 = pts[i].y
-    }
-    return { x1: x1 - pad, y1: y1 - pad, x2: x2 + pad, y2: y2 + pad }
-  }
-
-  function bboxesIntersect(
-    a: NonNullable<DrawAction['bbox']>,
-    b: NonNullable<DrawAction['bbox']>
-  ) {
-    return a.x1 <= b.x2 && a.x2 >= b.x1 && a.y1 <= b.y2 && a.y2 >= b.y1
-  }
-
-  function cloneActionWithOffset(action: DrawAction, dx: number, dy: number): DrawAction {
-    return {
-      ...action,
-      points: action.points.map((pt) => ({ x: pt.x + dx, y: pt.y + dy })),
-      bbox: action.bbox
-        ? {
-            x1: action.bbox.x1 + dx,
-            y1: action.bbox.y1 + dy,
-            x2: action.bbox.x2 + dx,
-            y2: action.bbox.y2 + dy,
-          }
-        : undefined,
-      rectHit: action.rectHit
-        ? {
-            x0: action.rectHit.x0 + dx,
-            y0: action.rectHit.y0 + dy,
-            x1: action.rectHit.x1 + dx,
-            y1: action.rectHit.y1 + dy,
-          }
-        : undefined,
-      ellipseHit: action.ellipseHit
-        ? {
-            cx: action.ellipseHit.cx + dx,
-            cy: action.ellipseHit.cy + dy,
-            rx: action.ellipseHit.rx,
-            ry: action.ellipseHit.ry,
-          }
-        : undefined,
-      attachedErasers: action.attachedErasers?.map((ae) => cloneActionWithOffset(ae, dx, dy)),
-    }
-  }
-
-  function offsetAttachedErasers(action: DrawAction, dx: number, dy: number) {
-    if (!action.attachedErasers?.length) return
-    for (let i = 0; i < action.attachedErasers.length; i++) {
-      action.attachedErasers[i] = cloneActionWithOffset(action.attachedErasers[i], dx, dy)
-    }
-  }
-
-  function updateShapeHitCache(action: DrawAction) {
-    action.rectHit = undefined
-    action.ellipseHit = undefined
-
-    if (action.points.length < 2) return
-
-    if (action.tool === 'rect') {
-      action.rectHit = {
-        x0: Math.min(action.points[0].x, action.points[1].x),
-        y0: Math.min(action.points[0].y, action.points[1].y),
-        x1: Math.max(action.points[0].x, action.points[1].x),
-        y1: Math.max(action.points[0].y, action.points[1].y),
-      }
-      return
-    }
-
-    if (action.tool === 'ellipse') {
-      action.ellipseHit = {
-        cx: (action.points[0].x + action.points[1].x) / 2,
-        cy: (action.points[0].y + action.points[1].y) / 2,
-        rx: Math.abs(action.points[1].x - action.points[0].x) / 2,
-        ry: Math.abs(action.points[1].y - action.points[0].y) / 2,
-      }
-    }
   }
 
   function clearHitGridState() {
@@ -735,7 +628,7 @@ export function useDrawing(
   function drawActionOn(ctx: CanvasRenderingContext2D, action: DrawAction) {
     if (action.tool !== 'eraser' && action.attachedErasers?.length) {
       const bbox = action.bbox
-      if (!bbox) { drawActionDirect(ctx, action); return }
+      if (!bbox) { drawActionDirect(ctx, action, pathCache); return }
 
       const dpr = getEffectiveDpr()
       const w = bbox.x2 - bbox.x1
@@ -759,16 +652,16 @@ export function useDrawing(
       }
       if (!tempCtx) tempCtx = tempCanvas.getContext('2d')
       const tctx = tempCtx
-      if (!tctx) { drawActionDirect(ctx, action); return }
+      if (!tctx) { drawActionDirect(ctx, action, pathCache); return }
 
       tctx.setTransform(1, 0, 0, 1, 0, 0)
       tctx.clearRect(0, 0, pw, ph)
       tctx.scale(dpr, dpr)
       tctx.translate(-bbox.x1, -bbox.y1)
 
-      drawActionDirect(tctx, action)
+      drawActionDirect(tctx, action, pathCache)
       for (let i = 0; i < action.attachedErasers.length; i++) {
-        drawActionDirect(tctx, action.attachedErasers[i])
+        drawActionDirect(tctx, action.attachedErasers[i], pathCache)
       }
 
       ctx.save()
@@ -778,110 +671,7 @@ export function useDrawing(
       ctx.restore()
       return
     }
-    drawActionDirect(ctx, action)
-  }
-
-  function drawActionDirect(ctx: CanvasRenderingContext2D, action: DrawAction) {
-    ctx.save()
-    ctx.globalAlpha = action.opacity
-
-    if (action.tool === 'eraser') {
-      ctx.globalCompositeOperation = 'destination-out'
-      ctx.globalAlpha = 1
-    } else {
-      ctx.globalCompositeOperation = 'source-over'
-    }
-
-    ctx.strokeStyle = action.color
-    ctx.fillStyle = action.color
-    ctx.lineWidth = action.lineWidth
-    ctx.lineCap = 'round'
-    ctx.lineJoin = 'round'
-
-    if (action.tool === 'text') {
-      const fs = action.fontSize ?? 24
-      ctx.font = `${fs}px "Microsoft YaHei", "PingFang SC", system-ui, sans-serif`
-      ctx.globalAlpha = 1
-      ctx.fillStyle = action.color
-      // Match CSS line-height centering: use font-level metrics (constant across all glyphs)
-      // rather than per-glyph actualBoundingBox which drifts from CSS's content-area center.
-      ctx.textBaseline = 'alphabetic'
-      const lines = (action.text ?? '').split('\n')
-      const x = action.points[0].x + 2
-      const lh = Math.round(fs * 1.3)
-      const m = ctx.measureText('Mg')
-      let ascent = m.fontBoundingBoxAscent
-      let descent = m.fontBoundingBoxDescent
-      if (
-        ascent === undefined ||
-        descent === undefined ||
-        !Number.isFinite(ascent) ||
-        !Number.isFinite(descent) ||
-        (ascent === 0 && descent === 0)
-      ) {
-        ascent = fs * 0.9
-        descent = fs * 0.3
-      }
-      const baselineOffset = (ascent - descent) / 2
-      for (let i = 0; i < lines.length; i++) {
-        const lineCenterY = action.points[0].y + i * lh
-        ctx.fillText(lines[i], x, lineCenterY + baselineOffset)
-      }
-      ctx.restore()
-      return
-    }
-
-    const pts = action.points
-    if (pts.length < 2) {
-      ctx.beginPath()
-      ctx.arc(pts[0].x, pts[0].y, action.lineWidth / 2, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.restore()
-      return
-    }
-
-    switch (action.tool) {
-      case 'pen':
-      case 'highlighter':
-      case 'eraser': {
-        let path = pathCache.get(action)
-        if (!path && action.bbox) {
-          path = new Path2D()
-          path.moveTo(pts[0].x, pts[0].y)
-          if (pts.length === 2) {
-            path.lineTo(pts[1].x, pts[1].y)
-          } else {
-            for (let k = 1; k < pts.length - 1; k++) {
-              const midX = (pts[k].x + pts[k + 1].x) / 2
-              const midY = (pts[k].y + pts[k + 1].y) / 2
-              path.quadraticCurveTo(pts[k].x, pts[k].y, midX, midY)
-            }
-            path.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y)
-          }
-          pathCache.set(action, path)
-        }
-        if (path) {
-          ctx.stroke(path)
-        } else {
-          drawFreehand(ctx, pts)
-        }
-        break
-      }
-      case 'line':
-        drawLine(ctx, pts[0], pts[1])
-        break
-      case 'arrow':
-        drawArrow(ctx, pts[0], pts[1])
-        break
-      case 'rect':
-        drawRect(ctx, pts[0], pts[1])
-        break
-      case 'ellipse':
-        drawEllipse(ctx, pts[0], pts[1])
-        break
-    }
-
-    ctx.restore()
+    drawActionDirect(ctx, action, pathCache)
   }
 
   function drawFreehandTail(ctx: CanvasRenderingContext2D, action: DrawAction) {
@@ -921,84 +711,6 @@ export function useDrawing(
 
     ctx.stroke()
     ctx.restore()
-  }
-
-  function drawFreehand(ctx: CanvasRenderingContext2D, points: Point[]) {
-    ctx.beginPath()
-    ctx.moveTo(points[0].x, points[0].y)
-
-    if (points.length === 2) {
-      ctx.lineTo(points[1].x, points[1].y)
-    } else {
-      for (let i = 1; i < points.length - 1; i++) {
-        const midX = (points[i].x + points[i + 1].x) / 2
-        const midY = (points[i].y + points[i + 1].y) / 2
-        ctx.quadraticCurveTo(points[i].x, points[i].y, midX, midY)
-      }
-      const last = points[points.length - 1]
-      ctx.lineTo(last.x, last.y)
-    }
-    ctx.stroke()
-  }
-
-  function drawLine(ctx: CanvasRenderingContext2D, start: Point, end: Point) {
-    ctx.beginPath()
-    ctx.moveTo(start.x, start.y)
-    ctx.lineTo(end.x, end.y)
-    ctx.stroke()
-  }
-
-  function drawArrow(ctx: CanvasRenderingContext2D, start: Point, end: Point) {
-    const dx = end.x - start.x
-    const dy = end.y - start.y
-    const len = Math.sqrt(dx * dx + dy * dy)
-    if (len < 2) return
-
-    const angle = Math.atan2(dy, dx)
-    const nx = -Math.sin(angle)
-    const ny = Math.cos(angle)
-
-    const w = ctx.lineWidth
-    const headLen = Math.max(18, w * 5)
-    const headHalfW = Math.max(8, w * 2.5)
-    const tailHalfW = Math.max(0.5, w * 0.15)
-    const shaftHalfW = Math.max(1.5, w * 0.7)
-
-    const actualHeadLen = Math.min(headLen, len * 0.45)
-    const baseFrac = 1 - actualHeadLen / len
-    const baseX = start.x + dx * baseFrac
-    const baseY = start.y + dy * baseFrac
-
-    ctx.save()
-    ctx.fillStyle = ctx.strokeStyle
-    ctx.beginPath()
-    ctx.moveTo(start.x + nx * tailHalfW, start.y + ny * tailHalfW)
-    ctx.lineTo(baseX + nx * shaftHalfW, baseY + ny * shaftHalfW)
-    ctx.lineTo(baseX + nx * headHalfW, baseY + ny * headHalfW)
-    ctx.lineTo(end.x, end.y)
-    ctx.lineTo(baseX - nx * headHalfW, baseY - ny * headHalfW)
-    ctx.lineTo(baseX - nx * shaftHalfW, baseY - ny * shaftHalfW)
-    ctx.lineTo(start.x - nx * tailHalfW, start.y - ny * tailHalfW)
-    ctx.closePath()
-    ctx.fill()
-    ctx.restore()
-  }
-
-  function drawRect(ctx: CanvasRenderingContext2D, start: Point, end: Point) {
-    ctx.beginPath()
-    ctx.rect(start.x, start.y, end.x - start.x, end.y - start.y)
-    ctx.stroke()
-  }
-
-  function drawEllipse(ctx: CanvasRenderingContext2D, start: Point, end: Point) {
-    const cx = (start.x + end.x) / 2
-    const cy = (start.y + end.y) / 2
-    const rx = Math.abs(end.x - start.x) / 2
-    const ry = Math.abs(end.y - start.y) / 2
-
-    ctx.beginPath()
-    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2)
-    ctx.stroke()
   }
 
   function redrawAll() {
@@ -1239,105 +951,6 @@ export function useDrawing(
     clearStrokeCanvas()
     previewDirty = true
     flushRender()
-  }
-
-  function distToSeg(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {
-    const dx = bx - ax, dy = by - ay
-    const l2 = dx * dx + dy * dy
-    if (l2 === 0) return Math.hypot(px - ax, py - ay)
-    const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / l2))
-    return Math.hypot(px - (ax + t * dx), py - (ay + t * dy))
-  }
-
-  function distancePointToSegment(p: Point, a: Point, b: Point): number {
-    return distToSeg(p.x, p.y, a.x, a.y, b.x, b.y)
-  }
-
-  function hitTestAction(action: DrawAction, p: Point): boolean {
-    const pts = action.points
-    if (pts.length === 0) return false
-
-    const bbox = action.bbox
-    if (bbox && (p.x < bbox.x1 || p.x > bbox.x2 || p.y < bbox.y1 || p.y > bbox.y2)) return false
-
-    const threshold = Math.max(10, (action.lineWidth || 2) / 2 + 5)
-
-    if (action.tool === 'text' && action.text) {
-      const fs = action.fontSize ?? 24
-      const lh = Math.round(fs * 1.3)
-      const textWidth = action.textWidth ?? 200
-      const lines = action.text.split('\n')
-      const boxX = pts[0].x - 10
-      const boxY = pts[0].y - lh / 2 - 10
-      return p.x >= boxX && p.x <= boxX + textWidth + 20 && p.y >= boxY && p.y <= boxY + lines.length * lh + 20
-    }
-
-    if (action.tool === 'pen' || action.tool === 'highlighter') {
-      if (pts.length === 1) {
-        if (Math.hypot(p.x - pts[0].x, p.y - pts[0].y) <= threshold) return true
-      } else {
-        for (let j = 0, end = pts.length - 1; j < end; j++) {
-          if (distToSeg(p.x, p.y, pts[j].x, pts[j].y, pts[j + 1].x, pts[j + 1].y) <= threshold) return true
-        }
-      }
-      return false
-    }
-
-    if (action.tool === 'line' || action.tool === 'arrow') {
-      if (pts.length >= 2) {
-        if (distancePointToSegment(p, pts[0], pts[1]) <= threshold) return true
-      }
-      return false
-    }
-
-    if (action.tool === 'rect') {
-      if (pts.length >= 2) {
-        const rect = action.rectHit ?? {
-          x0: Math.min(pts[0].x, pts[1].x),
-          y0: Math.min(pts[0].y, pts[1].y),
-          x1: Math.max(pts[0].x, pts[1].x),
-          y1: Math.max(pts[0].y, pts[1].y),
-        }
-
-        const d1 = distToSeg(p.x, p.y, rect.x0, rect.y0, rect.x1, rect.y0)
-        const d2 = distToSeg(p.x, p.y, rect.x1, rect.y0, rect.x1, rect.y1)
-        const d3 = distToSeg(p.x, p.y, rect.x1, rect.y1, rect.x0, rect.y1)
-        const d4 = distToSeg(p.x, p.y, rect.x0, rect.y1, rect.x0, rect.y0)
-
-        if (Math.min(d1, d2, d3, d4) <= threshold) return true
-      }
-      return false
-    }
-
-    if (action.tool === 'ellipse') {
-      if (pts.length >= 2) {
-        const ellipse = action.ellipseHit ?? {
-          cx: (pts[0].x + pts[1].x) / 2,
-          cy: (pts[0].y + pts[1].y) / 2,
-          rx: Math.abs(pts[1].x - pts[0].x) / 2,
-          ry: Math.abs(pts[1].y - pts[0].y) / 2,
-        }
-
-        if (ellipse.rx < 1 || ellipse.ry < 1) {
-          return Math.hypot(p.x - ellipse.cx, p.y - ellipse.cy) <= threshold
-        }
-
-        if (p.x < ellipse.cx - ellipse.rx - threshold || p.x > ellipse.cx + ellipse.rx + threshold ||
-            p.y < ellipse.cy - ellipse.ry - threshold || p.y > ellipse.cy + ellipse.ry + threshold) return false
-
-        let minDist = Infinity
-        for (let j = 0; j < 32; j++) {
-          const angle = (j / 32) * Math.PI * 2
-          const px = ellipse.cx + ellipse.rx * Math.cos(angle)
-          const py = ellipse.cy + ellipse.ry * Math.sin(angle)
-          const dist = Math.hypot(p.x - px, p.y - py)
-          if (dist < minDist) minDist = dist
-        }
-        return minDist <= threshold
-      }
-    }
-
-    return false
   }
 
   function findActionAt(p: Point): { action: DrawAction, index: number } | null {
