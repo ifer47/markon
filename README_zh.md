@@ -7,10 +7,10 @@
 > **轻量级屏幕标注工具** — 按下快捷键，随时在桌面上自由绘画、标注。适用于课堂演示 / 会议讲解 / 录屏批注。
 
 <p align="center">
-  <img src=".github/assets/screenshot.png" width="520" alt="MarkerOn 设置面板" />
+  <img src="assets/MarkerOn.png" width="720" alt="MarkerOn" />
 </p>
 
-## 📥 下载安装
+## 下载安装
 
 <a href="https://get.microsoft.com/installer/download/9n6623x973jv?referrer=appbadge" target="_self" >
 <img src="https://get.microsoft.com/images/zh-cn%20dark.svg" width="200"/>
@@ -25,7 +25,41 @@
 
 也可以前往 [Releases 页面](https://github.com/ifer47/markeron/releases/tag/v0.1.5) 查看所有版本及更新日志。
 
-## 🚀 快速开始
+## 功能一览
+
+### 在任何桌面内容上自由标注
+
+直接在演示文稿、浏览器、文档等任何应用上方绘制。标注覆盖全屏，包括任务栏区域。
+
+<p align="center">
+  <img src="assets/桌面标注场景.png" width="720" alt="桌面标注场景" />
+</p>
+
+### 8 种标注工具，覆盖所有场景
+
+按数字键 <kbd>1</kbd>–<kbd>7</kbd> / <kbd>T</kbd> 即时切换，无需打开菜单。
+
+<p align="center">
+  <img src="assets/八种标注工具.png" width="720" alt="8 种标注工具" />
+</p>
+
+### 直观的工具面板，所见即所得
+
+按 <kbd>Space</kbd> 呼出设置面板，涵盖工具、颜色、线宽全部选项。
+
+<p align="center">
+  <img src="assets/设置面板.png" width="720" alt="设置面板" />
+</p>
+
+### 全键盘操作，效率翻倍
+
+覆盖标注模式全流程，无需离开键盘。
+
+<p align="center">
+  <img src="assets/快捷键一览.png" width="720" alt="快捷键一览" />
+</p>
+
+## 快速开始
 
 ```bash
 # 安装依赖
@@ -40,7 +74,7 @@ npm run build
 
 启动后应用静默运行在 **系统托盘**，不会弹出任何窗口。
 
-## ⌨️ 快捷键一览
+## 快捷键一览
 
 在 **macOS** 上，下文中的 <kbd>Ctrl</kbd> 对应 **Windows** 时请改用 <kbd>Command</kbd>（⌘）；<kbd>Alt</kbd> 对应 <kbd>Option</kbd>（⌥）。
 
@@ -73,7 +107,7 @@ npm run build
 
 | 操作 | 功能 |
 | :--- | :--- |
-| 鼠标悬停在已有元素上并拖动 | **移动**该元素（支持所有形状、线条和文字，需在设置中开启"允许拖拽已有元素"） |
+| 鼠标悬停在已有元素上并拖动 | **移动**该元素（需在设置中开启"允许拖拽已有元素"） |
 | 双击已有文字 | 重新进入该文字的**编辑模式** |
 | <kbd>T</kbd> 模式下双击空白处 | 在光标位置新建文字输入框 |
 
@@ -83,39 +117,36 @@ npm run build
 
 | 按键 | 工具 | 说明 |
 | :---: | :--- | :--- |
-| <kbd>1</kbd> | ∕ 画笔 | 自由绘画，平滑曲线 |
-| <kbd>2</kbd> | ∕∕ 荧光笔 | 半透明高亮标记 |
-| <kbd>3</kbd> | ⤤ 箭头 | 带箭头的指示线 |
-| <kbd>4</kbd> | ▢ 矩形 | 矩形边框 |
-| <kbd>5</kbd> | ○ 椭圆 | 椭圆边框 |
-| <kbd>6</kbd> | ╱ 直线 | 直线段 |
-| <kbd>7</kbd> | ◎ 橡皮擦 | 实时擦除标注内容，擦除效果跟随元素拖拽 |
-| <kbd>T</kbd> | 𝐓 文字 | 双击放置/编辑文字，滚轮调整字号；Windows 用 <kbd>Ctrl</kbd> + <kbd>Enter</kbd>，macOS 用 <kbd>Command</kbd> + <kbd>Return</kbd> 确认 |
+| <kbd>1</kbd> | 画笔 | 自由绘画，平滑曲线 |
+| <kbd>2</kbd> | 荧光笔 | 半透明高亮标记 |
+| <kbd>3</kbd> | 箭头 | 带箭头的指示线 |
+| <kbd>4</kbd> | 矩形 | 矩形边框 |
+| <kbd>5</kbd> | 椭圆 | 椭圆边框 |
+| <kbd>6</kbd> | 直线 | 直线段 |
+| <kbd>7</kbd> | 橡皮擦 | 实时擦除标注内容 |
+| <kbd>T</kbd> | 文字 | 双击放置/编辑文字；<kbd>Ctrl</kbd>+<kbd>Enter</kbd>（Win）/ <kbd>Command</kbd>+<kbd>Return</kbd>（Mac）确认 |
 
 ### 标注模式 — 颜色切换
-
-> 彩色光标实时显示当前画笔颜色，切换颜色后底部会短暂提示颜色名称。
 
 | 操作 | 功能 |
 | :--- | :--- |
 | <kbd>Q</kbd> | 切换到上一个颜色 |
 | <kbd>E</kbd> | 切换到下一个颜色 |
-| 鼠标右键 | 在光标处弹出快速选色盘（支持 <kbd>Q</kbd> / <kbd>E</kbd> 切换） |
+| 鼠标右键 | 在光标处弹出快速选色盘 |
 
 ### 标注模式 — 其他操作
 
 | 功能 | Windows | macOS |
 | :--- | :--- | :--- |
-| 呼出 / 隐藏设置面板（工具、颜色、线宽） | <kbd>Space</kbd> | <kbd>Space</kbd> |
-| 复制屏幕到剪贴板（桌面 + 标注内容） | <kbd>Ctrl</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>C</kbd> |
+| 呼出 / 隐藏设置面板 | <kbd>Space</kbd> | <kbd>Space</kbd> |
+| 复制屏幕到剪贴板 | <kbd>Ctrl</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>C</kbd> |
 | 撤销 | <kbd>Ctrl</kbd> + <kbd>Z</kbd> | <kbd>Command</kbd> + <kbd>Z</kbd> |
 | 重做 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Command</kbd> + <kbd>Y</kbd> |
-| 清除全部标注（可用撤销恢复） | <kbd>Delete</kbd> | <kbd>Delete</kbd> |
+| 清除全部标注（可撤销） | <kbd>Delete</kbd> | <kbd>Delete</kbd> |
 | 退出标注模式 | <kbd>Esc</kbd> | <kbd>Esc</kbd> |
 | 切换窗口并退出标注模式 | <kbd>Alt</kbd> + <kbd>Tab</kbd> | <kbd>Command</kbd> + <kbd>Tab</kbd> |
-| 打开开始菜单并退出标注模式 | <kbd>Win</kbd> | —（可用调度中心、聚焦或程序坞等让焦点离开，效果类似） |
 
-> 💡 标注覆盖全屏（包括任务栏区域），退出标注模式时会自动清除所有绘制内容。
+> 标注覆盖全屏（包括任务栏区域），退出标注模式时会自动清除所有绘制内容。
 
 ### 设置窗口
 
@@ -130,9 +161,9 @@ npm run build
 
 **快捷键**
 
-点击「修改」后按下新的组合键（需含 **Ctrl**（Windows）/ **Command**（macOS）、**Alt** / **Option**、**Shift** 中至少一个，或使用 F1-F12），快捷键即时生效自动保存。若新快捷键与其他应用冲突，会自动回滚并提示。
+点击「修改」后按下新的组合键（需含 **Ctrl** / **Command**、**Alt** / **Option**、**Shift** 中至少一个，或使用 F1-F12），快捷键即时生效自动保存。若新快捷键与其他应用冲突，会自动回滚并提示。
 
-## 🛠️ 技术栈
+## 技术栈
 
 | 技术 | 用途 |
 | :--- | :--- |
@@ -142,7 +173,7 @@ npm run build
 | **TypeScript** | 完整类型支持 |
 | **Canvas API** | 高性能绘图引擎 |
 
-## 📁 项目结构
+## 项目结构
 
 ```
 markeron/
@@ -170,6 +201,6 @@ markeron/
 └── package.json
 ```
 
-## 📄 许可证
+## 许可证
 
 [MIT](./LICENSE)

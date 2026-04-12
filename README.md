@@ -7,7 +7,7 @@
 > **Lightweight screen annotation tool** — press a hotkey to instantly draw, highlight, and annotate anywhere on your desktop. Perfect for classroom demos, meeting presentations, and screencast narration.
 
 <p align="center">
-  <img src=".github/assets/screenshot.png" width="520" alt="MarkerOn Settings Panel" />
+  <img src="assets/MarkerOn.png" width="720" alt="MarkerOn" />
 </p>
 
 ## Download
@@ -24,6 +24,40 @@
 | macOS x64 (Intel) | [MarkerOn_0.1.5_x64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.5/MarkerOn_0.1.5_x64.dmg) | For Intel-based Macs. On Apple Silicon, prefer the arm64 DMG above; the x64 app runs via Rosetta if needed. |
 
 You can also visit the [Releases page](https://github.com/ifer47/markeron/releases/tag/v0.1.5) for all versions and changelogs.
+
+## Features
+
+### Annotate Anywhere on Your Desktop
+
+Draw directly over any application — presentations, browsers, documents. Annotations overlay everything including the taskbar.
+
+<p align="center">
+  <img src="assets/桌面标注场景.png" width="720" alt="Desktop annotation scene" />
+</p>
+
+### 8 Annotation Tools for Every Scenario
+
+Switch instantly with number keys <kbd>1</kbd>–<kbd>7</kbd> / <kbd>T</kbd> — no menus needed.
+
+<p align="center">
+  <img src="assets/八种标注工具.png" width="720" alt="8 annotation tools" />
+</p>
+
+### Intuitive Settings Panel
+
+Press <kbd>Space</kbd> to toggle the settings panel. Tools, colors, and stroke widths — all in one place.
+
+<p align="center">
+  <img src="assets/设置面板.png" width="720" alt="Settings panel" />
+</p>
+
+### Full Keyboard Control
+
+Every action has a shortcut. Stay on your keyboard, stay in the flow.
+
+<p align="center">
+  <img src="assets/快捷键一览.png" width="720" alt="Keyboard shortcuts overview" />
+</p>
 
 ## Quick Start
 
@@ -78,18 +112,16 @@ On **macOS**, use <kbd>Command</kbd> (⌘) where **Windows** uses <kbd>Ctrl</kbd
 
 | Key | Tool | Description |
 | :---: | :--- | :--- |
-| <kbd>1</kbd> | ∕ Pen | Freehand drawing with smooth curves |
-| <kbd>2</kbd> | ∕∕ Highlighter | Semi-transparent highlight strokes |
-| <kbd>3</kbd> | ⤤ Arrow | Directional arrow lines |
-| <kbd>4</kbd> | ▢ Rectangle | Rectangle outlines |
-| <kbd>5</kbd> | ○ Ellipse | Ellipse outlines |
-| <kbd>6</kbd> | ╱ Line | Straight line segments |
-| <kbd>7</kbd> | ◎ Eraser | Erase annotations in real time; erased area follows element drag |
-| <kbd>T</kbd> | 𝐓 Text | Double-click to place/edit text, scroll to resize; confirm with <kbd>Ctrl</kbd> + <kbd>Enter</kbd> (Windows) or <kbd>Command</kbd> + <kbd>Return</kbd> (macOS) |
+| <kbd>1</kbd> | Pen | Freehand drawing with smooth curves |
+| <kbd>2</kbd> | Highlighter | Semi-transparent highlight strokes |
+| <kbd>3</kbd> | Arrow | Directional arrow lines |
+| <kbd>4</kbd> | Rectangle | Rectangle outlines |
+| <kbd>5</kbd> | Ellipse | Ellipse outlines |
+| <kbd>6</kbd> | Line | Straight line segments |
+| <kbd>7</kbd> | Eraser | Erase annotations in real time |
+| <kbd>T</kbd> | Text | Double-click to place/edit text; confirm with <kbd>Ctrl</kbd>+<kbd>Enter</kbd> (Win) / <kbd>Command</kbd>+<kbd>Return</kbd> (Mac) |
 
 ### Annotation Mode — Color Switching
-
-> The cursor color updates in real time. A brief color name tooltip appears at the bottom after switching.
 
 | Action | Effect |
 | :--- | :--- |
@@ -101,14 +133,13 @@ On **macOS**, use <kbd>Command</kbd> (⌘) where **Windows** uses <kbd>Ctrl</kbd
 
 | Action | Windows | macOS |
 | :--- | :--- | :--- |
-| Toggle settings panel (tool, color, stroke width) | <kbd>Space</kbd> | <kbd>Space</kbd> |
-| Copy screen to clipboard (desktop + annotations) | <kbd>Ctrl</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>C</kbd> |
+| Toggle settings panel | <kbd>Space</kbd> | <kbd>Space</kbd> |
+| Copy screen to clipboard | <kbd>Ctrl</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>C</kbd> |
 | Undo | <kbd>Ctrl</kbd> + <kbd>Z</kbd> | <kbd>Command</kbd> + <kbd>Z</kbd> |
 | Redo | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Command</kbd> + <kbd>Y</kbd> |
-| Clear all annotations (undo to restore) | <kbd>Delete</kbd> | <kbd>Delete</kbd> |
+| Clear all (undoable) | <kbd>Delete</kbd> | <kbd>Delete</kbd> |
 | Exit annotation mode | <kbd>Esc</kbd> | <kbd>Esc</kbd> |
-| Switch window and exit annotation mode | <kbd>Alt</kbd> + <kbd>Tab</kbd> | <kbd>Command</kbd> + <kbd>Tab</kbd> |
-| Open Start menu and exit annotation mode | <kbd>Win</kbd> | — (use Mission Control, Spotlight, or the Dock; leaving focus exits mode) |
+| Switch window & exit | <kbd>Alt</kbd> + <kbd>Tab</kbd> | <kbd>Command</kbd> + <kbd>Tab</kbd> |
 
 > Annotations cover the entire screen including the taskbar area. All drawings are automatically cleared when exiting annotation mode.
 
@@ -125,7 +156,7 @@ Right-click the system tray icon and select **Settings** to open the settings wi
 
 **Shortcuts**
 
-Click "Modify", then press a new key combination (must include at least one of **Ctrl** (Windows) / **Command** (macOS), **Alt** / **Option**, or **Shift**, or use F1–F12). Changes take effect immediately and are auto-saved. If a shortcut conflicts with another application, it will automatically roll back with a notification.
+Click "Modify", then press a new key combination (must include at least one of **Ctrl** / **Command**, **Alt** / **Option**, or **Shift**, or use F1–F12). Changes take effect immediately. If a shortcut conflicts, it will automatically roll back with a notification.
 
 ## Tech Stack
 
