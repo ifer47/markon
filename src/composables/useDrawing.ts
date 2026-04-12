@@ -964,26 +964,39 @@ export function useDrawing(
   }
 
   function drawArrow(ctx: CanvasRenderingContext2D, start: Point, end: Point) {
-    const headLen = Math.max(15, ctx.lineWidth * 4)
-    const angle = Math.atan2(end.y - start.y, end.x - start.x)
+    const dx = end.x - start.x
+    const dy = end.y - start.y
+    const len = Math.sqrt(dx * dx + dy * dy)
+    if (len < 2) return
 
+    const angle = Math.atan2(dy, dx)
+    const nx = -Math.sin(angle)
+    const ny = Math.cos(angle)
+
+    const w = ctx.lineWidth
+    const headLen = Math.max(18, w * 5)
+    const headHalfW = Math.max(8, w * 2.5)
+    const tailHalfW = Math.max(0.5, w * 0.15)
+    const shaftHalfW = Math.max(1.5, w * 0.7)
+
+    const actualHeadLen = Math.min(headLen, len * 0.45)
+    const baseFrac = 1 - actualHeadLen / len
+    const baseX = start.x + dx * baseFrac
+    const baseY = start.y + dy * baseFrac
+
+    ctx.save()
+    ctx.fillStyle = ctx.strokeStyle
     ctx.beginPath()
-    ctx.moveTo(start.x, start.y)
+    ctx.moveTo(start.x + nx * tailHalfW, start.y + ny * tailHalfW)
+    ctx.lineTo(baseX + nx * shaftHalfW, baseY + ny * shaftHalfW)
+    ctx.lineTo(baseX + nx * headHalfW, baseY + ny * headHalfW)
     ctx.lineTo(end.x, end.y)
-    ctx.stroke()
-
-    ctx.beginPath()
-    ctx.moveTo(end.x, end.y)
-    ctx.lineTo(
-      end.x - headLen * Math.cos(angle - Math.PI / 6),
-      end.y - headLen * Math.sin(angle - Math.PI / 6)
-    )
-    ctx.lineTo(
-      end.x - headLen * Math.cos(angle + Math.PI / 6),
-      end.y - headLen * Math.sin(angle + Math.PI / 6)
-    )
+    ctx.lineTo(baseX - nx * headHalfW, baseY - ny * headHalfW)
+    ctx.lineTo(baseX - nx * shaftHalfW, baseY - ny * shaftHalfW)
+    ctx.lineTo(start.x - nx * tailHalfW, start.y - ny * tailHalfW)
     ctx.closePath()
     ctx.fill()
+    ctx.restore()
   }
 
   function drawRect(ctx: CanvasRenderingContext2D, start: Point, end: Point) {
