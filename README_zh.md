@@ -1,10 +1,17 @@
-# <img src=".github/assets/icon.png" width="28" height="28" /> MarkerOn
-
-<p align="right">
-  <a href="./README.md">English</a> | <strong>中文</strong>
-</p>
-
-> **轻量级屏幕标注工具** — 按下快捷键，随时在桌面上自由绘画、标注。适用于课堂演示 / 会议讲解 / 录屏批注。
+<div align="center">
+  <img src=".github/assets/icon.png" width="80" height="80" alt="MarkerOn icon" />
+  <h1>MarkerOn</h1>
+  <p><strong>轻量级屏幕标注工具</strong> — 按下快捷键，随时在桌面上自由绘画、标注。适用于课堂演示 / 会议讲解 / 录屏批注。</p>
+  <p>
+    <a href="https://github.com/ifer47/markeron/actions/workflows/ci.yml"><img src="https://github.com/ifer47/markeron/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+    <a href="https://github.com/ifer47/markeron/releases/latest"><img src="https://img.shields.io/github/v/release/ifer47/markeron?label=latest" alt="Release" /></a>
+    <a href="https://github.com/ifer47/markeron/releases"><img src="https://img.shields.io/github/downloads/ifer47/markeron/total" alt="Downloads" /></a>
+    <a href="./LICENSE"><img src="https://img.shields.io/github/license/ifer47/markeron" alt="License" /></a>
+  </p>
+  <p>
+    <a href="./README.md">English</a>
+  </p>
+</div>
 
 <p align="center">
   <img src="assets/MarkerOn.png" width="720" alt="MarkerOn" />
@@ -12,87 +19,71 @@
 
 ## 下载安装
 
-<a href="https://get.microsoft.com/installer/download/9n6623x973jv?referrer=appbadge" target="_self" >
-<img src="https://get.microsoft.com/images/zh-cn%20dark.svg" width="200"/>
-</a>
-
-| 平台 | 说明 |
-| :--- | :--- |
-| Windows x64 | NSIS 安装程序（推荐）或 MSI |
-| macOS arm64（Apple 芯片） | M1 / M2 / M3 / M4 等原生构建 |
-| macOS x64（Intel） | 适用于 Intel Mac（Apple 芯片可通过 Rosetta 运行） |
+<p>
+  <a href="https://github.com/ifer47/markeron/releases/latest"><img src="https://img.shields.io/badge/Windows-x64-0078D4?logo=windows&logoColor=white" alt="Windows" /></a>
+  <a href="https://github.com/ifer47/markeron/releases/latest"><img src="https://img.shields.io/badge/macOS-ARM64-000000?logo=apple&logoColor=white" alt="macOS ARM64" /></a>
+  <a href="https://github.com/ifer47/markeron/releases/latest"><img src="https://img.shields.io/badge/macOS-x64-666666?logo=apple&logoColor=white" alt="macOS x64" /></a>
+  <a href="https://get.microsoft.com/installer/download/9n6623x973jv?referrer=appbadge"><img src="https://img.shields.io/badge/微软商店-MarkerOn-0078D4?logo=microsoftstore&logoColor=white" alt="Microsoft Store" /></a>
+</p>
 
 **[下载最新版本](https://github.com/ifer47/markeron/releases/latest)** — 在 Assets 列表中选择对应平台的安装包下载。
 
 ## 功能一览
 
-### 在任何桌面内容上自由标注
+- **随处标注** — 在任何应用上方绘制，覆盖全屏包括任务栏
+- **8 种工具** — 画笔、荧光笔、箭头、矩形、椭圆、直线、橡皮擦、文字
+- **直观面板** — 按 <kbd>Space</kbd> 呼出，工具 / 颜色 / 线宽一站式调整
+- **全键盘操控** — 每个操作都有快捷键，无需菜单
 
-直接在演示文稿、浏览器、文档等任何应用上方绘制。标注覆盖全屏，包括任务栏区域。
-
-<p align="center">
-  <img src="assets/桌面标注场景.png" width="720" alt="桌面标注场景" />
-</p>
-
-### 8 种标注工具，覆盖所有场景
-
-按数字键 <kbd>1</kbd>–<kbd>7</kbd> / <kbd>T</kbd> 即时切换，无需打开菜单。
-
-<p align="center">
-  <img src="assets/八种标注工具.png" width="720" alt="8 种标注工具" />
-</p>
-
-### 直观的工具面板，所见即所得
-
-按 <kbd>Space</kbd> 呼出设置面板，涵盖工具、颜色、线宽全部选项。
-
-<p align="center">
-  <img src="assets/设置面板.png" width="720" alt="设置面板" />
-</p>
-
-### 全键盘操作，效率翻倍
-
-覆盖标注模式全流程，无需离开键盘。
-
-<p align="center">
-  <img src="assets/快捷键一览.png" width="720" alt="快捷键一览" />
-</p>
-
-## 快速开始
-
-```bash
-# 安装依赖
-npm install
-
-# 启动开发模式
-npm run dev
-
-# 打包构建（生成安装包）
-npm run build
-```
-
-启动后应用静默运行在 **系统托盘**，不会弹出任何窗口。
+<table>
+<tr>
+<td width="50%">
+<img src="assets/八种标注工具.png" alt="8 种标注工具" />
+</td>
+<td width="50%">
+<img src="assets/设置面板.png" alt="设置面板" />
+</td>
+</tr>
+</table>
 
 ## 快捷键一览
 
-在 **macOS** 上，下文中的 <kbd>Ctrl</kbd> 对应 **Windows** 时请改用 <kbd>Command</kbd>（⌘）；<kbd>Alt</kbd> 对应 <kbd>Option</kbd>（⌥）。
+在 **macOS** 上，<kbd>Ctrl</kbd> 对应 <kbd>Command</kbd>（⌘），<kbd>Alt</kbd> 对应 <kbd>Option</kbd>（⌥）。
 
 ### 全局快捷键
-
-> 以下快捷键在任何界面下都可使用：
 
 | 功能 | Windows | macOS |
 | :--- | :--- | :--- |
 | 开启 / 退出标注模式 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> |
 | 清除所有标注 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd> |
 
-### 标注模式 — 绘制
+### 工具切换
 
-> 进入标注模式后，通过修饰键 + 鼠标拖动快速绘制不同图形：
+| 按键 | 工具 | 按键 | 工具 |
+| :---: | :--- | :---: | :--- |
+| <kbd>1</kbd> | 画笔 | <kbd>5</kbd> | 椭圆 |
+| <kbd>2</kbd> | 荧光笔 | <kbd>6</kbd> | 直线 |
+| <kbd>3</kbd> | 箭头 | <kbd>7</kbd> | 橡皮擦 |
+| <kbd>4</kbd> | 矩形 | <kbd>T</kbd> | 文字 |
+
+### 常用操作
+
+| 功能 | Windows | macOS |
+| :--- | :--- | :--- |
+| 呼出设置面板 | <kbd>Space</kbd> | <kbd>Space</kbd> |
+| 复制屏幕 | <kbd>Ctrl</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>C</kbd> |
+| 撤销 / 重做 | <kbd>Ctrl</kbd> + <kbd>Z</kbd> / <kbd>Y</kbd> | <kbd>Command</kbd> + <kbd>Z</kbd> / <kbd>Y</kbd> |
+| 清除全部 | <kbd>Delete</kbd> | <kbd>Delete</kbd> |
+| 退出标注 | <kbd>Esc</kbd> | <kbd>Esc</kbd> |
+
+<details>
+<summary><strong>全部快捷键</strong></summary>
+
+#### 修饰键绘制
 
 | 绘制内容 | Windows | macOS |
 | :--- | :--- | :--- |
-| 当前工具（默认画笔） | 直接拖动 | 直接拖动 |
+| 当前工具（默认画笔） | 拖动 | 拖动 |
 | 直线 | <kbd>Alt</kbd> + 拖动 | <kbd>Option</kbd> + 拖动 |
 | 矩形 | <kbd>Ctrl</kbd> + 拖动 | <kbd>Command</kbd> + 拖动 |
 | 正方形 | <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + 拖动 | <kbd>Command</kbd> + <kbd>Option</kbd> + 拖动 |
@@ -100,9 +91,7 @@ npm run build
 | 正圆 | <kbd>Shift</kbd> + <kbd>Alt</kbd> + 拖动 | <kbd>Shift</kbd> + <kbd>Option</kbd> + 拖动 |
 | 箭头 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + 拖动 | <kbd>Command</kbd> + <kbd>Shift</kbd> + 拖动 |
 
-### 标注模式 — 编辑与移动
-
-> 绘制完成后，无需切换工具即可直接移动或重新编辑已有元素：
+#### 编辑与移动
 
 | 操作 | 功能 |
 | :--- | :--- |
@@ -110,57 +99,31 @@ npm run build
 | 双击已有文字 | 重新进入该文字的**编辑模式** |
 | <kbd>T</kbd> 模式下双击空白处 | 在光标位置新建文字输入框 |
 
-### 标注模式 — 工具切换
-
-> 按数字键即时切换，无需打开面板：
-
-| 按键 | 工具 | 说明 |
-| :---: | :--- | :--- |
-| <kbd>1</kbd> | 画笔 | 自由绘画，平滑曲线 |
-| <kbd>2</kbd> | 荧光笔 | 半透明高亮标记 |
-| <kbd>3</kbd> | 箭头 | 带箭头的指示线 |
-| <kbd>4</kbd> | 矩形 | 矩形边框 |
-| <kbd>5</kbd> | 椭圆 | 椭圆边框 |
-| <kbd>6</kbd> | 直线 | 直线段 |
-| <kbd>7</kbd> | 橡皮擦 | 实时擦除标注内容 |
-| <kbd>T</kbd> | 文字 | 双击放置/编辑文字；<kbd>Ctrl</kbd>+<kbd>Enter</kbd>（Win）/ <kbd>Command</kbd>+<kbd>Return</kbd>（Mac）确认 |
-
-### 标注模式 — 颜色切换
+#### 颜色切换
 
 | 操作 | 功能 |
 | :--- | :--- |
-| <kbd>Q</kbd> | 切换到上一个颜色 |
-| <kbd>E</kbd> | 切换到下一个颜色 |
+| <kbd>Q</kbd> / <kbd>E</kbd> | 上一个 / 下一个颜色 |
 | 鼠标右键 | 在光标处弹出快速选色盘 |
 
-### 标注模式 — 其他操作
+#### 其他
 
 | 功能 | Windows | macOS |
 | :--- | :--- | :--- |
-| 呼出 / 隐藏设置面板 | <kbd>Space</kbd> | <kbd>Space</kbd> |
-| 复制屏幕到剪贴板 | <kbd>Ctrl</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>C</kbd> |
-| 撤销 | <kbd>Ctrl</kbd> + <kbd>Z</kbd> | <kbd>Command</kbd> + <kbd>Z</kbd> |
-| 重做 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Command</kbd> + <kbd>Y</kbd> |
-| 清除全部标注（可撤销） | <kbd>Delete</kbd> | <kbd>Delete</kbd> |
-| 退出标注模式 | <kbd>Esc</kbd> | <kbd>Esc</kbd> |
-| 切换窗口并退出标注模式 | <kbd>Alt</kbd> + <kbd>Tab</kbd> | <kbd>Command</kbd> + <kbd>Tab</kbd> |
+| 重做（备用） | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> |
+| 切换窗口并退出 | <kbd>Alt</kbd> + <kbd>Tab</kbd> | <kbd>Command</kbd> + <kbd>Tab</kbd> |
 
-> 标注覆盖全屏（包括任务栏区域），退出标注模式时会自动清除所有绘制内容。
+</details>
 
-### 设置窗口
+## 快速开始
 
-右键点击系统托盘图标 → **设置**，即可打开设置窗口。
+```bash
+npm install
+npm run dev
+npm run build
+```
 
-**常规**
-
-| 选项 | 说明 |
-| :--- | :--- |
-| 开机自动启动 | 开启后，系统启动时应用会自动在后台静默运行 |
-| 允许拖拽已有元素 | 开启后，可通过鼠标拖动已绘制的图形和文字（默认关闭，避免绘图时误触） |
-
-**快捷键**
-
-点击「修改」后按下新的组合键（需含 **Ctrl** / **Command**、**Alt** / **Option**、**Shift** 中至少一个，或使用 F1-F12），快捷键即时生效自动保存。若新快捷键与其他应用冲突，会自动回滚并提示。
+启动后应用静默运行在 **系统托盘**，不会弹出任何窗口。
 
 ## 技术栈
 
@@ -172,7 +135,8 @@ npm run build
 | **TypeScript** | 完整类型支持 |
 | **Canvas API** | 高性能绘图引擎 |
 
-## 项目结构
+<details>
+<summary><strong>项目结构</strong></summary>
 
 ```
 markeron/
@@ -199,6 +163,8 @@ markeron/
 ├── vite.config.ts               # Vite 配置
 └── package.json
 ```
+
+</details>
 
 ## 许可证
 

@@ -1,10 +1,17 @@
-# <img src=".github/assets/icon.png" width="28" height="28" /> MarkerOn
-
-<p align="right">
-  <strong>English</strong> | <a href="./README_zh.md">中文</a>
-</p>
-
-> **Lightweight screen annotation tool** — press a hotkey to instantly draw, highlight, and annotate anywhere on your desktop. Perfect for classroom demos, meeting presentations, and screencast narration.
+<div align="center">
+  <img src=".github/assets/icon.png" width="80" height="80" alt="MarkerOn icon" />
+  <h1>MarkerOn</h1>
+  <p><strong>Lightweight screen annotation tool</strong> — press a hotkey to instantly draw, highlight, and annotate anywhere on your desktop.</p>
+  <p>
+    <a href="https://github.com/ifer47/markeron/actions/workflows/ci.yml"><img src="https://github.com/ifer47/markeron/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+    <a href="https://github.com/ifer47/markeron/releases/latest"><img src="https://img.shields.io/github/v/release/ifer47/markeron?label=latest" alt="Release" /></a>
+    <a href="https://github.com/ifer47/markeron/releases"><img src="https://img.shields.io/github/downloads/ifer47/markeron/total" alt="Downloads" /></a>
+    <a href="./LICENSE"><img src="https://img.shields.io/github/license/ifer47/markeron" alt="License" /></a>
+  </p>
+  <p>
+    <a href="./README_zh.md">中文</a>
+  </p>
+</div>
 
 <p align="center">
   <img src="assets/MarkerOn.png" width="720" alt="MarkerOn" />
@@ -12,78 +19,67 @@
 
 ## Download
 
-<a href="https://get.microsoft.com/installer/download/9n6623x973jv?referrer=appbadge" target="_self" >
-<img src="https://get.microsoft.com/images/zh-cn%20dark.svg" width="200"/>
-</a>
-
-| Platform | Note |
-| :--- | :--- |
-| Windows x64 | NSIS installer (recommended) or MSI |
-| macOS arm64 (Apple Silicon) | Native build for M1 / M2 / M3 / M4 series |
-| macOS x64 (Intel) | For Intel-based Macs (runs via Rosetta on Apple Silicon) |
+<p>
+  <a href="https://github.com/ifer47/markeron/releases/latest"><img src="https://img.shields.io/badge/Windows-x64-0078D4?logo=windows&logoColor=white" alt="Windows" /></a>
+  <a href="https://github.com/ifer47/markeron/releases/latest"><img src="https://img.shields.io/badge/macOS-ARM64-000000?logo=apple&logoColor=white" alt="macOS ARM64" /></a>
+  <a href="https://github.com/ifer47/markeron/releases/latest"><img src="https://img.shields.io/badge/macOS-x64-666666?logo=apple&logoColor=white" alt="macOS x64" /></a>
+  <a href="https://get.microsoft.com/installer/download/9n6623x973jv?referrer=appbadge"><img src="https://img.shields.io/badge/Microsoft_Store-MarkerOn-0078D4?logo=microsoftstore&logoColor=white" alt="Microsoft Store" /></a>
+</p>
 
 **[Download Latest Release](https://github.com/ifer47/markeron/releases/latest)** — pick the installer for your platform from the assets list.
 
 ## Features
 
-### Annotate Anywhere on Your Desktop
+- **Annotate anywhere** — draw over any app, including the taskbar
+- **8 tools** — pen, highlighter, arrow, rectangle, ellipse, line, eraser, text
+- **Intuitive panel** — press <kbd>Space</kbd> to toggle tools, colors, and stroke widths
+- **Full keyboard control** — every action has a shortcut, no menus needed
 
-Draw directly over any application — presentations, browsers, documents. Annotations overlay everything including the taskbar.
-
-<p align="center">
-  <img src="assets/桌面标注场景.png" width="720" alt="Desktop annotation scene" />
-</p>
-
-### 8 Annotation Tools for Every Scenario
-
-Switch instantly with number keys <kbd>1</kbd>–<kbd>7</kbd> / <kbd>T</kbd> — no menus needed.
-
-<p align="center">
-  <img src="assets/八种标注工具.png" width="720" alt="8 annotation tools" />
-</p>
-
-### Intuitive Settings Panel
-
-Press <kbd>Space</kbd> to toggle the settings panel. Tools, colors, and stroke widths — all in one place.
-
-<p align="center">
-  <img src="assets/设置面板.png" width="720" alt="Settings panel" />
-</p>
-
-### Full Keyboard Control
-
-Every action has a shortcut. Stay on your keyboard, stay in the flow.
-
-<p align="center">
-  <img src="assets/快捷键一览.png" width="720" alt="Keyboard shortcuts overview" />
-</p>
-
-## Quick Start
-
-```bash
-npm install
-npm run dev
-npm run build
-```
-
-After launching, the app runs silently in the **system tray** with no window shown.
+<table>
+<tr>
+<td width="50%">
+<img src="assets/八种标注工具.png" alt="8 annotation tools" />
+</td>
+<td width="50%">
+<img src="assets/设置面板.png" alt="Settings panel" />
+</td>
+</tr>
+</table>
 
 ## Keyboard Shortcuts
 
-On **macOS**, use <kbd>Command</kbd> (⌘) where **Windows** uses <kbd>Ctrl</kbd> for the shortcuts below.
+On **macOS**, use <kbd>Command</kbd> (⌘) in place of <kbd>Ctrl</kbd>, and <kbd>Option</kbd> (⌥) in place of <kbd>Alt</kbd>.
 
 ### Global Shortcuts
-
-> Available system-wide, regardless of the active window:
 
 | Action | Windows | macOS |
 | :--- | :--- | :--- |
 | Toggle annotation mode | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> |
 | Clear all annotations | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd> |
 
-### Annotation Mode — Drawing
+### Tool Switching
 
-> Hold modifier keys while dragging to quickly draw different shapes:
+| Key | Tool | Key | Tool |
+| :---: | :--- | :---: | :--- |
+| <kbd>1</kbd> | Pen | <kbd>5</kbd> | Ellipse |
+| <kbd>2</kbd> | Highlighter | <kbd>6</kbd> | Line |
+| <kbd>3</kbd> | Arrow | <kbd>7</kbd> | Eraser |
+| <kbd>4</kbd> | Rectangle | <kbd>T</kbd> | Text |
+
+### Common Actions
+
+| Action | Windows | macOS |
+| :--- | :--- | :--- |
+| Settings panel | <kbd>Space</kbd> | <kbd>Space</kbd> |
+| Copy screen | <kbd>Ctrl</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>C</kbd> |
+| Undo / Redo | <kbd>Ctrl</kbd> + <kbd>Z</kbd> / <kbd>Y</kbd> | <kbd>Command</kbd> + <kbd>Z</kbd> / <kbd>Y</kbd> |
+| Clear all | <kbd>Delete</kbd> | <kbd>Delete</kbd> |
+| Exit | <kbd>Esc</kbd> | <kbd>Esc</kbd> |
+
+<details>
+<summary><strong>All shortcuts</strong></summary>
+
+#### Drawing with Modifier Keys
 
 | Draws | Windows | macOS |
 | :--- | :--- | :--- |
@@ -95,9 +91,7 @@ On **macOS**, use <kbd>Command</kbd> (⌘) where **Windows** uses <kbd>Ctrl</kbd
 | Circle | <kbd>Shift</kbd> + <kbd>Alt</kbd> + Drag | <kbd>Shift</kbd> + <kbd>Option</kbd> + Drag |
 | Arrow | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + Drag | <kbd>Command</kbd> + <kbd>Shift</kbd> + Drag |
 
-### Annotation Mode — Edit & Move
-
-> Move or re-edit existing elements without switching tools:
+#### Edit & Move
 
 | Action | Effect |
 | :--- | :--- |
@@ -105,57 +99,31 @@ On **macOS**, use <kbd>Command</kbd> (⌘) where **Windows** uses <kbd>Ctrl</kbd
 | Double-click existing text | Re-enter **edit mode** for that text |
 | Double-click empty area in <kbd>T</kbd> mode | Create a new text input at cursor position |
 
-### Annotation Mode — Tool Switching
-
-> Press a number key to switch tools instantly:
-
-| Key | Tool | Description |
-| :---: | :--- | :--- |
-| <kbd>1</kbd> | Pen | Freehand drawing with smooth curves |
-| <kbd>2</kbd> | Highlighter | Semi-transparent highlight strokes |
-| <kbd>3</kbd> | Arrow | Directional arrow lines |
-| <kbd>4</kbd> | Rectangle | Rectangle outlines |
-| <kbd>5</kbd> | Ellipse | Ellipse outlines |
-| <kbd>6</kbd> | Line | Straight line segments |
-| <kbd>7</kbd> | Eraser | Erase annotations in real time |
-| <kbd>T</kbd> | Text | Double-click to place/edit text; confirm with <kbd>Ctrl</kbd>+<kbd>Enter</kbd> (Win) / <kbd>Command</kbd>+<kbd>Return</kbd> (Mac) |
-
-### Annotation Mode — Color Switching
+#### Color Switching
 
 | Action | Effect |
 | :--- | :--- |
-| <kbd>Q</kbd> | Previous color |
-| <kbd>E</kbd> | Next color |
+| <kbd>Q</kbd> / <kbd>E</kbd> | Previous / Next color |
 | Right-click | Open quick color picker at cursor |
 
-### Annotation Mode — Other Actions
+#### Other
 
 | Action | Windows | macOS |
 | :--- | :--- | :--- |
-| Toggle settings panel | <kbd>Space</kbd> | <kbd>Space</kbd> |
-| Copy screen to clipboard | <kbd>Ctrl</kbd> + <kbd>C</kbd> | <kbd>Command</kbd> + <kbd>C</kbd> |
-| Undo | <kbd>Ctrl</kbd> + <kbd>Z</kbd> | <kbd>Command</kbd> + <kbd>Z</kbd> |
-| Redo | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> / <kbd>Command</kbd> + <kbd>Y</kbd> |
-| Clear all (undoable) | <kbd>Delete</kbd> | <kbd>Delete</kbd> |
-| Exit annotation mode | <kbd>Esc</kbd> | <kbd>Esc</kbd> |
+| Redo (alt) | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> | <kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> |
 | Switch window & exit | <kbd>Alt</kbd> + <kbd>Tab</kbd> | <kbd>Command</kbd> + <kbd>Tab</kbd> |
 
-> Annotations cover the entire screen including the taskbar area. All drawings are automatically cleared when exiting annotation mode.
+</details>
 
-### Settings
+## Quick Start
 
-Right-click the system tray icon and select **Settings** to open the settings window.
+```bash
+npm install
+npm run dev
+npm run build
+```
 
-**General**
-
-| Option | Description |
-| :--- | :--- |
-| Launch at startup | Automatically start the app in the background on system boot |
-| Allow dragging existing elements | Enable dragging drawn shapes and text (disabled by default to prevent accidental moves) |
-
-**Shortcuts**
-
-Click "Modify", then press a new key combination (must include at least one of **Ctrl** / **Command**, **Alt** / **Option**, or **Shift**, or use F1–F12). Changes take effect immediately. If a shortcut conflicts, it will automatically roll back with a notification.
+After launching, the app runs silently in the **system tray** with no window shown.
 
 ## Tech Stack
 
@@ -167,7 +135,8 @@ Click "Modify", then press a new key combination (must include at least one of *
 | **TypeScript** | Full type safety |
 | **Canvas API** | High-performance drawing engine |
 
-## Project Structure
+<details>
+<summary><strong>Project structure</strong></summary>
 
 ```
 markeron/
@@ -194,6 +163,8 @@ markeron/
 ├── vite.config.ts               # Vite configuration
 └── package.json
 ```
+
+</details>
 
 ## License
 
