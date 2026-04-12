@@ -11,7 +11,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 RELEASE_DIR="$ROOT/src-tauri/target/release"
 EXE="$RELEASE_DIR/markeron.exe"
 
-VERSION=$(node -p "require('$ROOT/package.json').version")
+VERSION=$(cd "$ROOT" && node -p "require('./package.json').version")
 MSIX_VERSION="${VERSION}.0"
 echo "==> Building MSIX for MarkerOn v${VERSION} (MSIX ${MSIX_VERSION})"
 
