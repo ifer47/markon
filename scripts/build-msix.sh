@@ -11,8 +11,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 RELEASE_DIR="$ROOT/src-tauri/target/release"
 EXE="$RELEASE_DIR/markeron.exe"
 
-VERSION=$(grep -oP '"version"\s*:\s*"\K[^"]+' "$ROOT/src-tauri/tauri.conf.json")
-echo "==> Building MSIX for MarkerOn v${VERSION}"
+VERSION=$(node -p "require('$ROOT/package.json').version")
+MSIX_VERSION="${VERSION}.0"
+echo "==> Building MSIX for MarkerOn v${VERSION} (MSIX ${MSIX_VERSION})"
 
 if [[ ! -f "$EXE" ]]; then
   echo "ERROR: $EXE not found. Run 'npm run build' first."
@@ -41,6 +42,10 @@ mkdir -p "$STAGING/Assets"
 
 cp "$EXE" "$STAGING/"
 cp "$ROOT/appxmanifest.xml" "$STAGING/AppxManifest.xml"
+
+# Inject version into AppxManifest.xml (MSIX requires 4-part: Major.Minor.Patch.0)
+sed -i "s/Version=\"[0-9.]*\"/Version=\"${MSIX_VERSION}\"/" "$STAGING/AppxManifest.xml"
+
 cp "$ROOT"/assets/StoreLogo.png \
    "$ROOT"/assets/Square150x150Logo.png \
    "$ROOT"/assets/Square44x44Logo.png \
