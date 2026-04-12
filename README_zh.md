@@ -7,6 +7,7 @@
     <a href="https://github.com/ifer47/markeron/releases/latest"><img src="https://img.shields.io/github/v/release/ifer47/markeron?label=latest" alt="Release" /></a>
     <a href="https://github.com/ifer47/markeron/releases"><img src="https://img.shields.io/github/downloads/ifer47/markeron/total" alt="Downloads" /></a>
     <a href="./LICENSE"><img src="https://img.shields.io/github/license/ifer47/markeron" alt="License" /></a>
+    <a href="https://github.com/ifer47/markeron/stargazers"><img src="https://img.shields.io/github/stars/ifer47/markeron?style=social" alt="Stars" /></a>
   </p>
   <p>
     <a href="./README.md">English</a>

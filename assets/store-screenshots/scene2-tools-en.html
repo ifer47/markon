@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>MarkerOn - 8 Annotation Tools</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html {
+  overflow: hidden; height: 100vh;
+  background:
+    radial-gradient(ellipse 80% 60% at 30% 70%, rgba(20, 60, 120, 0.7) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 70% 40%, rgba(40, 80, 160, 0.5) 0%, transparent 60%),
+    radial-gradient(ellipse 90% 80% at 50% 50%, rgba(10, 30, 80, 0.8) 0%, transparent 80%),
+    linear-gradient(135deg, #0a0e1a 0%, #0d1528 30%, #111d3a 60%, #0a1020 100%);
+}
+body {
+  width: 1920px;
+  height: 1080px;
+  /* overflow: hidden; */
+  font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+  background: transparent;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 100px 40px;
+}
+.desktop-bg {
+  display: none;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+.header .accent-line {
+  width: 40px;
+  height: 4px;
+  background: #FF3B30;
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+.header h1 {
+  font-size: 44px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+}
+.header .subtitle {
+  font-size: 16px;
+  color: rgba(255,255,255,0.45);
+}
+.header .subtitle kbd {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: rgba(255,255,255,0.6);
+}
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 24px;
+  width: 1400px;
+  height: 660px;
+  margin: 20px auto 0;
+}
+
+.tool-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  padding: 24px 28px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.tool-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.tool-card-header h3 {
+  font-size: 17px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+}
+.tool-key {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: rgba(255,255,255,0.45);
+  font-weight: 500;
+}
+.tool-desc {
+  font-size: 13px;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 18px;
+}
+.tool-demo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+}
+.tool-demo svg {
+  width: 100%;
+  height: 100%;
+  max-height: 160px;
+}
+
+/* Windows 11 Taskbar */
+.taskbar {
+  position: absolute;
+  bottom: calc(-1 * var(--oy, 0px));
+  left: calc(-1 * var(--ox, 0px));
+  right: calc(-1 * var(--ox, 0px));
+  height: 48px;
+  background: rgba(32, 32, 32, 0.85);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  z-index: 1;
+}
+.taskbar-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.9);
+  position: relative;
+}
+.taskbar-icon.active { background: rgba(255,255,255,0.08); }
+.taskbar-icon.active::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  background: #60cdff;
+}
+.taskbar-time {
+  position: absolute;
+  right: 16px;
+  color: rgba(255,255,255,0.9);
+  font-size: 12px;
+  text-align: right;
+  line-height: 1.4;
+}
+
+/* MarkerOn branding */
+.markeron-brand {
+  position: absolute;
+  bottom: calc(70px - var(--oy, 0px));
+  right: calc(40px - var(--ox, 0px));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255,255,255,0.25);
+  font-size: 13px;
+  z-index: 100;
+}
+.markeron-brand svg { width: 16px; height: 16px; }
+</style>
+</head>
+<body>
+
+<div class="desktop-bg"></div>
+
+<div class="header">
+  <div class="accent-line"></div>
+  <h1>8 Annotation Tools for Every Scenario</h1>
+  <div class="subtitle">Press <kbd>1-7</kbd> / <kbd>T</kbd> to switch instantly — no menus needed</div>
+</div>
+
+<div class="tools-grid">
+  <!-- 1. Pen -->
+  <div class="tool-card">
+    <div class="tool-card-header"><h3>Pen</h3><div class="tool-key">1</div></div>
+    <div class="tool-desc">Freehand drawing, smooth curves</div>
+    <div class="tool-demo">
+      <svg viewBox="0 0 340 140" fill="none">
+        <path d="M30,100 C60,20 100,120 140,60 C180,0 220,130 260,50 C290,0 310,80 330,40"
+          stroke="#FF3B30" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <path d="M20,80 C50,110 90,30 130,90 C170,140 210,20 250,70 C290,110 310,50 340,60"
+          stroke="#007AFF" stroke-width="3" stroke-linecap="round" fill="none"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 2. Highlighter -->
+  <div class="tool-card">
+    <div class="tool-card-header"><h3>Highlighter</h3><div class="tool-key">2</div></div>
+    <div class="tool-desc">Semi-transparent highlight marks</div>
+    <div class="tool-demo">
+      <svg viewBox="0 0 340 140" fill="none">
+        <rect x="30" y="30" width="280" height="22" rx="2" fill="rgba(255,204,2,0.35)"/>
+        <text x="40" y="47" font-family="-apple-system, &quot;Segoe UI&quot;, system-ui, sans-serif" font-size="14" fill="rgba(255,255,255,0.8)">Important text content</text>
+        <rect x="30" y="65" width="280" height="22" rx="2" fill="rgba(52,199,89,0.35)"/>
+        <text x="40" y="82" font-family="-apple-system, &quot;Segoe UI&quot;, system-ui, sans-serif" font-size="14" fill="rgba(255,255,255,0.8)">Highlighted information</text>
+        <rect x="30" y="100" width="280" height="22" rx="2" fill="rgba(255,59,48,0.35)"/>
+        <text x="40" y="117" font-family="-apple-system, &quot;Segoe UI&quot;, system-ui, sans-serif" font-size="14" fill="rgba(255,255,255,0.8)">Critical data goes here</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 3. Arrow -->
+  <div class="tool-card">
+    <div class="tool-card-header"><h3>Arrow</h3><div class="tool-key">3</div></div>
+    <div class="tool-desc">Directional arrow lines</div>
+    <div class="tool-demo">
+      <svg viewBox="0 0 340 140" fill="none">
+        <line x1="60" y1="120" x2="240" y2="30" stroke="#34C759" stroke-width="3"/>
+        <polygon points="240,30 225,22 230,42" fill="#34C759"/>
+        <line x1="280" y1="20" x2="100" y2="110" stroke="#FF3B30" stroke-width="3"/>
+        <polygon points="100,110 118,115 112,96" fill="#FF3B30"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 4. Rectangle -->
+  <div class="tool-card">
+    <div class="tool-card-header"><h3>Rectangle</h3><div class="tool-key">4</div></div>
+    <div class="tool-desc">Rectangle outlines</div>
+    <div class="tool-demo">
+      <svg viewBox="0 0 340 140" fill="none">
+        <rect x="40" y="20" width="100" height="80" rx="2" stroke="#FF3B30" stroke-width="2.5" fill="none"/>
+        <rect x="110" y="40" width="100" height="80" rx="2" stroke="#FF6B35" stroke-width="2.5" fill="none"/>
+        <rect x="190" y="25" width="110" height="90" rx="2" stroke="#007AFF" stroke-width="2.5" fill="none" stroke-dasharray="8,4"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 5. Ellipse -->
+  <div class="tool-card">
+    <div class="tool-card-header"><h3>Ellipse</h3><div class="tool-key">5</div></div>
+    <div class="tool-desc">Ellipse outlines</div>
+    <div class="tool-demo">
+      <svg viewBox="0 0 340 140" fill="none">
+        <ellipse cx="100" cy="70" rx="70" ry="45" stroke="#FF3B30" stroke-width="2.5"/>
+        <ellipse cx="200" cy="60" rx="50" ry="50" stroke="#AF52DE" stroke-width="2.5"/>
+        <ellipse cx="270" cy="80" rx="55" ry="35" stroke="#34C759" stroke-width="2.5"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 6. Line -->
+  <div class="tool-card">
+    <div class="tool-card-header"><h3>Line</h3><div class="tool-key">6</div></div>
+    <div class="tool-desc">Straight line segments</div>
+    <div class="tool-demo">
+      <svg viewBox="0 0 340 140" fill="none">
+        <line x1="30" y1="110" x2="310" y2="30" stroke="#007AFF" stroke-width="3" stroke-linecap="round"/>
+        <line x1="30" y1="70" x2="310" y2="70" stroke="#FFCC02" stroke-width="3" stroke-linecap="round"/>
+        <line x1="170" y1="15" x2="170" y2="130" stroke="#34C759" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 7. Eraser -->
+  <div class="tool-card">
+    <div class="tool-card-header"><h3>Eraser</h3><div class="tool-key">7</div></div>
+    <div class="tool-desc">Real-time erase along stroke path</div>
+    <div class="tool-demo">
+      <svg viewBox="0 0 340 140" fill="none">
+        <path d="M30,100 C80,20 130,120 180,60 C230,0 280,100 320,40"
+          stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round" stroke-dasharray="6,4"/>
+        <path d="M30,100 C80,20 130,120 160,75"
+          stroke="#FF3B30" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="180" cy="60" r="16" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-dasharray="3,3" fill="none"/>
+        <line x1="174" y1="54" x2="186" y2="66" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+        <line x1="186" y1="54" x2="174" y2="66" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 8. Text -->
+  <div class="tool-card">
+    <div class="tool-card-header"><h3>Text</h3><div class="tool-key">T</div></div>
+    <div class="tool-desc">Double-click to place, multiple sizes</div>
+    <div class="tool-demo" style="flex-direction:column; gap:8px; align-items:flex-start; padding:10px 20px;">
+      <span style="font-size:28px; font-weight:700; color:#FF3B30;">Annotate</span>
+      <span style="font-size:18px; font-weight:600; color:#FFCC02;">Multiple font sizes</span>
+      <span style="font-size:13px; color:rgba(255,255,255,0.4); margin-top:4px;">Ctrl+Enter to confirm</span>
+    </div>
+  </div>
+</div>
+
+<!-- Taskbar -->
+<div class="taskbar">
+  <div class="taskbar-icon">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><rect x="1" y="1" width="8" height="8" rx="1"/><rect x="11" y="1" width="8" height="8" rx="1"/><rect x="1" y="11" width="8" height="8" rx="1"/><rect x="11" y="11" width="8" height="8" rx="1"/></svg>
+  </div>
+  <div class="taskbar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+  <div class="taskbar-icon active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg></div>
+  <div class="taskbar-icon active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><ellipse cx="12" cy="12" rx="5" ry="10"/></svg></div>
+  <div class="taskbar-time">
+    <div>3:42 PM</div>
+    <div style="font-size:11px;">4/10/2026</div>
+  </div>
+</div>
+
+<!-- MarkerOn Branding -->
+<div class="markeron-brand">
+  <svg viewBox="0 0 1024 1024" fill="currentColor"><path d="M659.498667 412.8l-6.101334-6.058667a233.6 233.6 0 0 0-101.973333-57.557333c-124.032-33.237333-243.157333 37.077333-276.992 163.413333-1.834667 6.826667-2.816 14.506667-4.437333 33.749334-6.570667 79.786667-25.344 139.306667-76.8 199.68 96.426667 37.888 210.688 64.597333 297.557333 64.597333a234.88 234.88 0 0 0 226.56-174.037333 234.538667 234.538667 0 0 0-57.856-223.786667z m-92.501334-147.712l210.730667-163.925333a42.666667 42.666667 0 0 1 56.32 3.541333l127.786667 127.744a42.666667 42.666667 0 0 1 3.498666 56.32l-163.84 210.730667a320.213333 320.213333 0 0 1-310.741333 396.458666C341.333333 895.957333 149.333333 831.872 42.666667 767.872c169.813333-128 130.005333-205.226667 149.333333-277.333333 45.141333-168.533333 206.592-267.008 374.997333-225.450667zM712.533333 345.258667c2.816 2.688 5.546667 5.461333 8.277334 8.234666L769.28 401.92l105.6-135.765333-74.496-74.496-135.765333 105.6L712.533333 345.258667z"/></svg>
+  MarkerOn
+</div>
+
+<script>
+(function fitToScreen() {
+  var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+  var ox = (window.innerWidth - 1920 * s) / 2;
+  var oy = (window.innerHeight - 1080 * s) / 2;
+  document.body.style.transformOrigin = 'top left';
+  document.body.style.transform = 'translate(' + ox + 'px,' + oy + 'px) scale(' + s + ')';
+  document.documentElement.style.setProperty('--ox', (ox / s) + 'px');
+  document.documentElement.style.setProperty('--oy', (oy / s) + 'px');
+  window.addEventListener('resize', fitToScreen);
+})();
+</script>
+</body>
+</html>

@@ -7,6 +7,7 @@
     <a href="https://github.com/ifer47/markeron/releases/latest"><img src="https://img.shields.io/github/v/release/ifer47/markeron?label=latest" alt="Release" /></a>
     <a href="https://github.com/ifer47/markeron/releases"><img src="https://img.shields.io/github/downloads/ifer47/markeron/total" alt="Downloads" /></a>
     <a href="./LICENSE"><img src="https://img.shields.io/github/license/ifer47/markeron" alt="License" /></a>
+    <a href="https://github.com/ifer47/markeron/stargazers"><img src="https://img.shields.io/github/stars/ifer47/markeron?style=social" alt="Stars" /></a>
   </p>
   <p>
     <a href="./README_zh.md">中文</a>
@@ -14,7 +15,7 @@
 </div>
 
 <p align="center">
-  <img src="assets/MarkerOn.png" width="720" alt="MarkerOn" />
+  <img src="assets/MarkerOn_en.png" width="720" alt="MarkerOn" />
 </p>
 
 ## Download
@@ -38,10 +39,10 @@
 <table>
 <tr>
 <td width="50%">
-<img src="assets/八种标注工具.png" alt="8 annotation tools" />
+<img src="assets/annotation-tools.png" alt="8 annotation tools" />
 </td>
 <td width="50%">
-<img src="assets/设置面板.png" alt="Settings panel" />
+<img src="assets/settings-panel.png" alt="Settings panel" />
 </td>
 </tr>
 </table>
