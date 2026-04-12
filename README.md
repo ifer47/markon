@@ -16,14 +16,13 @@
 <img src="https://get.microsoft.com/images/zh-cn%20dark.svg" width="200"/>
 </a>
 
-| Platform | Installer | Note |
-| :--- | :--- | :--- |
-| Windows x64 | [MarkerOn_0.1.5_x64-setup.exe](https://github.com/ifer47/markeron/releases/download/v0.1.5/MarkerOn_0.1.5_x64-setup.exe) | NSIS installer (recommended) |
-| Windows x64 | [MarkerOn_0.1.5_x64_zh-CN.msi](https://github.com/ifer47/markeron/releases/download/v0.1.5/MarkerOn_0.1.5_x64_zh-CN.msi) | MSI installer |
-| macOS arm64 (Apple Silicon) | [MarkerOn_0.1.5_aarch64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.5/MarkerOn_0.1.5_aarch64.dmg) | Native build for M1 / M2 / M3 / M4 series. Open the DMG and drag to Applications. |
-| macOS x64 (Intel) | [MarkerOn_0.1.5_x64.dmg](https://github.com/ifer47/markeron/releases/download/v0.1.5/MarkerOn_0.1.5_x64.dmg) | For Intel-based Macs. On Apple Silicon, prefer the arm64 DMG above; the x64 app runs via Rosetta if needed. |
+| Platform | Note |
+| :--- | :--- |
+| Windows x64 | NSIS installer (recommended) or MSI |
+| macOS arm64 (Apple Silicon) | Native build for M1 / M2 / M3 / M4 series |
+| macOS x64 (Intel) | For Intel-based Macs (runs via Rosetta on Apple Silicon) |
 
-You can also visit the [Releases page](https://github.com/ifer47/markeron/releases/tag/v0.1.5) for all versions and changelogs.
+**[Download Latest Release](https://github.com/ifer47/markeron/releases/latest)** — pick the installer for your platform from the assets list.
 
 ## Features
 
