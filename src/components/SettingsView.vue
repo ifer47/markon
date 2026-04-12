@@ -17,7 +17,7 @@ const defaultShortcutStrings = computed(() =>
 const hashTab = window.location.hash.split('/')[1]
 const activeTab = ref(hashTab && ['general', 'shortcuts', 'help', 'about'].includes(hashTab) ? hashTab : 'general')
 
-const APP_VERSION = '0.1.5'
+const APP_VERSION = __APP_VERSION__
 
 const tabs = [
   { id: 'general', label: '常规' },
