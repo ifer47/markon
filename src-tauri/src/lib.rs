@@ -422,13 +422,6 @@ fn exit_drawing(app: AppHandle, state: tauri::State<'_, AppState>) {
 }
 
 #[tauri::command]
-fn set_ignore_mouse(app: AppHandle, ignore: bool) {
-    if let Some(window) = app.get_webview_window("overlay") {
-        window.set_ignore_cursor_events(ignore).ok();
-    }
-}
-
-#[tauri::command]
 fn open_url(url: String) {
     #[cfg(target_os = "windows")]
     {
@@ -724,7 +717,6 @@ pub fn run() {
             save_shortcuts,
             save_general,
             exit_drawing,
-            set_ignore_mouse,
             copy_screen,
             open_url,
         ])

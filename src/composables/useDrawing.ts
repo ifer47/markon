@@ -206,21 +206,6 @@ export function useDrawing(
     return { x1: x1 - pad, y1: y1 - pad, x2: x2 + pad, y2: y2 + pad }
   }
 
-  function computePointsBbox(points: Point[], startIdx: number, endIdx: number, pad: number) {
-    if (points.length === 0 || startIdx > endIdx) return null
-    let x1 = points[startIdx].x
-    let y1 = points[startIdx].y
-    let x2 = x1
-    let y2 = y1
-    for (let i = startIdx + 1; i <= endIdx; i++) {
-      if (points[i].x < x1) x1 = points[i].x
-      if (points[i].y < y1) y1 = points[i].y
-      if (points[i].x > x2) x2 = points[i].x
-      if (points[i].y > y2) y2 = points[i].y
-    }
-    return { x1: x1 - pad, y1: y1 - pad, x2: x2 + pad, y2: y2 + pad }
-  }
-
   function bboxesIntersect(
     a: NonNullable<DrawAction['bbox']>,
     b: NonNullable<DrawAction['bbox']>
@@ -1425,7 +1410,6 @@ export function useDrawing(
     currentColor,
     lineWidth,
     isDrawing,
-    history,
     startDraw,
     draw,
     drawBatch,
@@ -1438,8 +1422,6 @@ export function useDrawing(
     clearAll,
     hardReset,
     redrawAll,
-    requestRedraw,
-    scheduleRender,
     beginDrag,
     updateDragOffset,
     endDrag,

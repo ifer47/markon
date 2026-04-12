@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/nicegui-org/nicegui/main/nicegui/templates/tauri/capabilities-schema.json",
+  "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
   "windows": ["*"],
@@ -14,7 +14,6 @@
     "core:window:allow-set-position",
     "core:window:allow-set-always-on-top",
     "core:window:allow-set-ignore-cursor-events",
-    "core:window:allow-set-fullscreen",
     "global-shortcut:allow-register",
     "global-shortcut:allow-unregister",
     "global-shortcut:allow-is-registered",
