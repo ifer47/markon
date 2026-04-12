@@ -50,6 +50,7 @@ const toolLabelMap: Record<Tool, string> = {
 }
 const toolTipTool = ref<Tool | null>(null)
 const toolTipColor = ref<string | null>(null)
+const toolTipWidth = ref<number | null>(null)
 
 const showQuickColors = ref(false)
 const quickColorsPos = ref({ x: 0, y: 0 })
@@ -70,16 +71,18 @@ function showToolTip(tool: Tool) {
   toolTip.value = toolLabelMap[tool] || tool
   toolTipTool.value = tool
   toolTipColor.value = null
+  toolTipWidth.value = null
   if (toolTipTimer) clearTimeout(toolTipTimer)
-  toolTipTimer = setTimeout(() => { toolTip.value = ''; toolTipTool.value = null; toolTipColor.value = null }, 1200)
+  toolTipTimer = setTimeout(() => { toolTip.value = ''; toolTipTool.value = null; toolTipColor.value = null; toolTipWidth.value = null }, 1200)
 }
 
 function showColorTip(color: string) {
   toolTip.value = colorNameMap[color.toUpperCase()] ?? color
   toolTipTool.value = null
   toolTipColor.value = color
+  toolTipWidth.value = null
   if (toolTipTimer) clearTimeout(toolTipTimer)
-  toolTipTimer = setTimeout(() => { toolTip.value = ''; toolTipTool.value = null; toolTipColor.value = null }, 1200)
+  toolTipTimer = setTimeout(() => { toolTip.value = ''; toolTipTool.value = null; toolTipColor.value = null; toolTipWidth.value = null }, 1200)
 }
 
 function cycleColor(direction: number) {
@@ -100,6 +103,25 @@ function selectQuickColor(color: string) {
   currentColor.value = color
   showQuickColors.value = false
   showColorTip(color)
+}
+
+const WIDTH_PRESETS = [1, 2, 3, 5, 8]
+const WIDTH_LABELS: Record<number, string> = { 1: '极细', 2: '细', 3: '中', 5: '粗', 8: '极粗' }
+const TEXT_SIZE_LABELS: Record<number, string> = { 1: '极小', 2: '小', 3: '中', 5: '大', 8: '极大' }
+
+function onWheel(e: WheelEvent) {
+  if (!active.value || !e.ctrlKey) return
+  const tool = currentTool.value
+  if (tool === 'highlighter' || tool === 'eraser') return
+  e.preventDefault()
+  const dir = e.deltaY < 0 ? 1 : -1
+  const idx = WIDTH_PRESETS.indexOf(lineWidth.value)
+  const cur = idx !== -1 ? idx
+    : Math.max(0, WIDTH_PRESETS.findIndex(v => v >= lineWidth.value))
+  const next = Math.max(0, Math.min(WIDTH_PRESETS.length - 1, cur + dir))
+  lineWidth.value = WIDTH_PRESETS[next]
+  const labels = tool === 'text' ? TEXT_SIZE_LABELS : WIDTH_LABELS
+  showWidthTip(lineWidth.value, labels[lineWidth.value] ?? `${lineWidth.value}`)
 }
 
 const {
@@ -591,8 +613,18 @@ function showTip(text: string) {
   toolTip.value = text
   toolTipTool.value = null
   toolTipColor.value = null
+  toolTipWidth.value = null
   if (toolTipTimer) clearTimeout(toolTipTimer)
-  toolTipTimer = setTimeout(() => { toolTip.value = ''; toolTipTool.value = null; toolTipColor.value = null }, 1500)
+  toolTipTimer = setTimeout(() => { toolTip.value = ''; toolTipTool.value = null; toolTipColor.value = null; toolTipWidth.value = null }, 1500)
+}
+
+function showWidthTip(w: number, label?: string) {
+  toolTip.value = label ?? WIDTH_LABELS[w] ?? `${w}px`
+  toolTipTool.value = null
+  toolTipColor.value = null
+  toolTipWidth.value = w
+  if (toolTipTimer) clearTimeout(toolTipTimer)
+  toolTipTimer = setTimeout(() => { toolTip.value = ''; toolTipTool.value = null; toolTipColor.value = null; toolTipWidth.value = null }, 1200)
 }
 
 function exitDrawing() {
@@ -626,6 +658,7 @@ function exitDrawing() {
       @pointerup="onPointerUp"
       @pointerleave="onPointerUp"
       @contextmenu.prevent="onContextMenu"
+      @wheel="onWheel"
     />
 
     <TextBox
@@ -649,6 +682,11 @@ function exitDrawing() {
           v-if="toolTipColor"
           class="w-4 h-4 rounded-full border border-white/20 shrink-0"
           :style="{ backgroundColor: toolTipColor }"
+        />
+        <span
+          v-else-if="toolTipWidth"
+          class="shrink-0 rounded-full bg-white"
+          :style="{ width: '20px', height: Math.max(1.5, toolTipWidth * 1.2) + 'px' }"
         />
         <component v-else-if="toolTipTool" :is="toolIconMap[toolTipTool]" :size="18" color="#fff" />
         <span>{{ toolTip }}</span>
