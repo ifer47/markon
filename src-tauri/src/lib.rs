@@ -1,6 +1,7 @@
 mod clipboard;
 mod commands;
 mod config;
+mod i18n;
 mod monitor;
 mod shortcuts;
 
@@ -85,7 +86,7 @@ fn open_settings_tab(app: &AppHandle, tab: Option<&str>) {
     };
     let url = WebviewUrl::App(hash.into());
     let builder = WebviewWindowBuilder::new(app, "settings", url)
-        .title("MarkerOn 设置")
+        .title(i18n::strings().window_title)
         .inner_size(600.0, 450.0)
         .min_inner_size(500.0, 380.0)
         .resizable(true)
@@ -133,14 +134,15 @@ pub fn run() {
 
             setup_overlay_size(&handle);
 
+            let s = i18n::strings();
             let settings_item =
-                MenuItemBuilder::with_id("settings", "设置").build(app)?;
+                MenuItemBuilder::with_id("settings", s.settings).build(app)?;
             let help_item =
-                MenuItemBuilder::with_id("help", "使用帮助").build(app)?;
+                MenuItemBuilder::with_id("help", s.help).build(app)?;
             let about_item =
-                MenuItemBuilder::with_id("about", "关于").build(app)?;
+                MenuItemBuilder::with_id("about", s.about).build(app)?;
             let quit_item =
-                MenuItemBuilder::with_id("quit", "退出").build(app)?;
+                MenuItemBuilder::with_id("quit", s.quit).build(app)?;
             let menu = MenuBuilder::new(app)
                 .item(&settings_item)
                 .item(&help_item)

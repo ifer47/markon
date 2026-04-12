@@ -5,6 +5,9 @@ import { listen } from '@tauri-apps/api/event'
 import { enable, isEnabled, disable } from '@tauri-apps/plugin-autostart'
 import type { AppConfig, SaveResult } from '../types/app'
 import { isMacOS } from '../utils/platform'
+import { useI18n } from '../i18n'
+
+const { t } = useI18n()
 
 const modLabel = computed(() => (isMacOS() ? 'Command' : 'Ctrl'))
 
@@ -19,22 +22,20 @@ const activeTab = ref(hashTab && ['general', 'shortcuts', 'help', 'about'].inclu
 
 const APP_VERSION = __APP_VERSION__
 
-const tabs = [
-  { id: 'general', label: '常规' },
-  { id: 'shortcuts', label: '快捷键' },
-  { id: 'help', label: '使用帮助' },
-  { id: 'about', label: '关于' },
-]
+const tabIds = ['general', 'shortcuts', 'help', 'about'] as const
+const tabs = computed(() =>
+  tabIds.map(id => ({ id, label: t(`settings.tabs.${id}`) }))
+)
 
 const shortcuts = reactive<AppConfig['shortcuts']>({
   toggleDrawing: '',
   clearDrawing: '',
 })
 
-const labels: Record<keyof AppConfig['shortcuts'], string> = {
-  toggleDrawing: '开始标注',
-  clearDrawing: '清除标注',
-}
+const labels = computed<Record<keyof AppConfig['shortcuts'], string>>(() => ({
+  toggleDrawing: t('settings.shortcutLabels.toggleDrawing'),
+  clearDrawing: t('settings.shortcutLabels.clearDrawing'),
+}))
 
 const capturing = ref<keyof AppConfig['shortcuts'] | null>(null)
 const capturedKeys = ref('')
@@ -101,17 +102,17 @@ async function saveShortcuts() {
   try {
     const res = await invoke<SaveResult>('save_shortcuts', { shortcuts: { ...shortcuts } })
     if (res.ok) {
-      message.value = { type: 'success', text: '快捷键已保存' }
+      message.value = { type: 'success', text: t('settings.shortcutsSaved') }
     } else {
       message.value = {
         type: 'error',
-        text: `以下快捷键被占用：${res.failed?.join('、') ?? ''}`,
+        text: t('settings.shortcutsConflict', { keys: res.failed?.join(', ') ?? '' }),
       }
       const cfg = await invoke<AppConfig>('get_config')
       Object.assign(shortcuts, cfg.shortcuts)
     }
   } catch {
-    message.value = { type: 'error', text: '保存失败，请重试' }
+    message.value = { type: 'error', text: t('settings.saveFailed') }
   } finally {
     saving.value = false
     setTimeout(() => { message.value = null }, 3000)
@@ -129,7 +130,7 @@ async function resetDefaults() {
   if (res.ok) {
     shortcuts.toggleDrawing = d.toggleDrawing
     shortcuts.clearDrawing = d.clearDrawing
-    message.value = { type: 'success', text: '已恢复默认快捷键' }
+    message.value = { type: 'success', text: t('settings.restoredDefaults') }
     setTimeout(() => { message.value = null }, 3000)
   }
 }
@@ -229,7 +230,7 @@ onUnmounted(() => {
     <div class="flex-1 bg-[#1e1e20] flex flex-col overflow-hidden">
       <div v-if="activeTab === 'shortcuts'" class="flex-1 flex flex-col px-7 py-6 overflow-y-auto">
         <div class="flex items-center gap-2 mb-4">
-          <h2 class="text-[14px] font-semibold text-white/75">快捷键</h2>
+          <h2 class="text-[14px] font-semibold text-white/75">{{ t('settings.shortcutsTitle') }}</h2>
           <div class="group relative flex items-center">
             <svg class="w-[14px] h-[14px] text-white/30 cursor-help hover:text-white/60 transition-colors duration-200 outline-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"></circle>
@@ -238,7 +239,7 @@ onUnmounted(() => {
             </svg>
             <div class="absolute left-full top-1/2 -translate-y-1/2 ml-2 mt-4 w-[248px] p-2.5 bg-[#2a2a2c] border border-white/10 rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.4)] opacity-0 scale-95 invisible group-hover:opacity-100 group-hover:scale-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none origin-left">
               <p class="text-[10.5px] text-white/75 leading-[1.6] m-0 text-left font-sans">
-                点击「修改」后按下新的组合键（需含 {{ modLabel }} / Alt / Shift 中至少一个），F1-F12 可单独使用。
+                {{ t('settings.comboRequirement', { mod: modLabel }) }}
               </p>
             </div>
           </div>
@@ -260,13 +261,13 @@ onUnmounted(() => {
             <div class="flex items-center gap-2">
               <template v-if="capturing === action">
                 <span class="text-[12px] text-accent font-medium min-w-[90px] text-right tracking-wide">
-                  {{ capturedKeys || '请按下组合键...' }}
+                  {{ capturedKeys || t('settings.pressComboHint') }}
                 </span>
                 <button
                   class="px-2.5 py-[4px] rounded-md bg-white/10 text-white/60 text-[11px] border border-white/10 cursor-pointer hover:bg-white/20 hover:text-white transition-colors duration-120"
                   @click="cancelCapture"
                 >
-                  取消
+                  {{ t('settings.cancel') }}
                 </button>
               </template>
               <template v-else>
@@ -277,7 +278,7 @@ onUnmounted(() => {
                   class="px-2.5 py-[4px] rounded-md bg-white/10 text-white/70 text-[11px] border border-white/10 cursor-pointer hover:bg-white/20 hover:text-white transition-colors duration-120 shadow-sm"
                   @click="startCapture(action)"
                 >
-                  修改
+                  {{ t('settings.edit') }}
                 </button>
               </template>
             </div>
@@ -305,18 +306,18 @@ onUnmounted(() => {
             class="px-3.5 py-[5px] rounded-[6px] bg-white/4 border border-white/10 text-white/60 text-[11.5px] cursor-pointer hover:bg-white/10 hover:text-white transition-all duration-120 shadow-sm ml-auto"
             @click="resetDefaults"
           >
-            恢复默认
+            {{ t('settings.restoreDefaults') }}
           </button>
         </div>
       </div>
 
       <div v-else-if="activeTab === 'general'" class="flex-1 flex flex-col px-7 py-6 overflow-y-auto">
-        <h2 class="text-[14px] font-semibold text-white/75 mb-4">常规</h2>
+        <h2 class="text-[14px] font-semibold text-white/75 mb-4">{{ t('settings.generalTitle') }}</h2>
 
         <div class="flex flex-col gap-2">
           <div class="flex flex-col gap-3 px-4 py-3.5 rounded-lg border border-white/5 bg-white/2 hover:bg-white/4 hover:border-white/10 transition-all duration-200">
             <div class="flex items-center justify-between">
-              <span class="text-[12.5px] text-white/70">开机自动启动</span>
+              <span class="text-[12.5px] text-white/70">{{ t('settings.autoStart') }}</span>
               <button
                 class="relative w-8 h-4.5 rounded-full transition-colors duration-200 cursor-pointer border-none p-0 outline-none shadow-inner"
                 :class="autoStartEnabled ? 'bg-accent/80' : 'bg-white/20 hover:bg-white/30'"
@@ -330,13 +331,13 @@ onUnmounted(() => {
             </div>
             
             <p class="text-[10px] text-white/25 leading-relaxed m-0 border-t border-white/5 pt-2">
-              开启后，应用程序会在系统启动时自动在后台静默运行。
+              {{ t('settings.autoStartDesc') }}
             </p>
           </div>
 
           <div class="flex flex-col gap-3 px-4 py-3.5 rounded-lg border border-white/5 bg-white/2 hover:bg-white/4 hover:border-white/10 transition-all duration-200">
             <div class="flex items-center justify-between">
-              <span class="text-[12.5px] text-white/70">允许拖拽已有元素</span>
+              <span class="text-[12.5px] text-white/70">{{ t('settings.enableDragging') }}</span>
               <button
                 class="relative w-8 h-4.5 rounded-full transition-colors duration-200 cursor-pointer border-none p-0 outline-none shadow-inner"
                 :class="enableDragging ? 'bg-accent/80' : 'bg-white/20 hover:bg-white/30'"
@@ -350,7 +351,7 @@ onUnmounted(() => {
             </div>
             
             <p class="text-[10px] text-white/25 leading-relaxed m-0 border-t border-white/5 pt-2">
-              开启后，可以通过鼠标拖动已经绘制的图形和文字。
+              {{ t('settings.enableDraggingDesc') }}
             </p>
           </div>
         </div>
@@ -358,97 +359,90 @@ onUnmounted(() => {
 
       <div v-else-if="activeTab === 'help'" class="flex-1 flex flex-col px-7 py-6 overflow-y-auto help-scroll">
 
-        <!-- 基本用法 -->
         <section class="mb-5">
-          <h2 class="text-[14px] font-semibold text-white/75 mb-3">基本用法</h2>
+          <h2 class="text-[14px] font-semibold text-white/75 mb-3">{{ t('help.basicUsage') }}</h2>
           <div class="rounded-lg border border-white/5 bg-white/2 px-4 py-3 text-[11.5px] text-white/55 leading-[1.8]">
-            <p class="m-0">启动后应用静默运行在<strong class="text-white/70">系统托盘</strong>，按下全局快捷键即可进入标注模式。</p>
-            <p class="m-0 mt-1.5">标注覆盖全屏（含任务栏），按 <kbd class="help-kbd">Esc</kbd> 退出并自动清除所有标注。</p>
+            <p class="m-0" v-html="t('help.basicDesc1')" />
+            <p class="m-0 mt-1.5" v-html="t('help.basicDesc2')" />
           </div>
         </section>
 
-        <!-- 全局快捷键 -->
         <section class="mb-5">
-          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">全局快捷键</h3>
+          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">{{ t('help.globalShortcuts') }}</h3>
           <table class="help-table">
-            <thead><tr><th>功能</th><th>Windows</th><th>macOS</th></tr></thead>
+            <thead><tr><th>{{ t('help.thAction') }}</th><th>{{ t('help.thWindows') }}</th><th>{{ t('help.thMacOS') }}</th></tr></thead>
             <tbody>
-              <tr><td>开启 / 退出标注</td><td><kbd class="help-kbd">Ctrl+Shift+D</kbd></td><td><kbd class="help-kbd">⌘+⇧+D</kbd></td></tr>
-              <tr><td>清除所有标注</td><td><kbd class="help-kbd">Ctrl+Shift+C</kbd></td><td><kbd class="help-kbd">⌘+⇧+C</kbd></td></tr>
+              <tr><td>{{ t('help.toggleAnnotation') }}</td><td><kbd class="help-kbd">Ctrl+Shift+D</kbd></td><td><kbd class="help-kbd">⌘+⇧+D</kbd></td></tr>
+              <tr><td>{{ t('help.clearAll') }}</td><td><kbd class="help-kbd">Ctrl+Shift+C</kbd></td><td><kbd class="help-kbd">⌘+⇧+C</kbd></td></tr>
             </tbody>
           </table>
         </section>
 
-        <!-- 工具切换 -->
         <section class="mb-5">
-          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">工具切换</h3>
+          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">{{ t('help.toolSwitch') }}</h3>
           <table class="help-table">
-            <thead><tr><th>按键</th><th>工具</th><th>说明</th></tr></thead>
+            <thead><tr><th>{{ t('help.thKey') }}</th><th>{{ t('help.thTool') }}</th><th>{{ t('help.thDesc') }}</th></tr></thead>
             <tbody>
-              <tr><td><kbd class="help-kbd">1</kbd></td><td>画笔</td><td>自由绘画，贝塞尔曲线平滑</td></tr>
-              <tr><td><kbd class="help-kbd">2</kbd></td><td>荧光笔</td><td>半透明高亮标记</td></tr>
-              <tr><td><kbd class="help-kbd">3</kbd></td><td>箭头</td><td>带箭头指示线</td></tr>
-              <tr><td><kbd class="help-kbd">4</kbd></td><td>矩形</td><td>矩形边框</td></tr>
-              <tr><td><kbd class="help-kbd">5</kbd></td><td>椭圆</td><td>椭圆边框</td></tr>
-              <tr><td><kbd class="help-kbd">6</kbd></td><td>直线</td><td>直线段</td></tr>
-              <tr><td><kbd class="help-kbd">7</kbd></td><td>橡皮擦</td><td>实时擦除，效果跟随拖拽</td></tr>
-              <tr><td><kbd class="help-kbd">T</kbd></td><td>文字</td><td>双击放置，滚轮调字号</td></tr>
+              <tr><td><kbd class="help-kbd">1</kbd></td><td>{{ t('tools.pen') }}</td><td>{{ t('toolDesc.pen') }}</td></tr>
+              <tr><td><kbd class="help-kbd">2</kbd></td><td>{{ t('tools.highlighter') }}</td><td>{{ t('toolDesc.highlighter') }}</td></tr>
+              <tr><td><kbd class="help-kbd">3</kbd></td><td>{{ t('tools.arrow') }}</td><td>{{ t('toolDesc.arrow') }}</td></tr>
+              <tr><td><kbd class="help-kbd">4</kbd></td><td>{{ t('tools.rect') }}</td><td>{{ t('toolDesc.rect') }}</td></tr>
+              <tr><td><kbd class="help-kbd">5</kbd></td><td>{{ t('tools.ellipse') }}</td><td>{{ t('toolDesc.ellipse') }}</td></tr>
+              <tr><td><kbd class="help-kbd">6</kbd></td><td>{{ t('tools.line') }}</td><td>{{ t('toolDesc.line') }}</td></tr>
+              <tr><td><kbd class="help-kbd">7</kbd></td><td>{{ t('tools.eraser') }}</td><td>{{ t('toolDesc.eraser') }}</td></tr>
+              <tr><td><kbd class="help-kbd">T</kbd></td><td>{{ t('tools.text') }}</td><td>{{ t('toolDesc.text') }}</td></tr>
             </tbody>
           </table>
         </section>
 
-        <!-- 修饰键绘制 -->
         <section class="mb-5">
-          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">修饰键 + 拖动绘制</h3>
+          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">{{ t('help.modifierDraw') }}</h3>
           <table class="help-table">
-            <thead><tr><th>图形</th><th>Windows</th><th>macOS</th></tr></thead>
+            <thead><tr><th>{{ t('help.thShape') }}</th><th>{{ t('help.thWindows') }}</th><th>{{ t('help.thMacOS') }}</th></tr></thead>
             <tbody>
-              <tr><td>直线</td><td><kbd class="help-kbd">Alt</kbd> + 拖动</td><td><kbd class="help-kbd">⌥</kbd> + 拖动</td></tr>
-              <tr><td>矩形</td><td><kbd class="help-kbd">Ctrl</kbd> + 拖动</td><td><kbd class="help-kbd">⌘</kbd> + 拖动</td></tr>
-              <tr><td>正方形</td><td><kbd class="help-kbd">Ctrl+Alt</kbd> + 拖动</td><td><kbd class="help-kbd">⌘+⌥</kbd> + 拖动</td></tr>
-              <tr><td>椭圆</td><td><kbd class="help-kbd">Shift</kbd> + 拖动</td><td><kbd class="help-kbd">⇧</kbd> + 拖动</td></tr>
-              <tr><td>正圆</td><td><kbd class="help-kbd">Shift+Alt</kbd> + 拖动</td><td><kbd class="help-kbd">⇧+⌥</kbd> + 拖动</td></tr>
-              <tr><td>箭头</td><td><kbd class="help-kbd">Ctrl+Shift</kbd> + 拖动</td><td><kbd class="help-kbd">⌘+⇧</kbd> + 拖动</td></tr>
+              <tr><td>{{ t('help.straightLine') }}</td><td><kbd class="help-kbd">Alt</kbd> + {{ t('panel.drag') }}</td><td><kbd class="help-kbd">⌥</kbd> + {{ t('panel.drag') }}</td></tr>
+              <tr><td>{{ t('tools.rect') }}</td><td><kbd class="help-kbd">Ctrl</kbd> + {{ t('panel.drag') }}</td><td><kbd class="help-kbd">⌘</kbd> + {{ t('panel.drag') }}</td></tr>
+              <tr><td>{{ t('help.square') }}</td><td><kbd class="help-kbd">Ctrl+Alt</kbd> + {{ t('panel.drag') }}</td><td><kbd class="help-kbd">⌘+⌥</kbd> + {{ t('panel.drag') }}</td></tr>
+              <tr><td>{{ t('tools.ellipse') }}</td><td><kbd class="help-kbd">Shift</kbd> + {{ t('panel.drag') }}</td><td><kbd class="help-kbd">⇧</kbd> + {{ t('panel.drag') }}</td></tr>
+              <tr><td>{{ t('help.circle') }}</td><td><kbd class="help-kbd">Shift+Alt</kbd> + {{ t('panel.drag') }}</td><td><kbd class="help-kbd">⇧+⌥</kbd> + {{ t('panel.drag') }}</td></tr>
+              <tr><td>{{ t('tools.arrow') }}</td><td><kbd class="help-kbd">Ctrl+Shift</kbd> + {{ t('panel.drag') }}</td><td><kbd class="help-kbd">⌘+⇧</kbd> + {{ t('panel.drag') }}</td></tr>
             </tbody>
           </table>
         </section>
 
-        <!-- 颜色 -->
         <section class="mb-5">
-          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">颜色切换</h3>
+          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">{{ t('help.colorSwitch') }}</h3>
           <table class="help-table">
-            <thead><tr><th>操作</th><th>功能</th></tr></thead>
+            <thead><tr><th>{{ t('help.thOperation') }}</th><th>{{ t('help.thFunction') }}</th></tr></thead>
             <tbody>
-              <tr><td><kbd class="help-kbd">Q</kbd></td><td>上一个颜色</td></tr>
-              <tr><td><kbd class="help-kbd">E</kbd></td><td>下一个颜色</td></tr>
-              <tr><td>鼠标右键</td><td>弹出快速选色盘</td></tr>
+              <tr><td><kbd class="help-kbd">Q</kbd></td><td>{{ t('help.prevColor') }}</td></tr>
+              <tr><td><kbd class="help-kbd">E</kbd></td><td>{{ t('help.nextColor') }}</td></tr>
+              <tr><td>{{ t('help.mouseRightClick') }}</td><td>{{ t('help.rightClickColor') }}</td></tr>
             </tbody>
           </table>
         </section>
 
-        <!-- 编辑操作 -->
         <section class="mb-5">
-          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">编辑与其他</h3>
+          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">{{ t('help.editAndOther') }}</h3>
           <table class="help-table">
-            <thead><tr><th>功能</th><th>Windows</th><th>macOS</th></tr></thead>
+            <thead><tr><th>{{ t('help.thAction') }}</th><th>{{ t('help.thWindows') }}</th><th>{{ t('help.thMacOS') }}</th></tr></thead>
             <tbody>
-              <tr><td>设置面板</td><td><kbd class="help-kbd">Space</kbd></td><td><kbd class="help-kbd">Space</kbd></td></tr>
-              <tr><td>复制屏幕到剪贴板</td><td><kbd class="help-kbd">Ctrl+C</kbd></td><td><kbd class="help-kbd">⌘+C</kbd></td></tr>
-              <tr><td>撤销</td><td><kbd class="help-kbd">Ctrl+Z</kbd></td><td><kbd class="help-kbd">⌘+Z</kbd></td></tr>
-              <tr><td>重做</td><td><kbd class="help-kbd">Ctrl+Shift+Z</kbd></td><td><kbd class="help-kbd">⌘+⇧+Z</kbd></td></tr>
-              <tr><td>清除全部标注</td><td><kbd class="help-kbd">Delete</kbd></td><td><kbd class="help-kbd">Delete</kbd></td></tr>
-              <tr><td>退出标注模式</td><td><kbd class="help-kbd">Esc</kbd></td><td><kbd class="help-kbd">Esc</kbd></td></tr>
+              <tr><td>{{ t('help.settingsPanel') }}</td><td><kbd class="help-kbd">Space</kbd></td><td><kbd class="help-kbd">Space</kbd></td></tr>
+              <tr><td>{{ t('help.copyScreen') }}</td><td><kbd class="help-kbd">Ctrl+C</kbd></td><td><kbd class="help-kbd">⌘+C</kbd></td></tr>
+              <tr><td>{{ t('help.undo') }}</td><td><kbd class="help-kbd">Ctrl+Z</kbd></td><td><kbd class="help-kbd">⌘+Z</kbd></td></tr>
+              <tr><td>{{ t('help.redo') }}</td><td><kbd class="help-kbd">Ctrl+Shift+Z</kbd></td><td><kbd class="help-kbd">⌘+⇧+Z</kbd></td></tr>
+              <tr><td>{{ t('help.clearAllAnnotation') }}</td><td><kbd class="help-kbd">Delete</kbd></td><td><kbd class="help-kbd">Delete</kbd></td></tr>
+              <tr><td>{{ t('help.exitAnnotation') }}</td><td><kbd class="help-kbd">Esc</kbd></td><td><kbd class="help-kbd">Esc</kbd></td></tr>
             </tbody>
           </table>
         </section>
 
-        <!-- 拖拽与文字 -->
         <section class="mb-5">
-          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">拖拽与文字</h3>
+          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">{{ t('help.dragAndText') }}</h3>
           <div class="rounded-lg border border-white/5 bg-white/2 px-4 py-3 text-[11.5px] text-white/55 leading-[1.8]">
-            <p class="m-0"><strong class="text-white/70">拖拽元素</strong> — 在设置中开启「允许拖拽已有元素」后，鼠标悬停在已有元素上拖动即可移动。</p>
-            <p class="m-0 mt-1.5"><strong class="text-white/70">编辑文字</strong> — 双击已有文字重新进入编辑模式；<kbd class="help-kbd">T</kbd> 模式下双击空白处新建文字。</p>
-            <p class="m-0 mt-1.5"><strong class="text-white/70">确认文字</strong> — <kbd class="help-kbd">Ctrl+Enter</kbd>（macOS 为 <kbd class="help-kbd">⌘+Return</kbd>）。</p>
+            <p class="m-0"><strong class="text-white/70">{{ t('help.dragElement') }}</strong> — {{ t('help.dragDesc') }}</p>
+            <p class="m-0 mt-1.5"><strong class="text-white/70">{{ t('help.editText') }}</strong> — <span v-html="t('help.editTextDesc')" /></p>
+            <p class="m-0 mt-1.5"><strong class="text-white/70">{{ t('help.confirmText') }}</strong> — <span v-html="t('help.confirmTextDesc')" /></p>
           </div>
         </section>
 
@@ -463,16 +457,16 @@ onUnmounted(() => {
         <!-- Name & Version -->
         <h1 class="text-[18px] font-semibold text-white/85 tracking-wide mb-1">MarkerOn</h1>
         <span class="text-[12px] text-white/30 font-mono tracking-wider mb-1.5">v{{ APP_VERSION }}</span>
-        <p class="text-[11.5px] text-white/40 mb-6">轻量级屏幕标注工具</p>
+        <p class="text-[11.5px] text-white/40 mb-6">{{ t('about.tagline') }}</p>
 
         <!-- Info Card -->
         <div class="w-full max-w-[340px] rounded-xl border border-white/5 bg-white/2 overflow-hidden">
           <div class="flex items-center justify-between px-4 py-3 border-b border-white/5 hover:bg-white/3 transition-colors">
-            <span class="text-[12px] text-white/45">作者</span>
+            <span class="text-[12px] text-white/45">{{ t('about.author') }}</span>
             <span class="text-[12px] text-white/65">ifer47</span>
           </div>
           <div class="flex items-center justify-between px-4 py-3 border-b border-white/5 hover:bg-white/3 transition-colors">
-            <span class="text-[12px] text-white/45">开源协议</span>
+            <span class="text-[12px] text-white/45">{{ t('about.license') }}</span>
             <span class="text-[12px] text-white/65">MIT License</span>
           </div>
           <button
@@ -489,7 +483,7 @@ onUnmounted(() => {
             class="w-full flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
             @click="openUrl('https://github.com/ifer47/markeron/issues')"
           >
-            <span class="text-[12px] text-white/45">反馈问题</span>
+            <span class="text-[12px] text-white/45">{{ t('about.feedback') }}</span>
             <svg class="w-3.5 h-3.5 text-white/25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>

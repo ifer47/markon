@@ -2,6 +2,9 @@
 import { ref, nextTick, onMounted, onUnmounted, computed, type Component } from 'vue'
 import type { Tool } from '../composables/useDrawing'
 import { isMacOS } from '../utils/platform'
+import { useI18n } from '../i18n'
+
+const { t } = useI18n()
 
 const modKeyLabel = computed(() => (isMacOS() ? 'Command' : 'Ctrl'))
 import {
@@ -24,29 +27,30 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const tools: { id: Tool; icon: Component; label: string; key: string }[] = [
-  { id: 'pen', icon: Pen, label: '画笔', key: '1' },
-  { id: 'highlighter', icon: Highlighter, label: '荧光笔', key: '2' },
-  { id: 'arrow', icon: ArrowUpRight, label: '箭头', key: '3' },
-  { id: 'rect', icon: Square, label: '矩形', key: '4' },
-  { id: 'ellipse', icon: Circle, label: '椭圆', key: '5' },
-  { id: 'line', icon: Minus, label: '直线', key: '6' },
-  { id: 'eraser', icon: Eraser, label: '橡皮擦', key: '7' },
-  { id: 'text', icon: Type, label: '文字', key: 'T' },
+const toolDefs: { id: Tool; icon: Component; key: string }[] = [
+  { id: 'pen', icon: Pen, key: '1' },
+  { id: 'highlighter', icon: Highlighter, key: '2' },
+  { id: 'arrow', icon: ArrowUpRight, key: '3' },
+  { id: 'rect', icon: Square, key: '4' },
+  { id: 'ellipse', icon: Circle, key: '5' },
+  { id: 'line', icon: Minus, key: '6' },
+  { id: 'eraser', icon: Eraser, key: '7' },
+  { id: 'text', icon: Type, key: 'T' },
 ]
+
+const tools = computed(() =>
+  toolDefs.map(d => ({ ...d, label: t(`tools.${d.id}`) }))
+)
 
 const colors = [
   ['#FF3B30', '#FF6B35', '#FFCC02', '#34C759', '#007AFF', '#5856D6', '#FFFFFF'],
   ['#AF52DE', '#FF2D55', '#00C7BE', '#8E8E93', '#636366', '#3A3A3C', '#000000'],
 ]
 
-const widths = [
-  { value: 1, label: '极细' },
-  { value: 2, label: '细' },
-  { value: 3, label: '中' },
-  { value: 5, label: '粗' },
-  { value: 8, label: '极粗' },
-]
+const widthValues = [1, 2, 3, 5, 8]
+const widths = computed(() =>
+  widthValues.map(v => ({ value: v, label: t(`widths.${v}`) }))
+)
 
 function needsWhiteCheck(ri: number, ci: number): boolean {
   return ci >= 5 || (ri === colors.length - 1 && ci >= 3)
@@ -135,8 +139,8 @@ onUnmounted(() => {
       <!-- 工具区 -->
       <div class="px-3.5 pt-1 pb-2.5">
         <div class="flex items-center justify-between mb-2 cursor-default" @mousedown="startDrag">
-          <span class="text-[11px] font-semibold text-white/45 tracking-[0.5px] font-sans">工具</span>
-          <span class="text-[10px] text-white/20 font-sans">按 1-7 / T 切换</span>
+          <span class="text-[11px] font-semibold text-white/45 tracking-[0.5px] font-sans">{{ t('panel.tools') }}</span>
+          <span class="text-[10px] text-white/20 font-sans">{{ t('panel.toolsHint') }}</span>
         </div>
         <div class="grid grid-cols-4 gap-1">
           <button
@@ -162,7 +166,7 @@ onUnmounted(() => {
       <!-- 颜色区 -->
       <div class="px-3.5 py-2.5 border-t border-white/5">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-[11px] font-semibold text-white/45 tracking-[0.5px] font-sans">颜色</span>
+          <span class="text-[11px] font-semibold text-white/45 tracking-[0.5px] font-sans">{{ t('panel.colors') }}</span>
         </div>
         <div class="flex flex-col gap-1.5">
           <div v-for="(row, ri) in colors" :key="ri" class="flex justify-between">
@@ -203,14 +207,14 @@ onUnmounted(() => {
           >
             <span class="text-white text-[14px] leading-none font-light" style="text-shadow: 0 1px 2px rgba(0,0,0,0.6)">+</span>
           </span>
-          <span class="text-[11px] text-white/50 font-sans">自定义颜色</span>
+          <span class="text-[11px] text-white/50 font-sans">{{ t('panel.customColor') }}</span>
         </label>
       </div>
 
       <!-- 线宽区 -->
       <div class="px-3.5 py-2.5 border-t border-white/5">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-[11px] font-semibold text-white/45 tracking-[0.5px] font-sans">线宽</span>
+          <span class="text-[11px] font-semibold text-white/45 tracking-[0.5px] font-sans">{{ t('panel.strokeWidth') }}</span>
         </div>
         <div class="flex gap-1">
           <button
@@ -240,17 +244,17 @@ onUnmounted(() => {
           <span class="flex items-center gap-1.5 text-white/45">
             <kbd class="inline-block px-1.5 py-px rounded-[4px] bg-white/10 border border-white/10 text-[9.5px] font-sans text-white/70 leading-[1.4] shadow-sm">{{ modKeyLabel }}</kbd>
             <span class="text-white/30 text-[10px]">+</span>
-            <span>拖动</span>
+            <span>{{ t('panel.drag') }}</span>
           </span>
-          <span class="text-white/50 text-[10.5px] text-right min-w-[48px]">矩形</span>
+          <span class="text-white/50 text-[10.5px] text-right min-w-[48px]">{{ t('panel.rectShape') }}</span>
         </div>
         <div class="flex items-center justify-between text-[10.5px] font-sans">
           <span class="flex items-center gap-1.5 text-white/45">
             <kbd class="inline-block px-1.5 py-px rounded-[4px] bg-white/10 border border-white/10 text-[9.5px] font-sans text-white/70 leading-[1.4] shadow-sm">Shift</kbd>
             <span class="text-white/30 text-[10px]">+</span>
-            <span>拖动</span>
+            <span>{{ t('panel.drag') }}</span>
           </span>
-          <span class="text-white/50 text-[10.5px] text-right min-w-[48px]">椭圆</span>
+          <span class="text-white/50 text-[10.5px] text-right min-w-[48px]">{{ t('panel.ellipseShape') }}</span>
         </div>
         <div class="flex items-center justify-between text-[10.5px] font-sans">
           <span class="flex items-center gap-1.5 text-white/45">
@@ -258,9 +262,9 @@ onUnmounted(() => {
             <span class="text-white/30 text-[10px]">+</span>
             <kbd class="inline-block px-1.5 py-px rounded-[4px] bg-white/10 border border-white/10 text-[9.5px] font-sans text-white/70 leading-[1.4] shadow-sm">Shift</kbd>
             <span class="text-white/30 text-[10px]">+</span>
-            <span>拖动</span>
+            <span>{{ t('panel.drag') }}</span>
           </span>
-          <span class="text-white/50 text-[10.5px] text-right min-w-[48px]">箭头</span>
+          <span class="text-white/50 text-[10.5px] text-right min-w-[48px]">{{ t('panel.arrowShape') }}</span>
         </div>
         <div class="flex items-center justify-between text-[10.5px] font-sans">
           <span class="flex items-center gap-1.5 text-white/45">
@@ -268,9 +272,9 @@ onUnmounted(() => {
             <span class="text-white/30 text-[10px]">/</span>
             <kbd class="inline-block px-1.5 py-px rounded-[4px] bg-white/10 border border-white/10 text-[9.5px] font-sans text-white/70 leading-[1.4] shadow-sm">E</kbd>
             <span class="text-white/30 text-[10px]">/</span>
-            <span>右键</span>
+            <span>{{ t('panel.rightClick') }}</span>
           </span>
-          <span class="text-white/50 text-[10.5px] text-right min-w-[48px]">切换颜色</span>
+          <span class="text-white/50 text-[10.5px] text-right min-w-[48px]">{{ t('panel.switchColor') }}</span>
         </div>
       </div>
     </div>

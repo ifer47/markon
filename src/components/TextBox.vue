@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
 import { isMacOS } from '../utils/platform'
+import { useI18n } from '../i18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   x: number
@@ -88,7 +91,7 @@ defineExpose({ commitText, getText, getFontSize })
       minHeight: Math.round(fs * 1.3) + 'px',
       caretColor: color,
     }"
-    placeholder="输入文字..."
+    :placeholder="t('textBox.placeholder')"
     spellcheck="false"
     @keydown="onKeyDown"
     @input="autoResize"

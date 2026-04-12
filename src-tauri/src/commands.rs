@@ -20,9 +20,10 @@ pub fn save_shortcuts(
 
     app.global_shortcut().unregister_all().ok();
 
+    let s = crate::i18n::strings();
     let actions: Vec<(&str, &str)> = vec![
-        ("开始标注", &shortcuts.toggle_drawing),
-        ("清除标注", &shortcuts.clear_drawing),
+        (s.toggle_drawing, &shortcuts.toggle_drawing),
+        (s.clear_drawing, &shortcuts.clear_drawing),
     ];
 
     for (label, accel) in &actions {

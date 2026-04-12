@@ -11,6 +11,9 @@ import {
   Minus, Eraser, Type,
 } from 'lucide-vue-next'
 import { isMacOS } from '../utils/platform'
+import { useI18n } from '../i18n'
+
+const { t } = useI18n()
 
 function modDown(e: PointerEvent | KeyboardEvent): boolean {
   return e.ctrlKey || (isMacOS() && e.metaKey)
@@ -38,16 +41,16 @@ const textBoxPos = ref<{ x: number; y: number } | null>(null)
 const toolTip = ref('')
 let toolTipTimer: ReturnType<typeof setTimeout> | null = null
 
-const toolLabelMap: Record<Tool, string> = {
-  pen: '画笔',
-  highlighter: '荧光笔',
-  arrow: '箭头',
-  rect: '矩形',
-  ellipse: '椭圆',
-  line: '直线',
-  eraser: '橡皮擦',
-  text: '文字',
-}
+const toolLabelMap = computed<Record<Tool, string>>(() => ({
+  pen: t('tools.pen'),
+  highlighter: t('tools.highlighter'),
+  arrow: t('tools.arrow'),
+  rect: t('tools.rect'),
+  ellipse: t('tools.ellipse'),
+  line: t('tools.line'),
+  eraser: t('tools.eraser'),
+  text: t('tools.text'),
+}))
 const toolTipTool = ref<Tool | null>(null)
 const toolTipColor = ref<string | null>(null)
 const toolTipWidth = ref<number | null>(null)
@@ -60,15 +63,15 @@ const quickColorList = [
   '#AF52DE', '#FF2D55', '#00C7BE', '#8E8E93', '#636366', '#3A3A3C', '#000000',
 ]
 
-const colorNameMap: Record<string, string> = {
-  '#FF3B30': '红色', '#FF6B35': '橙色', '#FFCC02': '黄色', '#34C759': '绿色',
-  '#007AFF': '蓝色', '#5856D6': '紫色', '#FFFFFF': '白色', '#AF52DE': '紫罗兰',
-  '#FF2D55': '粉红', '#00C7BE': '青色', '#8E8E93': '灰色', '#636366': '深灰',
-  '#3A3A3C': '炭灰', '#000000': '黑色',
-}
+const colorNameMap = computed<Record<string, string>>(() => ({
+  '#FF3B30': t('colors.#FF3B30'), '#FF6B35': t('colors.#FF6B35'), '#FFCC02': t('colors.#FFCC02'), '#34C759': t('colors.#34C759'),
+  '#007AFF': t('colors.#007AFF'), '#5856D6': t('colors.#5856D6'), '#FFFFFF': t('colors.#FFFFFF'), '#AF52DE': t('colors.#AF52DE'),
+  '#FF2D55': t('colors.#FF2D55'), '#00C7BE': t('colors.#00C7BE'), '#8E8E93': t('colors.#8E8E93'), '#636366': t('colors.#636366'),
+  '#3A3A3C': t('colors.#3A3A3C'), '#000000': t('colors.#000000'),
+}))
 
 function showToolTip(tool: Tool) {
-  toolTip.value = toolLabelMap[tool] || tool
+  toolTip.value = toolLabelMap.value[tool] || tool
   toolTipTool.value = tool
   toolTipColor.value = null
   toolTipWidth.value = null
@@ -77,7 +80,7 @@ function showToolTip(tool: Tool) {
 }
 
 function showColorTip(color: string) {
-  toolTip.value = colorNameMap[color.toUpperCase()] ?? color
+  toolTip.value = colorNameMap.value[color.toUpperCase()] ?? color
   toolTipTool.value = null
   toolTipColor.value = color
   toolTipWidth.value = null
@@ -106,8 +109,6 @@ function selectQuickColor(color: string) {
 }
 
 const WIDTH_PRESETS = [1, 2, 3, 5, 8]
-const WIDTH_LABELS: Record<number, string> = { 1: '极细', 2: '细', 3: '中', 5: '粗', 8: '极粗' }
-const TEXT_SIZE_LABELS: Record<number, string> = { 1: '极小', 2: '小', 3: '中', 5: '大', 8: '极大' }
 
 function onWheel(e: WheelEvent) {
   if (!active.value || !e.ctrlKey) return
@@ -120,8 +121,8 @@ function onWheel(e: WheelEvent) {
     : Math.max(0, WIDTH_PRESETS.findIndex(v => v >= lineWidth.value))
   const next = Math.max(0, Math.min(WIDTH_PRESETS.length - 1, cur + dir))
   lineWidth.value = WIDTH_PRESETS[next]
-  const labels = tool === 'text' ? TEXT_SIZE_LABELS : WIDTH_LABELS
-  showWidthTip(lineWidth.value, labels[lineWidth.value] ?? `${lineWidth.value}`)
+  const labelKey = tool === 'text' ? `textSizes.${lineWidth.value}` : `widths.${lineWidth.value}`
+  showWidthTip(lineWidth.value, t(labelKey))
 }
 
 const {
@@ -600,10 +601,10 @@ async function copyScreen() {
   isCopying = true
   try {
     await invoke('copy_screen')
-    showTip('已复制到剪贴板')
+    showTip(t('overlay.copiedToClipboard'))
   } catch (err) {
     console.error('Copy screen failed:', err)
-    showTip('复制失败')
+    showTip(t('overlay.copyFailed'))
   } finally {
     isCopying = false
   }
@@ -619,7 +620,8 @@ function showTip(text: string) {
 }
 
 function showWidthTip(w: number, label?: string) {
-  toolTip.value = label ?? WIDTH_LABELS[w] ?? `${w}px`
+  const resolved = t(`widths.${w}`)
+  toolTip.value = label ?? (resolved !== `widths.${w}` ? resolved : `${w}px`)
   toolTipTool.value = null
   toolTipColor.value = null
   toolTipWidth.value = w
@@ -731,7 +733,7 @@ function exitDrawing() {
             </button>
           </div>
           <div class="flex items-center justify-center gap-3 mt-1.5 pt-1.5 border-t border-white/5">
-            <span class="text-[10px] text-white/50 font-sans tracking-wider">Q ← 切换 → E</span>
+            <span class="text-[10px] text-white/50 font-sans tracking-wider">{{ t('panel.colorSwitch') }}</span>
           </div>
         </div>
       </div>
@@ -744,8 +746,8 @@ function exitDrawing() {
       :line-width="lineWidth"
       :x="mousePos.x"
       :y="mousePos.y"
-      @select-tool="(t: Tool) => { currentTool = t }"
-      @select-color="(c: string) => { currentColor = c; showColorTip(c) }"
+      @select-tool="(tool: Tool) => { currentTool = tool }"
+      @select-color="(color: string) => { currentColor = color; showColorTip(color) }"
       @update-line-width="(w: number) => { lineWidth = w }"
       @close="setSettingsVisible(false)"
     />
