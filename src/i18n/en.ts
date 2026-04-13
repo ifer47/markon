@@ -106,6 +106,7 @@ export default {
     copyScreen: 'Copy screen to clipboard',
     undo: 'Undo',
     redo: 'Redo',
+    strokeWidth: 'Stroke / font size',
     clearAllAnnotation: 'Clear all annotations',
     exitAnnotation: 'Exit annotation',
     dragAndText: 'Drag & Text',

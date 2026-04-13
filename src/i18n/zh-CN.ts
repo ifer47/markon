@@ -106,6 +106,7 @@ export default {
     copyScreen: '复制屏幕到剪贴板',
     undo: '撤销',
     redo: '重做',
+    strokeWidth: '线宽 / 字号',
     clearAllAnnotation: '清除全部标注',
     exitAnnotation: '退出标注模式',
     dragAndText: '拖拽与文字',

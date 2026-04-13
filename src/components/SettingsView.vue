@@ -431,6 +431,7 @@ onUnmounted(() => {
               <tr><td>{{ t('help.copyScreen') }}</td><td><kbd class="help-kbd">Ctrl+C</kbd></td><td><kbd class="help-kbd">⌘+C</kbd></td></tr>
               <tr><td>{{ t('help.undo') }}</td><td><kbd class="help-kbd">Ctrl+Z</kbd></td><td><kbd class="help-kbd">⌘+Z</kbd></td></tr>
               <tr><td>{{ t('help.redo') }}</td><td><kbd class="help-kbd">Ctrl+Shift+Z</kbd></td><td><kbd class="help-kbd">⌘+⇧+Z</kbd></td></tr>
+              <tr><td>{{ t('help.strokeWidth') }}</td><td><kbd class="help-kbd">Ctrl</kbd> + Scroll</td><td><kbd class="help-kbd">⌘</kbd> + Scroll</td></tr>
               <tr><td>{{ t('help.clearAllAnnotation') }}</td><td><kbd class="help-kbd">Delete</kbd></td><td><kbd class="help-kbd">Delete</kbd></td></tr>
               <tr><td>{{ t('help.exitAnnotation') }}</td><td><kbd class="help-kbd">Esc</kbd></td><td><kbd class="help-kbd">Esc</kbd></td></tr>
             </tbody>
