@@ -44,7 +44,7 @@ cp "$EXE" "$STAGING/"
 cp "$ROOT/appxmanifest.xml" "$STAGING/AppxManifest.xml"
 
 # Inject version into AppxManifest.xml (MSIX requires 4-part: Major.Minor.Patch.0)
-sed -i "s/Version=\"[0-9.]*\"/Version=\"${MSIX_VERSION}\"/" "$STAGING/AppxManifest.xml"
+sed -i "s/ Version=\"[0-9.]*\"/ Version=\"${MSIX_VERSION}\"/" "$STAGING/AppxManifest.xml"
 
 cp "$ROOT"/assets/StoreLogo.png \
    "$ROOT"/assets/Square150x150Logo.png \
