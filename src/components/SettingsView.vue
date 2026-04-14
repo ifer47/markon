@@ -359,93 +359,171 @@ onUnmounted(() => {
 
       <div v-else-if="activeTab === 'help'" class="flex-1 flex flex-col px-7 py-6 overflow-y-auto help-scroll">
 
-        <section class="mb-5">
-          <h2 class="text-[14px] font-semibold text-white/75 mb-3">{{ t('help.basicUsage') }}</h2>
-          <div class="rounded-lg border border-white/5 bg-white/2 px-4 py-3 text-[11.5px] text-white/55 leading-[1.8]">
-            <p class="m-0" v-html="t('help.basicDesc1')" />
-            <p class="m-0 mt-1.5" v-html="t('help.basicDesc2')" />
+        <h2 class="text-[14px] font-semibold text-white/75 mb-4">{{ t('help.basicUsage') }}</h2>
+
+        <div class="flex flex-col gap-2">
+          <!-- Intro card -->
+          <div class="help-card">
+            <div class="px-4 py-3 text-[11.5px] text-white/50 leading-[1.8]">
+              <p class="m-0" v-html="t('help.basicDesc1')" />
+              <p class="m-0 mt-1" v-html="t('help.basicDesc2')" />
+            </div>
           </div>
-        </section>
 
-        <section class="mb-5">
-          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">{{ t('help.globalShortcuts') }}</h3>
-          <table class="help-table">
-            <thead><tr><th>{{ t('help.thAction') }}</th><th>{{ t('help.thWindows') }}</th><th>{{ t('help.thMacOS') }}</th></tr></thead>
-            <tbody>
-              <tr><td>{{ t('help.toggleAnnotation') }}</td><td><kbd class="help-kbd">Ctrl+Shift+D</kbd></td><td><kbd class="help-kbd">⌘+⇧+D</kbd></td></tr>
-              <tr><td>{{ t('help.clearAll') }}</td><td><kbd class="help-kbd">Ctrl+Shift+C</kbd></td><td><kbd class="help-kbd">⌘+⇧+C</kbd></td></tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section class="mb-5">
-          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">{{ t('help.toolSwitch') }}</h3>
-          <table class="help-table">
-            <thead><tr><th>{{ t('help.thKey') }}</th><th>{{ t('help.thTool') }}</th><th>{{ t('help.thDesc') }}</th></tr></thead>
-            <tbody>
-              <tr><td><kbd class="help-kbd">1</kbd></td><td>{{ t('tools.pen') }}</td><td>{{ t('toolDesc.pen') }}</td></tr>
-              <tr><td><kbd class="help-kbd">2</kbd></td><td>{{ t('tools.highlighter') }}</td><td>{{ t('toolDesc.highlighter') }}</td></tr>
-              <tr><td><kbd class="help-kbd">3</kbd></td><td>{{ t('tools.arrow') }}</td><td>{{ t('toolDesc.arrow') }}</td></tr>
-              <tr><td><kbd class="help-kbd">4</kbd></td><td>{{ t('tools.rect') }}</td><td>{{ t('toolDesc.rect') }}</td></tr>
-              <tr><td><kbd class="help-kbd">5</kbd></td><td>{{ t('tools.ellipse') }}</td><td>{{ t('toolDesc.ellipse') }}</td></tr>
-              <tr><td><kbd class="help-kbd">6</kbd></td><td>{{ t('tools.line') }}</td><td>{{ t('toolDesc.line') }}</td></tr>
-              <tr><td><kbd class="help-kbd">7</kbd></td><td>{{ t('tools.eraser') }}</td><td>{{ t('toolDesc.eraser') }}</td></tr>
-              <tr><td><kbd class="help-kbd">T</kbd></td><td>{{ t('tools.text') }}</td><td>{{ t('toolDesc.text') }}</td></tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section class="mb-5">
-          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">{{ t('help.modifierDraw') }}</h3>
-          <table class="help-table">
-            <thead><tr><th>{{ t('help.thShape') }}</th><th>{{ t('help.thWindows') }}</th><th>{{ t('help.thMacOS') }}</th></tr></thead>
-            <tbody>
-              <tr><td>{{ t('help.straightLine') }}</td><td><kbd class="help-kbd">Alt</kbd> + {{ t('panel.drag') }}</td><td><kbd class="help-kbd">⌥</kbd> + {{ t('panel.drag') }}</td></tr>
-              <tr><td>{{ t('tools.rect') }}</td><td><kbd class="help-kbd">Ctrl</kbd> + {{ t('panel.drag') }}</td><td><kbd class="help-kbd">⌘</kbd> + {{ t('panel.drag') }}</td></tr>
-              <tr><td>{{ t('help.square') }}</td><td><kbd class="help-kbd">Ctrl+Alt</kbd> + {{ t('panel.drag') }}</td><td><kbd class="help-kbd">⌘+⌥</kbd> + {{ t('panel.drag') }}</td></tr>
-              <tr><td>{{ t('tools.ellipse') }}</td><td><kbd class="help-kbd">Shift</kbd> + {{ t('panel.drag') }}</td><td><kbd class="help-kbd">⇧</kbd> + {{ t('panel.drag') }}</td></tr>
-              <tr><td>{{ t('help.circle') }}</td><td><kbd class="help-kbd">Shift+Alt</kbd> + {{ t('panel.drag') }}</td><td><kbd class="help-kbd">⇧+⌥</kbd> + {{ t('panel.drag') }}</td></tr>
-              <tr><td>{{ t('tools.arrow') }}</td><td><kbd class="help-kbd">Ctrl+Shift</kbd> + {{ t('panel.drag') }}</td><td><kbd class="help-kbd">⌘+⇧</kbd> + {{ t('panel.drag') }}</td></tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section class="mb-5">
-          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">{{ t('help.colorSwitch') }}</h3>
-          <table class="help-table">
-            <thead><tr><th>{{ t('help.thOperation') }}</th><th>{{ t('help.thFunction') }}</th></tr></thead>
-            <tbody>
-              <tr><td><kbd class="help-kbd">Q</kbd></td><td>{{ t('help.prevColor') }}</td></tr>
-              <tr><td><kbd class="help-kbd">E</kbd></td><td>{{ t('help.nextColor') }}</td></tr>
-              <tr><td>{{ t('help.mouseRightClick') }}</td><td>{{ t('help.rightClickColor') }}</td></tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section class="mb-5">
-          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">{{ t('help.editAndOther') }}</h3>
-          <table class="help-table">
-            <thead><tr><th>{{ t('help.thAction') }}</th><th>{{ t('help.thWindows') }}</th><th>{{ t('help.thMacOS') }}</th></tr></thead>
-            <tbody>
-              <tr><td>{{ t('help.settingsPanel') }}</td><td><kbd class="help-kbd">Space</kbd></td><td><kbd class="help-kbd">Space</kbd></td></tr>
-              <tr><td>{{ t('help.copyScreen') }}</td><td><kbd class="help-kbd">Ctrl+C</kbd></td><td><kbd class="help-kbd">⌘+C</kbd></td></tr>
-              <tr><td>{{ t('help.undo') }}</td><td><kbd class="help-kbd">Ctrl+Z</kbd></td><td><kbd class="help-kbd">⌘+Z</kbd></td></tr>
-              <tr><td>{{ t('help.redo') }}</td><td><kbd class="help-kbd">Ctrl+Shift+Z</kbd></td><td><kbd class="help-kbd">⌘+⇧+Z</kbd></td></tr>
-              <tr><td>{{ t('help.strokeWidth') }}</td><td><kbd class="help-kbd">Ctrl</kbd> + Scroll</td><td><kbd class="help-kbd">⌘</kbd> + Scroll</td></tr>
-              <tr><td>{{ t('help.clearAllAnnotation') }}</td><td><kbd class="help-kbd">Delete</kbd></td><td><kbd class="help-kbd">Delete</kbd></td></tr>
-              <tr><td>{{ t('help.exitAnnotation') }}</td><td><kbd class="help-kbd">Esc</kbd></td><td><kbd class="help-kbd">Esc</kbd></td></tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section class="mb-5">
-          <h3 class="text-[12.5px] font-semibold text-white/60 mb-2">{{ t('help.dragAndText') }}</h3>
-          <div class="rounded-lg border border-white/5 bg-white/2 px-4 py-3 text-[11.5px] text-white/55 leading-[1.8]">
-            <p class="m-0"><strong class="text-white/70">{{ t('help.dragElement') }}</strong> — {{ t('help.dragDesc') }}</p>
-            <p class="m-0 mt-1.5"><strong class="text-white/70">{{ t('help.editText') }}</strong> — <span v-html="t('help.editTextDesc')" /></p>
-            <p class="m-0 mt-1.5"><strong class="text-white/70">{{ t('help.confirmText') }}</strong> — <span v-html="t('help.confirmTextDesc')" /></p>
+          <!-- Global shortcuts -->
+          <div class="help-card">
+            <div class="help-card-header">{{ t('help.globalShortcuts') }}</div>
+            <div class="help-rows">
+              <div class="help-row">
+                <span class="help-label">{{ t('help.toggleAnnotation') }}</span>
+                <div class="help-keys"><kbd class="help-kbd">Ctrl+Shift+D</kbd><span class="help-sep">/</span><kbd class="help-kbd">⌘+⇧+D</kbd></div>
+              </div>
+              <div class="help-row">
+                <span class="help-label">{{ t('help.clearAll') }}</span>
+                <div class="help-keys"><kbd class="help-kbd">Ctrl+Shift+C</kbd><span class="help-sep">/</span><kbd class="help-kbd">⌘+⇧+C</kbd></div>
+              </div>
+            </div>
           </div>
-        </section>
+
+          <!-- Tool switch -->
+          <div class="help-card">
+            <div class="help-card-header">{{ t('help.toolSwitch') }}</div>
+            <div class="help-rows">
+              <div class="help-row">
+                <span class="help-label"><kbd class="help-kbd">1</kbd><span class="ml-2.5">{{ t('tools.pen') }}</span></span>
+                <span class="help-desc">{{ t('toolDesc.pen') }}</span>
+              </div>
+              <div class="help-row">
+                <span class="help-label"><kbd class="help-kbd">2</kbd><span class="ml-2.5">{{ t('tools.highlighter') }}</span></span>
+                <span class="help-desc">{{ t('toolDesc.highlighter') }}</span>
+              </div>
+              <div class="help-row">
+                <span class="help-label"><kbd class="help-kbd">3</kbd><span class="ml-2.5">{{ t('tools.arrow') }}</span></span>
+                <span class="help-desc">{{ t('toolDesc.arrow') }}</span>
+              </div>
+              <div class="help-row">
+                <span class="help-label"><kbd class="help-kbd">4</kbd><span class="ml-2.5">{{ t('tools.rect') }}</span></span>
+                <span class="help-desc">{{ t('toolDesc.rect') }}</span>
+              </div>
+              <div class="help-row">
+                <span class="help-label"><kbd class="help-kbd">5</kbd><span class="ml-2.5">{{ t('tools.ellipse') }}</span></span>
+                <span class="help-desc">{{ t('toolDesc.ellipse') }}</span>
+              </div>
+              <div class="help-row">
+                <span class="help-label"><kbd class="help-kbd">6</kbd><span class="ml-2.5">{{ t('tools.line') }}</span></span>
+                <span class="help-desc">{{ t('toolDesc.line') }}</span>
+              </div>
+              <div class="help-row">
+                <span class="help-label"><kbd class="help-kbd">7</kbd><span class="ml-2.5">{{ t('tools.eraser') }}</span></span>
+                <span class="help-desc">{{ t('toolDesc.eraser') }}</span>
+              </div>
+              <div class="help-row">
+                <span class="help-label"><kbd class="help-kbd">T</kbd><span class="ml-2.5">{{ t('tools.text') }}</span></span>
+                <span class="help-desc">{{ t('toolDesc.text') }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modifier drawing -->
+          <div class="help-card">
+            <div class="help-card-header">{{ t('help.modifierDraw') }}</div>
+            <div class="help-rows">
+              <div class="help-row">
+                <span class="help-label">{{ t('help.straightLine') }}</span>
+                <div class="help-keys"><kbd class="help-kbd">Alt</kbd> + {{ t('panel.drag') }}<span class="help-sep">/</span><kbd class="help-kbd">⌥</kbd> + {{ t('panel.drag') }}</div>
+              </div>
+              <div class="help-row">
+                <span class="help-label">{{ t('tools.rect') }}</span>
+                <div class="help-keys"><kbd class="help-kbd">Ctrl</kbd> + {{ t('panel.drag') }}<span class="help-sep">/</span><kbd class="help-kbd">⌘</kbd> + {{ t('panel.drag') }}</div>
+              </div>
+              <div class="help-row">
+                <span class="help-label">{{ t('help.square') }}</span>
+                <div class="help-keys"><kbd class="help-kbd">Ctrl+Alt</kbd> + {{ t('panel.drag') }}<span class="help-sep">/</span><kbd class="help-kbd">⌘+⌥</kbd> + {{ t('panel.drag') }}</div>
+              </div>
+              <div class="help-row">
+                <span class="help-label">{{ t('tools.ellipse') }}</span>
+                <div class="help-keys"><kbd class="help-kbd">Shift</kbd> + {{ t('panel.drag') }}<span class="help-sep">/</span><kbd class="help-kbd">⇧</kbd> + {{ t('panel.drag') }}</div>
+              </div>
+              <div class="help-row">
+                <span class="help-label">{{ t('help.circle') }}</span>
+                <div class="help-keys"><kbd class="help-kbd">Shift+Alt</kbd> + {{ t('panel.drag') }}<span class="help-sep">/</span><kbd class="help-kbd">⇧+⌥</kbd> + {{ t('panel.drag') }}</div>
+              </div>
+              <div class="help-row">
+                <span class="help-label">{{ t('tools.arrow') }}</span>
+                <div class="help-keys"><kbd class="help-kbd">Ctrl+Shift</kbd> + {{ t('panel.drag') }}<span class="help-sep">/</span><kbd class="help-kbd">⌘+⇧</kbd> + {{ t('panel.drag') }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Color & edit operations -->
+          <div class="help-card">
+            <div class="help-card-header">{{ t('help.colorSwitch') }}</div>
+            <div class="help-rows">
+              <div class="help-row">
+                <span class="help-label"><kbd class="help-kbd">Q</kbd> / <kbd class="help-kbd">E</kbd></span>
+                <span class="help-desc">{{ t('help.prevColor') }} / {{ t('help.nextColor') }}</span>
+              </div>
+              <div class="help-row">
+                <span class="help-label">{{ t('help.mouseRightClick') }}</span>
+                <span class="help-desc">{{ t('help.rightClickColor') }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Edit & other -->
+          <div class="help-card">
+            <div class="help-card-header">{{ t('help.editAndOther') }}</div>
+            <div class="help-rows">
+              <div class="help-row">
+                <span class="help-label">{{ t('help.settingsPanel') }}</span>
+                <div class="help-keys"><kbd class="help-kbd">Space</kbd></div>
+              </div>
+              <div class="help-row">
+                <span class="help-label">{{ t('help.copyScreen') }}</span>
+                <div class="help-keys"><kbd class="help-kbd">Ctrl+C</kbd><span class="help-sep">/</span><kbd class="help-kbd">⌘+C</kbd></div>
+              </div>
+              <div class="help-row">
+                <span class="help-label">{{ t('help.undo') }}</span>
+                <div class="help-keys"><kbd class="help-kbd">Ctrl+Z</kbd><span class="help-sep">/</span><kbd class="help-kbd">⌘+Z</kbd></div>
+              </div>
+              <div class="help-row">
+                <span class="help-label">{{ t('help.redo') }}</span>
+                <div class="help-keys"><kbd class="help-kbd">Ctrl+Shift+Z</kbd><span class="help-sep">/</span><kbd class="help-kbd">⌘+⇧+Z</kbd></div>
+              </div>
+              <div class="help-row">
+                <span class="help-label">{{ t('help.strokeWidth') }}</span>
+                <div class="help-keys"><kbd class="help-kbd">Ctrl</kbd> + Scroll<span class="help-sep">/</span><kbd class="help-kbd">⌘</kbd> + Scroll</div>
+              </div>
+              <div class="help-row">
+                <span class="help-label">{{ t('help.clearAllAnnotation') }}</span>
+                <div class="help-keys"><kbd class="help-kbd">Delete</kbd></div>
+              </div>
+              <div class="help-row">
+                <span class="help-label">{{ t('help.exitAnnotation') }}</span>
+                <div class="help-keys"><kbd class="help-kbd">Esc</kbd></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Drag & text -->
+          <div class="help-card">
+            <div class="help-card-header">{{ t('help.dragAndText') }}</div>
+            <div class="help-rows">
+              <div class="help-row help-row-block">
+                <span class="help-label text-white/60">{{ t('help.dragElement') }}</span>
+                <span class="help-desc">{{ t('help.dragDesc') }}</span>
+              </div>
+              <div class="help-row help-row-block">
+                <span class="help-label text-white/60">{{ t('help.editText') }}</span>
+                <span class="help-desc"><span v-html="t('help.editTextDesc')" /></span>
+              </div>
+              <div class="help-row help-row-block">
+                <span class="help-label text-white/60">{{ t('help.confirmText') }}</span>
+                <span class="help-desc"><span v-html="t('help.confirmTextDesc')" /></span>
+              </div>
+            </div>
+          </div>
+        </div>
 
       </div>
 
@@ -513,39 +591,93 @@ onUnmounted(() => {
 .help-scroll::-webkit-scrollbar-track { background: transparent; }
 .help-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
 
-.help-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 11.5px;
+.help-card {
   border-radius: 8px;
-  overflow: hidden;
   border: 1px solid rgba(255,255,255,.05);
+  background: rgba(255,255,255,.02);
+  overflow: hidden;
+  transition: background 0.2s, border-color 0.2s;
 }
-.help-table th {
-  text-align: left;
-  padding: 6px 12px;
-  color: rgba(255,255,255,.4);
-  font-weight: 500;
+.help-card:hover {
   background: rgba(255,255,255,.03);
-  border-bottom: 1px solid rgba(255,255,255,.06);
+  border-color: rgba(255,255,255,.08);
 }
-.help-table td {
-  padding: 5px 12px;
-  color: rgba(255,255,255,.5);
+
+.help-card-header {
+  padding: 7px 14px;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255,255,255,.30);
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  letter-spacing: 0.03em;
+}
+
+.help-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.help-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 14px;
   border-bottom: 1px solid rgba(255,255,255,.03);
+  min-height: 30px;
+  gap: 12px;
 }
-.help-table tr:last-child td { border-bottom: none; }
-.help-table tbody tr:hover td { background: rgba(255,255,255,.02); }
+.help-row:last-child { border-bottom: none; }
+
+.help-row-block {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 14px;
+}
+
+.help-label {
+  font-size: 12.5px;
+  color: rgba(255,255,255,.70);
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.help-desc {
+  font-size: 10px;
+  color: rgba(255,255,255,.25);
+  text-align: right;
+}
+.help-row-block .help-desc {
+  text-align: left;
+}
+
+.help-keys {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: rgba(255,255,255,.25);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.help-sep {
+  color: rgba(255,255,255,.15);
+  margin: 0 2px;
+  font-size: 10px;
+}
 
 .help-kbd {
   display: inline-block;
-  padding: 1px 5px;
+  padding: 1px 6px;
   border-radius: 4px;
   background: rgba(255,255,255,.06);
   border: 1px solid rgba(255,255,255,.1);
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   font-size: 10.5px;
-  color: rgba(255,255,255,.6);
+  color: rgba(255,255,255,.55);
   line-height: 1.5;
   white-space: nowrap;
 }
