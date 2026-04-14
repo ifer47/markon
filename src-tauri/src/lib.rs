@@ -175,6 +175,12 @@ pub fn run() {
 
             shortcuts::register_shortcuts(&handle);
 
+            let ctrlc_handle = handle.clone();
+            ctrlc::set_handler(move || {
+                ctrlc_handle.exit(0);
+            })
+            .ok();
+
             Ok(())
         })
         .on_window_event(|window, event| match event {
