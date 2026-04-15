@@ -91,6 +91,27 @@ pub fn save_general(
 }
 
 #[tauri::command]
+pub fn save_locale(
+    app: AppHandle,
+    state: tauri::State<'_, AppState>,
+    locale: String,
+) -> Result<(), String> {
+    let mut cfg = state.config.lock().unwrap();
+    cfg.general.locale = Some(locale.clone());
+    crate::config::save_config(&app, &cfg);
+    drop(cfg);
+
+    crate::i18n::set_locale(&locale);
+    crate::rebuild_tray_menu(&app).map_err(|e| e.to_string())?;
+
+    if let Some(win) = app.get_webview_window("settings") {
+        win.set_title(crate::i18n::strings().window_title).ok();
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
 pub fn exit_drawing(app: AppHandle, state: tauri::State<'_, AppState>) {
     let mut is_drawing = state.is_drawing.lock().unwrap();
     if *is_drawing {

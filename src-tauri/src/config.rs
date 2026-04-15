@@ -15,12 +15,15 @@ pub struct Shortcuts {
 pub struct GeneralConfig {
     #[serde(rename = "enableDragging")]
     pub enable_dragging: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub locale: Option<String>,
 }
 
 impl Default for GeneralConfig {
     fn default() -> Self {
         Self {
             enable_dragging: false,
+            locale: None,
         }
     }
 }

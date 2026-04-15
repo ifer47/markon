@@ -5,9 +5,23 @@ import { listen } from '@tauri-apps/api/event'
 import { enable, isEnabled, disable } from '@tauri-apps/plugin-autostart'
 import type { AppConfig, SaveResult } from '../types/app'
 import { isMacOS } from '../utils/platform'
-import { useI18n } from '../i18n'
+import { useI18n, syncLocaleFromConfig } from '../i18n'
 
-const { t } = useI18n()
+const { t, locale, setLocale, availableLocales } = useI18n()
+
+const localeLabels: Record<string, string> = {
+  en: 'English',
+  'zh-CN': '简体中文',
+}
+
+async function changeLocale(loc: string) {
+  setLocale(loc)
+  try {
+    await invoke('save_locale', { locale: loc })
+  } catch (error) {
+    console.error('Failed to save locale:', error)
+  }
+}
 
 const modLabel = computed(() => (isMacOS() ? 'Command' : 'Ctrl'))
 
@@ -181,6 +195,7 @@ onMounted(async () => {
   const cfg = await invoke<AppConfig>('get_config')
   Object.assign(shortcuts, cfg.shortcuts)
   enableDragging.value = cfg.general?.enableDragging ?? false
+  syncLocaleFromConfig(cfg.general?.locale)
   window.addEventListener('keydown', onKeyDown, true)
 
   unlistenSwitchTab = await listen<string>('switch-tab', (e) => {
@@ -394,6 +409,27 @@ onUnmounted(() => {
         <h2 class="text-[14px] font-semibold text-white/75 mb-4">{{ t('settings.generalTitle') }}</h2>
 
         <div class="flex flex-col gap-2">
+          <div
+            class="flex flex-col gap-3 px-4 py-3.5 rounded-lg border border-white/5 bg-white/2 hover:bg-white/4 hover:border-white/10 transition-all duration-200"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-[12.5px] text-white/70">{{ t('settings.language') }}</span>
+              <select
+                :value="locale.locale"
+                class="locale-select appearance-none bg-white/8 border border-white/10 rounded-md px-3 py-1 text-[12px] text-white/80 cursor-pointer outline-none hover:bg-white/12 hover:border-white/15 transition-all duration-150 pr-7"
+                @change="changeLocale(($event.target as HTMLSelectElement).value)"
+              >
+                <option v-for="loc in availableLocales" :key="loc" :value="loc" class="bg-[#2a2a2c] text-white/80">
+                  {{ localeLabels[loc] || loc }}
+                </option>
+              </select>
+            </div>
+
+            <p class="text-[10px] text-white/25 leading-relaxed m-0 border-t border-white/5 pt-2">
+              {{ t('settings.languageDesc') }}
+            </p>
+          </div>
+
           <div
             class="flex flex-col gap-3 px-4 py-3.5 rounded-lg border border-white/5 bg-white/2 hover:bg-white/4 hover:border-white/10 transition-all duration-200"
           >
@@ -848,6 +884,12 @@ onUnmounted(() => {
   color: rgba(255, 255, 255, 0.15);
   margin: 0 2px;
   font-size: 10px;
+}
+
+.locale-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
 }
 
 .help-kbd {

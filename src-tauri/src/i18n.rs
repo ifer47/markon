@@ -1,3 +1,5 @@
+use std::sync::atomic::{AtomicBool, Ordering};
+
 pub struct Strings {
     pub settings: &'static str,
     pub help: &'static str,
@@ -28,13 +30,25 @@ const EN: Strings = Strings {
     clear_drawing: "Clear annotations",
 };
 
-pub fn strings() -> &'static Strings {
-    use std::sync::OnceLock;
-    static CACHED: OnceLock<bool> = OnceLock::new();
-    if *CACHED.get_or_init(is_chinese) { &ZH } else { &EN }
+static USE_CHINESE: AtomicBool = AtomicBool::new(false);
+
+pub fn init(locale: Option<&str>) {
+    let chinese = match locale {
+        Some(l) => l.starts_with("zh"),
+        None => detect_chinese(),
+    };
+    USE_CHINESE.store(chinese, Ordering::Relaxed);
 }
 
-fn is_chinese() -> bool {
+pub fn set_locale(locale: &str) {
+    USE_CHINESE.store(locale.starts_with("zh"), Ordering::Relaxed);
+}
+
+pub fn strings() -> &'static Strings {
+    if USE_CHINESE.load(Ordering::Relaxed) { &ZH } else { &EN }
+}
+
+fn detect_chinese() -> bool {
     #[cfg(target_os = "windows")]
     {
         let lang = std::env::var("LANG")

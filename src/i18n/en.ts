@@ -81,6 +81,8 @@ export default {
     edit: 'Edit',
     restoreDefaults: 'Restore defaults',
     generalTitle: 'General',
+    language: 'Language',
+    languageDesc: 'Choose the display language for the application.',
     autoStart: 'Launch at startup',
     autoStartDesc: 'When enabled, the app runs silently in the background on system startup.',
     enableDragging: 'Allow dragging elements',

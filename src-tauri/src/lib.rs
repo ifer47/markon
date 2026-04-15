@@ -14,6 +14,25 @@ use tauri::{
 
 use config::{AppConfig, AppState};
 
+pub fn rebuild_tray_menu(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
+    let s = i18n::strings();
+    if let Some(tray) = app.tray_by_id("main") {
+        let settings_item = MenuItemBuilder::with_id("settings", s.settings).build(app)?;
+        let help_item = MenuItemBuilder::with_id("help", s.help).build(app)?;
+        let about_item = MenuItemBuilder::with_id("about", s.about).build(app)?;
+        let quit_item = MenuItemBuilder::with_id("quit", s.quit).build(app)?;
+        let menu = MenuBuilder::new(app)
+            .item(&settings_item)
+            .item(&help_item)
+            .item(&about_item)
+            .separator()
+            .item(&quit_item)
+            .build()?;
+        tray.set_menu(Some(menu))?;
+    }
+    Ok(())
+}
+
 fn setup_overlay_size(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("overlay") {
         if let Some((x, y, w, h)) = monitor::get_cursor_monitor_rect() {
@@ -115,6 +134,7 @@ pub fn run() {
             commands::get_config,
             commands::save_shortcuts,
             commands::save_general,
+            commands::save_locale,
             commands::exit_drawing,
             commands::open_url,
             clipboard::copy_screen,
@@ -126,6 +146,7 @@ pub fn run() {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             let loaded = config::load_config(&handle);
+            i18n::init(loaded.general.locale.as_deref());
             {
                 let state = handle.state::<AppState>();
                 let mut cfg = state.config.lock().unwrap();
@@ -134,25 +155,9 @@ pub fn run() {
 
             setup_overlay_size(&handle);
 
-            let s = i18n::strings();
-            let settings_item =
-                MenuItemBuilder::with_id("settings", s.settings).build(app)?;
-            let help_item =
-                MenuItemBuilder::with_id("help", s.help).build(app)?;
-            let about_item =
-                MenuItemBuilder::with_id("about", s.about).build(app)?;
-            let quit_item =
-                MenuItemBuilder::with_id("quit", s.quit).build(app)?;
-            let menu = MenuBuilder::new(app)
-                .item(&settings_item)
-                .item(&help_item)
-                .item(&about_item)
-                .separator()
-                .item(&quit_item)
-                .build()?;
+            rebuild_tray_menu(&handle).ok();
 
             if let Some(tray) = app.tray_by_id("main") {
-                tray.set_menu(Some(menu))?;
                 tray.on_menu_event(move |app, event| match event.id().as_ref() {
                     "settings" => open_settings(app),
                     "help" => open_settings_tab(app, Some("help")),

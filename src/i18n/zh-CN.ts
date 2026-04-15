@@ -80,6 +80,8 @@ export default {
     edit: '修改',
     restoreDefaults: '恢复默认',
     generalTitle: '常规',
+    language: '界面语言',
+    languageDesc: '选择应用程序的显示语言。',
     autoStart: '开机自动启动',
     autoStartDesc: '开启后，应用程序会在系统启动时自动在后台静默运行。',
     enableDragging: '允许拖拽已有元素',
