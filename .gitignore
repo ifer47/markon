@@ -46,3 +46,6 @@ juejin.md
 
 # Machine-specific Cargo/MSVC config
 src-tauri/.cargo/
+
+# Windows NUL device artifact
+NUL
