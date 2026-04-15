@@ -6,10 +6,7 @@ import { useDrawing, type Tool, type DrawAction } from '../composables/useDrawin
 import type { AppConfig } from '../types/app'
 import SettingsPanel from './SettingsPanel.vue'
 import TextBox from './TextBox.vue'
-import {
-  Pen, Highlighter, ArrowUpRight, Square, Circle,
-  Minus, Eraser, Type,
-} from '@lucide/vue'
+import { Pen, Highlighter, ArrowUpRight, Square, Circle, Minus, Eraser, Type } from '@lucide/vue'
 import { isMacOS } from '../utils/platform'
 import { useI18n } from '../i18n'
 
@@ -59,15 +56,37 @@ const showQuickColors = ref(false)
 const quickColorsPos = ref({ x: 0, y: 0 })
 
 const quickColorList = [
-  '#FF3B30', '#FF6B35', '#FFCC02', '#34C759', '#007AFF', '#5856D6', '#FFFFFF',
-  '#AF52DE', '#FF2D55', '#00C7BE', '#8E8E93', '#636366', '#3A3A3C', '#000000',
+  '#FF3B30',
+  '#FF6B35',
+  '#FFCC02',
+  '#34C759',
+  '#007AFF',
+  '#5856D6',
+  '#FFFFFF',
+  '#AF52DE',
+  '#FF2D55',
+  '#00C7BE',
+  '#8E8E93',
+  '#636366',
+  '#3A3A3C',
+  '#000000',
 ]
 
 const colorNameMap = computed<Record<string, string>>(() => ({
-  '#FF3B30': t('colors.#FF3B30'), '#FF6B35': t('colors.#FF6B35'), '#FFCC02': t('colors.#FFCC02'), '#34C759': t('colors.#34C759'),
-  '#007AFF': t('colors.#007AFF'), '#5856D6': t('colors.#5856D6'), '#FFFFFF': t('colors.#FFFFFF'), '#AF52DE': t('colors.#AF52DE'),
-  '#FF2D55': t('colors.#FF2D55'), '#00C7BE': t('colors.#00C7BE'), '#8E8E93': t('colors.#8E8E93'), '#636366': t('colors.#636366'),
-  '#3A3A3C': t('colors.#3A3A3C'), '#000000': t('colors.#000000'),
+  '#FF3B30': t('colors.#FF3B30'),
+  '#FF6B35': t('colors.#FF6B35'),
+  '#FFCC02': t('colors.#FFCC02'),
+  '#34C759': t('colors.#34C759'),
+  '#007AFF': t('colors.#007AFF'),
+  '#5856D6': t('colors.#5856D6'),
+  '#FFFFFF': t('colors.#FFFFFF'),
+  '#AF52DE': t('colors.#AF52DE'),
+  '#FF2D55': t('colors.#FF2D55'),
+  '#00C7BE': t('colors.#00C7BE'),
+  '#8E8E93': t('colors.#8E8E93'),
+  '#636366': t('colors.#636366'),
+  '#3A3A3C': t('colors.#3A3A3C'),
+  '#000000': t('colors.#000000'),
 }))
 
 function showToolTip(tool: Tool) {
@@ -76,7 +95,12 @@ function showToolTip(tool: Tool) {
   toolTipColor.value = null
   toolTipWidth.value = null
   if (toolTipTimer) clearTimeout(toolTipTimer)
-  toolTipTimer = setTimeout(() => { toolTip.value = ''; toolTipTool.value = null; toolTipColor.value = null; toolTipWidth.value = null }, 1200)
+  toolTipTimer = setTimeout(() => {
+    toolTip.value = ''
+    toolTipTool.value = null
+    toolTipColor.value = null
+    toolTipWidth.value = null
+  }, 1200)
 }
 
 function showColorTip(color: string) {
@@ -85,7 +109,12 @@ function showColorTip(color: string) {
   toolTipColor.value = color
   toolTipWidth.value = null
   if (toolTipTimer) clearTimeout(toolTipTimer)
-  toolTipTimer = setTimeout(() => { toolTip.value = ''; toolTipTool.value = null; toolTipColor.value = null; toolTipWidth.value = null }, 1200)
+  toolTipTimer = setTimeout(() => {
+    toolTip.value = ''
+    toolTipTool.value = null
+    toolTipColor.value = null
+    toolTipWidth.value = null
+  }, 1200)
 }
 
 function cycleColor(direction: number) {
@@ -117,8 +146,13 @@ function onWheel(e: WheelEvent) {
   e.preventDefault()
   const dir = e.deltaY < 0 ? 1 : -1
   const idx = WIDTH_PRESETS.indexOf(lineWidth.value)
-  const cur = idx !== -1 ? idx
-    : Math.max(0, WIDTH_PRESETS.findIndex(v => v >= lineWidth.value))
+  const cur =
+    idx !== -1
+      ? idx
+      : Math.max(
+          0,
+          WIDTH_PRESETS.findIndex((v) => v >= lineWidth.value),
+        )
   const next = Math.max(0, Math.min(WIDTH_PRESETS.length - 1, cur + dir))
   lineWidth.value = WIDTH_PRESETS[next]
   const labelKey = tool === 'text' ? `textSizes.${lineWidth.value}` : `widths.${lineWidth.value}`
@@ -164,7 +198,7 @@ function toggleSettingsVisible() {
   setSettingsVisible(!showSettings.value)
 }
 
-const hoveredActionInfo = shallowRef<{ action: DrawAction, index: number } | null>(null)
+const hoveredActionInfo = shallowRef<{ action: DrawAction; index: number } | null>(null)
 const isMoving = ref(false)
 const enableDragging = ref(false)
 let hoverRafId: number | null = null
@@ -258,13 +292,13 @@ function onDoubleClick(e: MouseEvent) {
     const { action, index } = clickedActionInfo
     editingOriginalAction.value = action
     removeAction(index)
-    
+
     activeTextBoxColor.value = action.color
     activeTextBoxFontSize.value = action.fontSize ?? 24
     activeTextBoxInitialText.value = action.text ?? ''
-    
+
     currentTool.value = 'text'
-    
+
     nextTick(() => {
       textBoxPos.value = { x: action.points[0].x, y: action.points[0].y }
     })
@@ -345,7 +379,13 @@ function onPointerMove(e: PointerEvent) {
       if (hoverRafId === null) {
         hoverRafId = requestAnimationFrame(() => {
           hoverRafId = null
-          if (active.value && !showSettings.value && !showQuickColors.value && !textBoxPos.value && enableDragging.value) {
+          if (
+            active.value &&
+            !showSettings.value &&
+            !showQuickColors.value &&
+            !textBoxPos.value &&
+            enableDragging.value
+          ) {
             hoveredActionInfo.value = findActionAt(mousePos.value)
           }
         })
@@ -491,14 +531,16 @@ const cursorStyle = computed(() => {
 
   let result: string
   if (isEraser) {
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'>` +
+    const svg =
+      `<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'>` +
       `<circle cx='16' cy='16' r='14' fill='none' stroke='white' stroke-width='1.5' stroke-dasharray='3,2'/>` +
       `<line x1='16' y1='12' x2='16' y2='20' stroke='white' stroke-width='1'/>` +
       `<line x1='12' y1='16' x2='20' y2='16' stroke='white' stroke-width='1'/>` +
       `</svg>`
     result = `url("data:image/svg+xml,${encodeURIComponent(svg)}") 16 16, crosshair`
   } else {
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28'>` +
+    const svg =
+      `<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28'>` +
       `<line x1='14' y1='2' x2='14' y2='10' stroke='black' stroke-opacity='0.4' stroke-width='3' stroke-linecap='round'/>` +
       `<line x1='14' y1='18' x2='14' y2='26' stroke='black' stroke-opacity='0.4' stroke-width='3' stroke-linecap='round'/>` +
       `<line x1='2' y1='14' x2='10' y2='14' stroke='black' stroke-opacity='0.4' stroke-width='3' stroke-linecap='round'/>` +
@@ -518,7 +560,8 @@ const cursorStyle = computed(() => {
 })
 
 const quickColorsPanelStyle = computed(() => {
-  const pw = 260, ph = 100
+  const pw = 260,
+    ph = 100
   let left = quickColorsPos.value.x - pw / 2
   let top = quickColorsPos.value.y - ph - 12
   left = Math.max(8, Math.min(left, window.innerWidth - pw - 8))
@@ -554,7 +597,7 @@ onMounted(async () => {
   unlisteners.push(
     await listen<AppConfig>('config-changed', (event) => {
       enableDragging.value = event.payload.general?.enableDragging ?? false
-    })
+    }),
   )
 
   unlisteners.push(
@@ -569,19 +612,22 @@ onMounted(async () => {
         currentTool.value = 'pen'
         nextTick(() => resizeCanvas())
       }
-    })
+    }),
   )
 
   unlisteners.push(
     await listen('clear-drawing', () => {
       hardReset()
-    })
+    }),
   )
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', debouncedResize)
-  if (resizeTimer) { clearTimeout(resizeTimer); resizeTimer = null }
+  if (resizeTimer) {
+    clearTimeout(resizeTimer)
+    resizeTimer = null
+  }
   dprMediaQuery?.removeEventListener('change', onDprChange)
   dprMediaQuery = null
   window.removeEventListener('keydown', onKeyDown)
@@ -616,7 +662,12 @@ function showTip(text: string) {
   toolTipColor.value = null
   toolTipWidth.value = null
   if (toolTipTimer) clearTimeout(toolTipTimer)
-  toolTipTimer = setTimeout(() => { toolTip.value = ''; toolTipTool.value = null; toolTipColor.value = null; toolTipWidth.value = null }, 1500)
+  toolTipTimer = setTimeout(() => {
+    toolTip.value = ''
+    toolTipTool.value = null
+    toolTipColor.value = null
+    toolTipWidth.value = null
+  }, 1500)
 }
 
 function showWidthTip(w: number, label?: string) {
@@ -626,7 +677,12 @@ function showWidthTip(w: number, label?: string) {
   toolTipColor.value = null
   toolTipWidth.value = w
   if (toolTipTimer) clearTimeout(toolTipTimer)
-  toolTipTimer = setTimeout(() => { toolTip.value = ''; toolTipTool.value = null; toolTipColor.value = null; toolTipWidth.value = null }, 1200)
+  toolTipTimer = setTimeout(() => {
+    toolTip.value = ''
+    toolTipTool.value = null
+    toolTipColor.value = null
+    toolTipWidth.value = null
+  }, 1200)
 }
 
 function exitDrawing() {
@@ -718,18 +774,23 @@ function exitDrawing() {
             >
               <span
                 class="w-[22px] h-[22px] rounded-full border-[1.5px] transition-[border-color] duration-100"
-                :class="currentColor === color
-                  ? 'border-white/70 shadow-[0_0_0_2px_rgba(255,255,255,0.1)]'
-                  : 'border-white/10'"
+                :class="
+                  currentColor === color
+                    ? 'border-white/70 shadow-[0_0_0_2px_rgba(255,255,255,0.1)]'
+                    : 'border-white/10'
+                "
                 :style="{ backgroundColor: color }"
               />
               <span
                 v-if="currentColor === color"
                 class="absolute text-[10px] font-bold pointer-events-none"
-                :class="['#FFFFFF','#FFCC02','#8E8E93'].includes(color)
-                  ? 'text-black/70'
-                  : 'text-white [text-shadow:0_0_2px_rgba(0,0,0,0.5)]'"
-              >✓</span>
+                :class="
+                  ['#FFFFFF', '#FFCC02', '#8E8E93'].includes(color)
+                    ? 'text-black/70'
+                    : 'text-white [text-shadow:0_0_2px_rgba(0,0,0,0.5)]'
+                "
+                >✓</span
+              >
             </button>
           </div>
           <div class="flex items-center justify-center gap-3 mt-1.5 pt-1.5 border-t border-white/5">
@@ -746,9 +807,22 @@ function exitDrawing() {
       :line-width="lineWidth"
       :x="mousePos.x"
       :y="mousePos.y"
-      @select-tool="(tool: Tool) => { currentTool = tool }"
-      @select-color="(color: string) => { currentColor = color; showColorTip(color) }"
-      @update-line-width="(w: number) => { lineWidth = w }"
+      @select-tool="
+        (tool: Tool) => {
+          currentTool = tool
+        }
+      "
+      @select-color="
+        (color: string) => {
+          currentColor = color
+          showColorTip(color)
+        }
+      "
+      @update-line-width="
+        (w: number) => {
+          lineWidth = w
+        }
+      "
       @close="setSettingsVisible(false)"
     />
   </div>
@@ -767,10 +841,14 @@ function exitDrawing() {
 }
 
 .quick-colors-enter-active {
-  transition: opacity 0.12s ease, transform 0.12s cubic-bezier(0.2, 0, 0.13, 1.5);
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s cubic-bezier(0.2, 0, 0.13, 1.5);
 }
 .quick-colors-leave-active {
-  transition: opacity 0.1s ease, transform 0.1s ease;
+  transition:
+    opacity 0.1s ease,
+    transform 0.1s ease;
 }
 .quick-colors-enter-from {
   opacity: 0;

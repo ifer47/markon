@@ -1,5 +1,11 @@
 import { ref, shallowRef, type Ref } from 'vue'
-import { computeBbox, bboxesIntersect, offsetAttachedErasers, updateShapeHitCache, hitTestAction } from './drawingGeometry'
+import {
+  computeBbox,
+  bboxesIntersect,
+  offsetAttachedErasers,
+  updateShapeHitCache,
+  hitTestAction,
+} from './drawingGeometry'
 import { drawActionDirect } from './drawingRender'
 
 export type { Tool, Point, DrawAction } from './drawingTypes'
@@ -23,9 +29,7 @@ function getMinDistSq(): number {
   if (area !== cachedViewportArea) {
     cachedViewportArea = area
     const scale = area / BASE_VIEWPORT_AREA
-    cachedMinDistSq = scale > 1.5
-      ? Math.round(BASE_MIN_DIST_SQ * Math.min(scale, 4))
-      : BASE_MIN_DIST_SQ
+    cachedMinDistSq = scale > 1.5 ? Math.round(BASE_MIN_DIST_SQ * Math.min(scale, 4)) : BASE_MIN_DIST_SQ
   }
   return cachedMinDistSq
 }
@@ -49,15 +53,18 @@ export function useDrawing(
   }
 
   type UndoEntry =
-    | { type: 'add', action: DrawAction }
-    | { type: 'remove', action: DrawAction, index: number }
-    | { type: 'drag', action: DrawAction, from: DragSnapshot, to: DragSnapshot }
-    | { type: 'erase', targets: { action: DrawAction, before: DrawAction['attachedErasers'], after: DrawAction['attachedErasers'] }[] }
-    | { type: 'clear', actions: DrawAction[], prevUndoStack: UndoEntry[] }
+    | { type: 'add'; action: DrawAction }
+    | { type: 'remove'; action: DrawAction; index: number }
+    | { type: 'drag'; action: DrawAction; from: DragSnapshot; to: DragSnapshot }
+    | {
+        type: 'erase'
+        targets: { action: DrawAction; before: DrawAction['attachedErasers']; after: DrawAction['attachedErasers'] }[]
+      }
+    | { type: 'clear'; actions: DrawAction[]; prevUndoStack: UndoEntry[] }
 
   function takeDragSnapshot(action: DrawAction, index: number): DragSnapshot {
     return {
-      points: action.points.map(p => ({ x: p.x, y: p.y })),
+      points: action.points.map((p) => ({ x: p.x, y: p.y })),
       index,
       attachedErasers: action.attachedErasers ? [...action.attachedErasers] : undefined,
       bbox: action.bbox ? { ...action.bbox } : undefined,
@@ -67,7 +74,7 @@ export function useDrawing(
   }
 
   function restoreDragSnapshot(action: DrawAction, snap: DragSnapshot) {
-    action.points = snap.points.map(p => ({ x: p.x, y: p.y }))
+    action.points = snap.points.map((p) => ({ x: p.x, y: p.y }))
     action.attachedErasers = snap.attachedErasers ? [...snap.attachedErasers] : undefined
     action.bbox = snap.bbox ? { ...snap.bbox } : undefined
     action.rectHit = snap.rectHit ? { ...snap.rectHit } : undefined
@@ -142,7 +149,7 @@ export function useDrawing(
     if (!canvas) return window.devicePixelRatio || 1
     if (canvas.width === cachedDprCanvasW && cachedDpr > 0) return cachedDpr
     const cssW = parseFloat(canvas.style.width)
-    cachedDpr = cssW > 0 ? canvas.width / cssW : (window.devicePixelRatio || 1)
+    cachedDpr = cssW > 0 ? canvas.width / cssW : window.devicePixelRatio || 1
     cachedDprCanvasW = canvas.width
     return cachedDpr
   }
@@ -479,8 +486,10 @@ export function useDrawing(
       action.textWidth = maxWidth
       const lh = Math.round(fontSize * 1.3)
       action.bbox = {
-        x1: x - 10, y1: y - lh / 2 - 10,
-        x2: x + maxWidth + 20, y2: y + lines.length * lh + lh / 2 + 10,
+        x1: x - 10,
+        y1: y - lh / 2 - 10,
+        x2: x + maxWidth + 20,
+        y2: y + lines.length * lh + lh / 2 + 10,
       }
     }
 
@@ -505,8 +514,7 @@ export function useDrawing(
     if (useIncrementalStroke) initStrokeCanvas()
 
     const opacity = currentTool.value === 'highlighter' ? 0.35 : 1
-    const width = currentTool.value === 'highlighter' ? 20 :
-                  currentTool.value === 'eraser' ? 25 : lineWidth.value
+    const width = currentTool.value === 'highlighter' ? 20 : currentTool.value === 'eraser' ? 25 : lineWidth.value
 
     currentAction.value = {
       tool: currentTool.value,
@@ -570,7 +578,7 @@ export function useDrawing(
         const maxDist = Math.max(Math.abs(dx), Math.abs(dy))
         finalPoint = {
           x: start.x + (dx < 0 ? -maxDist : maxDist),
-          y: start.y + (dy < 0 ? -maxDist : maxDist)
+          y: start.y + (dy < 0 ? -maxDist : maxDist),
         }
       }
 
@@ -600,7 +608,11 @@ export function useDrawing(
 
     if (action.tool === 'eraser') {
       if (action.bbox) {
-        const eraseTargets: { action: DrawAction, before: DrawAction['attachedErasers'], after: DrawAction['attachedErasers'] }[] = []
+        const eraseTargets: {
+          action: DrawAction
+          before: DrawAction['attachedErasers']
+          after: DrawAction['attachedErasers']
+        }[] = []
 
         for (let i = 0; i < history.length; i++) {
           const target = history[i]
@@ -638,7 +650,10 @@ export function useDrawing(
   function drawActionOn(ctx: CanvasRenderingContext2D, action: DrawAction) {
     if (action.tool !== 'eraser' && action.attachedErasers?.length) {
       const bbox = action.bbox
-      if (!bbox) { drawActionDirect(ctx, action, pathCache); return }
+      if (!bbox) {
+        drawActionDirect(ctx, action, pathCache)
+        return
+      }
 
       const dpr = getEffectiveDpr()
       const w = bbox.x2 - bbox.x1
@@ -662,7 +677,10 @@ export function useDrawing(
       }
       if (!tempCtx) tempCtx = tempCanvas.getContext('2d')
       const tctx = tempCtx
-      if (!tctx) { drawActionDirect(ctx, action, pathCache); return }
+      if (!tctx) {
+        drawActionDirect(ctx, action, pathCache)
+        return
+      }
 
       tctx.setTransform(1, 0, 0, 1, 0, 0)
       tctx.clearRect(0, 0, pw, ph)
@@ -801,8 +819,10 @@ export function useDrawing(
         const x = action.points[0].x
         const y = action.points[0].y
         action.bbox = {
-          x1: x - 10, y1: y - lh / 2 - 10,
-          x2: x + action.textWidth + 20, y2: y + lines.length * lh + lh / 2 + 10,
+          x1: x - 10,
+          y1: y - lh / 2 - 10,
+          x2: x + action.textWidth + 20,
+          y2: y + lines.length * lh + lh / 2 + 10,
         }
       } else {
         action.bbox = computeBbox(action, pad)
@@ -958,7 +978,7 @@ export function useDrawing(
     flushRender()
   }
 
-  function findActionAt(p: Point): { action: DrawAction, index: number } | null {
+  function findActionAt(p: Point): { action: DrawAction; index: number } | null {
     ensureHitGrid()
     ensureHistoryIndex()
 

@@ -111,7 +111,11 @@ export function drawText(ctx: CanvasRenderingContext2D, action: DrawAction) {
  * Draw an action with full style setup (opacity, composite operation, stroke/fill).
  * Handles all tool types including eraser composite mode.
  */
-export function drawActionDirect(ctx: CanvasRenderingContext2D, action: DrawAction, pathCache?: WeakMap<DrawAction, Path2D>) {
+export function drawActionDirect(
+  ctx: CanvasRenderingContext2D,
+  action: DrawAction,
+  pathCache?: WeakMap<DrawAction, Path2D>,
+) {
   ctx.save()
   ctx.globalAlpha = action.opacity
 

@@ -3,7 +3,10 @@ import type { DrawAction, Point } from './drawingTypes'
 export function computeBbox(action: DrawAction, pad: number): DrawAction['bbox'] {
   const pts = action.points
   if (pts.length === 0) return undefined
-  let x1 = pts[0].x, y1 = pts[0].y, x2 = pts[0].x, y2 = pts[0].y
+  let x1 = pts[0].x,
+    y1 = pts[0].y,
+    x2 = pts[0].x,
+    y2 = pts[0].y
   for (let i = 1; i < pts.length; i++) {
     if (pts[i].x < x1) x1 = pts[i].x
     if (pts[i].y < y1) y1 = pts[i].y
@@ -13,10 +16,7 @@ export function computeBbox(action: DrawAction, pad: number): DrawAction['bbox']
   return { x1: x1 - pad, y1: y1 - pad, x2: x2 + pad, y2: y2 + pad }
 }
 
-export function bboxesIntersect(
-  a: NonNullable<DrawAction['bbox']>,
-  b: NonNullable<DrawAction['bbox']>
-) {
+export function bboxesIntersect(a: NonNullable<DrawAction['bbox']>, b: NonNullable<DrawAction['bbox']>) {
   return a.x1 <= b.x2 && a.x2 >= b.x1 && a.y1 <= b.y2 && a.y2 >= b.y1
 }
 
@@ -86,7 +86,8 @@ export function updateShapeHitCache(action: DrawAction) {
 }
 
 export function distToSeg(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {
-  const dx = bx - ax, dy = by - ay
+  const dx = bx - ax,
+    dy = by - ay
   const l2 = dx * dx + dy * dy
   if (l2 === 0) return Math.hypot(px - ax, py - ay)
   const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / l2))
@@ -166,8 +167,13 @@ export function hitTestAction(action: DrawAction, p: Point): boolean {
         return Math.hypot(p.x - ellipse.cx, p.y - ellipse.cy) <= threshold
       }
 
-      if (p.x < ellipse.cx - ellipse.rx - threshold || p.x > ellipse.cx + ellipse.rx + threshold ||
-          p.y < ellipse.cy - ellipse.ry - threshold || p.y > ellipse.cy + ellipse.ry + threshold) return false
+      if (
+        p.x < ellipse.cx - ellipse.rx - threshold ||
+        p.x > ellipse.cx + ellipse.rx + threshold ||
+        p.y < ellipse.cy - ellipse.ry - threshold ||
+        p.y > ellipse.cy + ellipse.ry + threshold
+      )
+        return false
 
       let minDist = Infinity
       for (let j = 0; j < 32; j++) {

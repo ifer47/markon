@@ -23,9 +23,7 @@ const activeTab = ref(hashTab && ['general', 'shortcuts', 'help', 'about'].inclu
 const APP_VERSION = __APP_VERSION__
 
 const tabIds = ['general', 'shortcuts', 'help', 'about'] as const
-const tabs = computed(() =>
-  tabIds.map(id => ({ id, label: t(`settings.tabs.${id}`) }))
-)
+const tabs = computed(() => tabIds.map((id) => ({ id, label: t(`settings.tabs.${id}`) })))
 
 const shortcuts = reactive<AppConfig['shortcuts']>({
   toggleDrawing: '',
@@ -43,8 +41,14 @@ const saving = ref(false)
 const message = ref<{ type: 'success' | 'error'; text: string } | null>(null)
 
 const keyMap: Record<string, string> = {
-  ArrowUp: 'Up', ArrowDown: 'Down', ArrowLeft: 'Left', ArrowRight: 'Right',
-  ' ': 'Space', AudioVolumeUp: 'VolumeUp', AudioVolumeDown: 'VolumeDown', AudioVolumeMute: 'VolumeMute',
+  ArrowUp: 'Up',
+  ArrowDown: 'Down',
+  ArrowLeft: 'Left',
+  ArrowRight: 'Right',
+  ' ': 'Space',
+  AudioVolumeUp: 'VolumeUp',
+  AudioVolumeDown: 'VolumeDown',
+  AudioVolumeMute: 'VolumeMute',
 }
 
 function startCapture(action: keyof AppConfig['shortcuts']) {
@@ -115,7 +119,9 @@ async function saveShortcuts() {
     message.value = { type: 'error', text: t('settings.saveFailed') }
   } finally {
     saving.value = false
-    setTimeout(() => { message.value = null }, 3000)
+    setTimeout(() => {
+      message.value = null
+    }, 3000)
   }
 }
 
@@ -131,7 +137,9 @@ async function resetDefaults() {
     shortcuts.toggleDrawing = d.toggleDrawing
     shortcuts.clearDrawing = d.clearDrawing
     message.value = { type: 'success', text: t('settings.restoredDefaults') }
-    setTimeout(() => { message.value = null }, 3000)
+    setTimeout(() => {
+      message.value = null
+    }, 3000)
   }
 }
 
@@ -178,7 +186,7 @@ onMounted(async () => {
   unlistenSwitchTab = await listen<string>('switch-tab', (e) => {
     activeTab.value = e.payload
   })
-  
+
   try {
     autoStartEnabled.value = await isEnabled()
   } catch (error) {
@@ -197,7 +205,12 @@ onUnmounted(() => {
     <!-- Sidebar -->
     <div class="w-[154px] shrink-0 bg-[#161618] flex flex-col border-r border-white/5">
       <div class="flex items-center gap-2.5 px-4 pt-5 pb-5">
-        <svg class="w-7 h-7 shrink-0" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M659.498667 412.8l-6.101334-6.058667a233.6 233.6 0 0 0-101.973333-57.557333c-124.032-33.237333-243.157333 37.077333-276.992 163.413333-1.834667 6.826667-2.816 14.506667-4.437333 33.749334-6.570667 79.786667-25.344 139.306667-76.8 199.68 96.426667 37.888 210.688 64.597333 297.557333 64.597333a234.88 234.88 0 0 0 226.56-174.037333 234.538667 234.538667 0 0 0-57.856-223.786667z m-92.501334-147.712l210.730667-163.925333a42.666667 42.666667 0 0 1 56.32 3.541333l127.786667 127.744a42.666667 42.666667 0 0 1 3.498666 56.32l-163.84 210.730667a320.213333 320.213333 0 0 1-310.741333 396.458666C341.333333 895.957333 149.333333 831.872 42.666667 767.872c169.813333-128 130.005333-205.226667 149.333333-277.333333 45.141333-168.533333 206.592-267.008 374.997333-225.450667zM712.533333 345.258667c2.816 2.688 5.546667 5.461333 8.277334 8.234666L769.28 401.92l105.6-135.765333-74.496-74.496-135.765333 105.6L712.533333 345.258667z" fill="currentColor"/></svg>
+        <svg class="w-7 h-7 shrink-0" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M659.498667 412.8l-6.101334-6.058667a233.6 233.6 0 0 0-101.973333-57.557333c-124.032-33.237333-243.157333 37.077333-276.992 163.413333-1.834667 6.826667-2.816 14.506667-4.437333 33.749334-6.570667 79.786667-25.344 139.306667-76.8 199.68 96.426667 37.888 210.688 64.597333 297.557333 64.597333a234.88 234.88 0 0 0 226.56-174.037333 234.538667 234.538667 0 0 0-57.856-223.786667z m-92.501334-147.712l210.730667-163.925333a42.666667 42.666667 0 0 1 56.32 3.541333l127.786667 127.744a42.666667 42.666667 0 0 1 3.498666 56.32l-163.84 210.730667a320.213333 320.213333 0 0 1-310.741333 396.458666C341.333333 895.957333 149.333333 831.872 42.666667 767.872c169.813333-128 130.005333-205.226667 149.333333-277.333333 45.141333-168.533333 206.592-267.008 374.997333-225.450667zM712.533333 345.258667c2.816 2.688 5.546667 5.461333 8.277334 8.234666L769.28 401.92l105.6-135.765333-74.496-74.496-135.765333 105.6L712.533333 345.258667z"
+            fill="currentColor"
+          />
+        </svg>
         <span class="text-[13px] font-semibold text-white/85 tracking-wide leading-tight">MarkerOn</span>
       </div>
 
@@ -206,19 +219,73 @@ onUnmounted(() => {
           v-for="tab in tabs"
           :key="tab.id"
           class="relative flex items-center gap-2 px-3 py-[7px] rounded-lg text-[12.5px] border-none cursor-pointer transition-all duration-120 overflow-hidden"
-          :class="activeTab === tab.id
-            ? 'bg-white/10 text-white/90'
-            : 'bg-transparent text-white/40 hover:bg-white/5 hover:text-white/60'"
+          :class="
+            activeTab === tab.id
+              ? 'bg-white/10 text-white/90'
+              : 'bg-transparent text-white/40 hover:bg-white/5 hover:text-white/60'
+          "
           @click="activeTab = tab.id"
         >
           <div
             v-if="activeTab === tab.id"
             class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-3.5 bg-accent rounded-r-md"
           ></div>
-          <svg v-if="tab.id === 'general'" class="w-[14px] h-[14px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          <svg v-else-if="tab.id === 'shortcuts'" class="w-[14px] h-[14px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h.001M12 12h.001M16 12h.001M7 16h10"/></svg>
-          <svg v-else-if="tab.id === 'help'" class="w-[14px] h-[14px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          <svg v-else-if="tab.id === 'about'" class="w-[14px] h-[14px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <svg
+            v-if="tab.id === 'general'"
+            class="w-[14px] h-[14px] shrink-0 opacity-70"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+            />
+          </svg>
+          <svg
+            v-else-if="tab.id === 'shortcuts'"
+            class="w-[14px] h-[14px] shrink-0 opacity-70"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="2" y="4" width="20" height="16" rx="2" ry="2" />
+            <path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h.001M12 12h.001M16 12h.001M7 16h10" />
+          </svg>
+          <svg
+            v-else-if="tab.id === 'help'"
+            class="w-[14px] h-[14px] shrink-0 opacity-70"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          <svg
+            v-else-if="tab.id === 'about'"
+            class="w-[14px] h-[14px] shrink-0 opacity-70"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
           {{ tab.label }}
         </button>
       </nav>
@@ -232,12 +299,22 @@ onUnmounted(() => {
         <div class="flex items-center gap-2 mb-4">
           <h2 class="text-[14px] font-semibold text-white/75">{{ t('settings.shortcutsTitle') }}</h2>
           <div class="group relative flex items-center">
-            <svg class="w-[14px] h-[14px] text-white/30 cursor-help hover:text-white/60 transition-colors duration-200 outline-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg
+              class="w-[14px] h-[14px] text-white/30 cursor-help hover:text-white/60 transition-colors duration-200 outline-none"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <circle cx="12" cy="12" r="10"></circle>
               <path d="M12 16v-4"></path>
               <path d="M12 8h.01"></path>
             </svg>
-            <div class="absolute left-full top-1/2 -translate-y-1/2 ml-2 mt-4 w-[248px] p-2.5 bg-[#2a2a2c] border border-white/10 rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.4)] opacity-0 scale-95 invisible group-hover:opacity-100 group-hover:scale-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none origin-left">
+            <div
+              class="absolute left-full top-1/2 -translate-y-1/2 ml-2 mt-4 w-[248px] p-2.5 bg-[#2a2a2c] border border-white/10 rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.4)] opacity-0 scale-95 invisible group-hover:opacity-100 group-hover:scale-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none origin-left"
+            >
               <p class="text-[10.5px] text-white/75 leading-[1.6] m-0 text-left font-sans">
                 {{ t('settings.comboRequirement', { mod: modLabel }) }}
               </p>
@@ -251,9 +328,9 @@ onUnmounted(() => {
             :key="action"
             class="flex items-center justify-between px-4 py-3.5 rounded-lg border transition-all duration-200"
             :class="[
-              capturing === action 
-                ? 'border-accent/50 bg-accent/5 shadow-[0_0_0_1px_rgba(10,132,255,0.2)]' 
-                : 'border-white/5 bg-white/2 hover:bg-white/4 hover:border-white/10'
+              capturing === action
+                ? 'border-accent/50 bg-accent/5 shadow-[0_0_0_1px_rgba(10,132,255,0.2)]'
+                : 'border-white/5 bg-white/2 hover:bg-white/4 hover:border-white/10',
             ]"
           >
             <span class="text-[12.5px] text-white/70">{{ label }}</span>
@@ -271,7 +348,9 @@ onUnmounted(() => {
                 </button>
               </template>
               <template v-else>
-                <kbd class="inline-flex items-center px-2 py-[3px] rounded-[5px] bg-white/5 border border-white/10 text-[11px] text-white/50 font-mono tracking-wider shadow-sm">
+                <kbd
+                  class="inline-flex items-center px-2 py-[3px] rounded-[5px] bg-white/5 border border-white/10 text-[11px] text-white/50 font-mono tracking-wider shadow-sm"
+                >
                   {{ shortcuts[action] }}
                 </kbd>
                 <button
@@ -293,9 +372,9 @@ onUnmounted(() => {
               <div
                 v-if="message"
                 class="px-3 py-1.5 rounded-[6px] text-[11.5px]"
-                :class="message.type === 'success'
-                  ? 'bg-emerald-500/10 text-emerald-400/80'
-                  : 'bg-red-500/10 text-red-400/80'"
+                :class="
+                  message.type === 'success' ? 'bg-emerald-500/10 text-emerald-400/80' : 'bg-red-500/10 text-red-400/80'
+                "
               >
                 {{ message.text }}
               </div>
@@ -315,7 +394,9 @@ onUnmounted(() => {
         <h2 class="text-[14px] font-semibold text-white/75 mb-4">{{ t('settings.generalTitle') }}</h2>
 
         <div class="flex flex-col gap-2">
-          <div class="flex flex-col gap-3 px-4 py-3.5 rounded-lg border border-white/5 bg-white/2 hover:bg-white/4 hover:border-white/10 transition-all duration-200">
+          <div
+            class="flex flex-col gap-3 px-4 py-3.5 rounded-lg border border-white/5 bg-white/2 hover:bg-white/4 hover:border-white/10 transition-all duration-200"
+          >
             <div class="flex items-center justify-between">
               <span class="text-[12.5px] text-white/70">{{ t('settings.autoStart') }}</span>
               <button
@@ -329,13 +410,15 @@ onUnmounted(() => {
                 />
               </button>
             </div>
-            
+
             <p class="text-[10px] text-white/25 leading-relaxed m-0 border-t border-white/5 pt-2">
               {{ t('settings.autoStartDesc') }}
             </p>
           </div>
 
-          <div class="flex flex-col gap-3 px-4 py-3.5 rounded-lg border border-white/5 bg-white/2 hover:bg-white/4 hover:border-white/10 transition-all duration-200">
+          <div
+            class="flex flex-col gap-3 px-4 py-3.5 rounded-lg border border-white/5 bg-white/2 hover:bg-white/4 hover:border-white/10 transition-all duration-200"
+          >
             <div class="flex items-center justify-between">
               <span class="text-[12.5px] text-white/70">{{ t('settings.enableDragging') }}</span>
               <button
@@ -349,7 +432,7 @@ onUnmounted(() => {
                 />
               </button>
             </div>
-            
+
             <p class="text-[10px] text-white/25 leading-relaxed m-0 border-t border-white/5 pt-2">
               {{ t('settings.enableDraggingDesc') }}
             </p>
@@ -358,7 +441,6 @@ onUnmounted(() => {
       </div>
 
       <div v-else-if="activeTab === 'help'" class="flex-1 flex flex-col px-7 py-6 overflow-y-auto help-scroll">
-
         <h2 class="text-[14px] font-semibold text-white/75 mb-4">{{ t('help.basicUsage') }}</h2>
 
         <div class="flex flex-col gap-2">
@@ -376,11 +458,17 @@ onUnmounted(() => {
             <div class="help-rows">
               <div class="help-row">
                 <span class="help-label">{{ t('help.toggleAnnotation') }}</span>
-                <div class="help-keys"><kbd class="help-kbd">Ctrl+Shift+D</kbd><span class="help-sep">/</span><kbd class="help-kbd">⌘+⇧+D</kbd></div>
+                <div class="help-keys">
+                  <kbd class="help-kbd">Ctrl+Shift+D</kbd><span class="help-sep">/</span
+                  ><kbd class="help-kbd">⌘+⇧+D</kbd>
+                </div>
               </div>
               <div class="help-row">
                 <span class="help-label">{{ t('help.clearAll') }}</span>
-                <div class="help-keys"><kbd class="help-kbd">Ctrl+Shift+C</kbd><span class="help-sep">/</span><kbd class="help-kbd">⌘+⇧+C</kbd></div>
+                <div class="help-keys">
+                  <kbd class="help-kbd">Ctrl+Shift+C</kbd><span class="help-sep">/</span
+                  ><kbd class="help-kbd">⌘+⇧+C</kbd>
+                </div>
               </div>
             </div>
           </div>
@@ -390,35 +478,51 @@ onUnmounted(() => {
             <div class="help-card-header">{{ t('help.toolSwitch') }}</div>
             <div class="help-rows">
               <div class="help-row">
-                <span class="help-label"><kbd class="help-kbd">1</kbd><span class="ml-2.5">{{ t('tools.pen') }}</span></span>
+                <span class="help-label"
+                  ><kbd class="help-kbd">1</kbd><span class="ml-2.5">{{ t('tools.pen') }}</span></span
+                >
                 <span class="help-desc">{{ t('toolDesc.pen') }}</span>
               </div>
               <div class="help-row">
-                <span class="help-label"><kbd class="help-kbd">2</kbd><span class="ml-2.5">{{ t('tools.highlighter') }}</span></span>
+                <span class="help-label"
+                  ><kbd class="help-kbd">2</kbd><span class="ml-2.5">{{ t('tools.highlighter') }}</span></span
+                >
                 <span class="help-desc">{{ t('toolDesc.highlighter') }}</span>
               </div>
               <div class="help-row">
-                <span class="help-label"><kbd class="help-kbd">3</kbd><span class="ml-2.5">{{ t('tools.arrow') }}</span></span>
+                <span class="help-label"
+                  ><kbd class="help-kbd">3</kbd><span class="ml-2.5">{{ t('tools.arrow') }}</span></span
+                >
                 <span class="help-desc">{{ t('toolDesc.arrow') }}</span>
               </div>
               <div class="help-row">
-                <span class="help-label"><kbd class="help-kbd">4</kbd><span class="ml-2.5">{{ t('tools.rect') }}</span></span>
+                <span class="help-label"
+                  ><kbd class="help-kbd">4</kbd><span class="ml-2.5">{{ t('tools.rect') }}</span></span
+                >
                 <span class="help-desc">{{ t('toolDesc.rect') }}</span>
               </div>
               <div class="help-row">
-                <span class="help-label"><kbd class="help-kbd">5</kbd><span class="ml-2.5">{{ t('tools.ellipse') }}</span></span>
+                <span class="help-label"
+                  ><kbd class="help-kbd">5</kbd><span class="ml-2.5">{{ t('tools.ellipse') }}</span></span
+                >
                 <span class="help-desc">{{ t('toolDesc.ellipse') }}</span>
               </div>
               <div class="help-row">
-                <span class="help-label"><kbd class="help-kbd">6</kbd><span class="ml-2.5">{{ t('tools.line') }}</span></span>
+                <span class="help-label"
+                  ><kbd class="help-kbd">6</kbd><span class="ml-2.5">{{ t('tools.line') }}</span></span
+                >
                 <span class="help-desc">{{ t('toolDesc.line') }}</span>
               </div>
               <div class="help-row">
-                <span class="help-label"><kbd class="help-kbd">7</kbd><span class="ml-2.5">{{ t('tools.eraser') }}</span></span>
+                <span class="help-label"
+                  ><kbd class="help-kbd">7</kbd><span class="ml-2.5">{{ t('tools.eraser') }}</span></span
+                >
                 <span class="help-desc">{{ t('toolDesc.eraser') }}</span>
               </div>
               <div class="help-row">
-                <span class="help-label"><kbd class="help-kbd">T</kbd><span class="ml-2.5">{{ t('tools.text') }}</span></span>
+                <span class="help-label"
+                  ><kbd class="help-kbd">T</kbd><span class="ml-2.5">{{ t('tools.text') }}</span></span
+                >
                 <span class="help-desc">{{ t('toolDesc.text') }}</span>
               </div>
             </div>
@@ -430,27 +534,45 @@ onUnmounted(() => {
             <div class="help-rows">
               <div class="help-row">
                 <span class="help-label">{{ t('help.straightLine') }}</span>
-                <div class="help-keys"><kbd class="help-kbd">Alt</kbd> + {{ t('panel.drag') }}<span class="help-sep">/</span><kbd class="help-kbd">⌥</kbd> + {{ t('panel.drag') }}</div>
+                <div class="help-keys">
+                  <kbd class="help-kbd">Alt</kbd> + {{ t('panel.drag') }}<span class="help-sep">/</span
+                  ><kbd class="help-kbd">⌥</kbd> + {{ t('panel.drag') }}
+                </div>
               </div>
               <div class="help-row">
                 <span class="help-label">{{ t('tools.rect') }}</span>
-                <div class="help-keys"><kbd class="help-kbd">Ctrl</kbd> + {{ t('panel.drag') }}<span class="help-sep">/</span><kbd class="help-kbd">⌘</kbd> + {{ t('panel.drag') }}</div>
+                <div class="help-keys">
+                  <kbd class="help-kbd">Ctrl</kbd> + {{ t('panel.drag') }}<span class="help-sep">/</span
+                  ><kbd class="help-kbd">⌘</kbd> + {{ t('panel.drag') }}
+                </div>
               </div>
               <div class="help-row">
                 <span class="help-label">{{ t('help.square') }}</span>
-                <div class="help-keys"><kbd class="help-kbd">Ctrl+Alt</kbd> + {{ t('panel.drag') }}<span class="help-sep">/</span><kbd class="help-kbd">⌘+⌥</kbd> + {{ t('panel.drag') }}</div>
+                <div class="help-keys">
+                  <kbd class="help-kbd">Ctrl+Alt</kbd> + {{ t('panel.drag') }}<span class="help-sep">/</span
+                  ><kbd class="help-kbd">⌘+⌥</kbd> + {{ t('panel.drag') }}
+                </div>
               </div>
               <div class="help-row">
                 <span class="help-label">{{ t('tools.ellipse') }}</span>
-                <div class="help-keys"><kbd class="help-kbd">Shift</kbd> + {{ t('panel.drag') }}<span class="help-sep">/</span><kbd class="help-kbd">⇧</kbd> + {{ t('panel.drag') }}</div>
+                <div class="help-keys">
+                  <kbd class="help-kbd">Shift</kbd> + {{ t('panel.drag') }}<span class="help-sep">/</span
+                  ><kbd class="help-kbd">⇧</kbd> + {{ t('panel.drag') }}
+                </div>
               </div>
               <div class="help-row">
                 <span class="help-label">{{ t('help.circle') }}</span>
-                <div class="help-keys"><kbd class="help-kbd">Shift+Alt</kbd> + {{ t('panel.drag') }}<span class="help-sep">/</span><kbd class="help-kbd">⇧+⌥</kbd> + {{ t('panel.drag') }}</div>
+                <div class="help-keys">
+                  <kbd class="help-kbd">Shift+Alt</kbd> + {{ t('panel.drag') }}<span class="help-sep">/</span
+                  ><kbd class="help-kbd">⇧+⌥</kbd> + {{ t('panel.drag') }}
+                </div>
               </div>
               <div class="help-row">
                 <span class="help-label">{{ t('tools.arrow') }}</span>
-                <div class="help-keys"><kbd class="help-kbd">Ctrl+Shift</kbd> + {{ t('panel.drag') }}<span class="help-sep">/</span><kbd class="help-kbd">⌘+⇧</kbd> + {{ t('panel.drag') }}</div>
+                <div class="help-keys">
+                  <kbd class="help-kbd">Ctrl+Shift</kbd> + {{ t('panel.drag') }}<span class="help-sep">/</span
+                  ><kbd class="help-kbd">⌘+⇧</kbd> + {{ t('panel.drag') }}
+                </div>
               </div>
             </div>
           </div>
@@ -480,19 +602,29 @@ onUnmounted(() => {
               </div>
               <div class="help-row">
                 <span class="help-label">{{ t('help.copyScreen') }}</span>
-                <div class="help-keys"><kbd class="help-kbd">Ctrl+C</kbd><span class="help-sep">/</span><kbd class="help-kbd">⌘+C</kbd></div>
+                <div class="help-keys">
+                  <kbd class="help-kbd">Ctrl+C</kbd><span class="help-sep">/</span><kbd class="help-kbd">⌘+C</kbd>
+                </div>
               </div>
               <div class="help-row">
                 <span class="help-label">{{ t('help.undo') }}</span>
-                <div class="help-keys"><kbd class="help-kbd">Ctrl+Z</kbd><span class="help-sep">/</span><kbd class="help-kbd">⌘+Z</kbd></div>
+                <div class="help-keys">
+                  <kbd class="help-kbd">Ctrl+Z</kbd><span class="help-sep">/</span><kbd class="help-kbd">⌘+Z</kbd>
+                </div>
               </div>
               <div class="help-row">
                 <span class="help-label">{{ t('help.redo') }}</span>
-                <div class="help-keys"><kbd class="help-kbd">Ctrl+Shift+Z</kbd><span class="help-sep">/</span><kbd class="help-kbd">⌘+⇧+Z</kbd></div>
+                <div class="help-keys">
+                  <kbd class="help-kbd">Ctrl+Shift+Z</kbd><span class="help-sep">/</span
+                  ><kbd class="help-kbd">⌘+⇧+Z</kbd>
+                </div>
               </div>
               <div class="help-row">
                 <span class="help-label">{{ t('help.strokeWidth') }}</span>
-                <div class="help-keys"><kbd class="help-kbd">Ctrl</kbd> + Scroll<span class="help-sep">/</span><kbd class="help-kbd">⌘</kbd> + Scroll</div>
+                <div class="help-keys">
+                  <kbd class="help-kbd">Ctrl</kbd> + Scroll<span class="help-sep">/</span><kbd class="help-kbd">⌘</kbd>
+                  + Scroll
+                </div>
               </div>
               <div class="help-row">
                 <span class="help-label">{{ t('help.clearAllAnnotation') }}</span>
@@ -524,13 +656,19 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-
       </div>
 
       <div v-else-if="activeTab === 'about'" class="flex-1 flex flex-col items-center px-7 py-8 overflow-y-auto">
         <!-- Icon -->
-        <div class="w-16 h-16 rounded-2xl bg-linear-to-br from-accent/20 to-accent/5 flex items-center justify-center mb-4 shadow-lg shadow-accent/5 border border-accent/10">
-          <svg class="w-8 h-8 text-accent" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M659.498667 412.8l-6.101334-6.058667a233.6 233.6 0 0 0-101.973333-57.557333c-124.032-33.237333-243.157333 37.077333-276.992 163.413333-1.834667 6.826667-2.816 14.506667-4.437333 33.749334-6.570667 79.786667-25.344 139.306667-76.8 199.68 96.426667 37.888 210.688 64.597333 297.557333 64.597333a234.88 234.88 0 0 0 226.56-174.037333 234.538667 234.538667 0 0 0-57.856-223.786667z m-92.501334-147.712l210.730667-163.925333a42.666667 42.666667 0 0 1 56.32 3.541333l127.786667 127.744a42.666667 42.666667 0 0 1 3.498666 56.32l-163.84 210.730667a320.213333 320.213333 0 0 1-310.741333 396.458666C341.333333 895.957333 149.333333 831.872 42.666667 767.872c169.813333-128 130.005333-205.226667 149.333333-277.333333 45.141333-168.533333 206.592-267.008 374.997333-225.450667zM712.533333 345.258667c2.816 2.688 5.546667 5.461333 8.277334 8.234666L769.28 401.92l105.6-135.765333-74.496-74.496-135.765333 105.6L712.533333 345.258667z" fill="currentColor"/></svg>
+        <div
+          class="w-16 h-16 rounded-2xl bg-linear-to-br from-accent/20 to-accent/5 flex items-center justify-center mb-4 shadow-lg shadow-accent/5 border border-accent/10"
+        >
+          <svg class="w-8 h-8 text-accent" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M659.498667 412.8l-6.101334-6.058667a233.6 233.6 0 0 0-101.973333-57.557333c-124.032-33.237333-243.157333 37.077333-276.992 163.413333-1.834667 6.826667-2.816 14.506667-4.437333 33.749334-6.570667 79.786667-25.344 139.306667-76.8 199.68 96.426667 37.888 210.688 64.597333 297.557333 64.597333a234.88 234.88 0 0 0 226.56-174.037333 234.538667 234.538667 0 0 0-57.856-223.786667z m-92.501334-147.712l210.730667-163.925333a42.666667 42.666667 0 0 1 56.32 3.541333l127.786667 127.744a42.666667 42.666667 0 0 1 3.498666 56.32l-163.84 210.730667a320.213333 320.213333 0 0 1-310.741333 396.458666C341.333333 895.957333 149.333333 831.872 42.666667 767.872c169.813333-128 130.005333-205.226667 149.333333-277.333333 45.141333-168.533333 206.592-267.008 374.997333-225.450667zM712.533333 345.258667c2.816 2.688 5.546667 5.461333 8.277334 8.234666L769.28 401.92l105.6-135.765333-74.496-74.496-135.765333 105.6L712.533333 345.258667z"
+              fill="currentColor"
+            />
+          </svg>
         </div>
 
         <!-- Name & Version -->
@@ -540,11 +678,15 @@ onUnmounted(() => {
 
         <!-- Info Card -->
         <div class="w-full max-w-[340px] rounded-xl border border-white/5 bg-white/2 overflow-hidden">
-          <div class="flex items-center justify-between px-4 py-3 border-b border-white/5 hover:bg-white/3 transition-colors">
+          <div
+            class="flex items-center justify-between px-4 py-3 border-b border-white/5 hover:bg-white/3 transition-colors"
+          >
             <span class="text-[12px] text-white/45">{{ t('about.author') }}</span>
             <span class="text-[12px] text-white/65">ifer47</span>
           </div>
-          <div class="flex items-center justify-between px-4 py-3 border-b border-white/5 hover:bg-white/3 transition-colors">
+          <div
+            class="flex items-center justify-between px-4 py-3 border-b border-white/5 hover:bg-white/3 transition-colors"
+          >
             <span class="text-[12px] text-white/45">{{ t('about.license') }}</span>
             <span class="text-[12px] text-white/65">MIT License</span>
           </div>
@@ -555,7 +697,19 @@ onUnmounted(() => {
             <span class="text-[12px] text-white/45">GitHub</span>
             <span class="flex items-center gap-1.5 text-[12px] text-accent/70">
               ifer47/markeron
-              <svg class="w-3 h-3 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              <svg
+                class="w-3 h-3 opacity-50"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
             </span>
           </button>
           <button
@@ -563,14 +717,22 @@ onUnmounted(() => {
             @click="openUrl('https://github.com/ifer47/markeron/issues')"
           >
             <span class="text-[12px] text-white/45">{{ t('about.feedback') }}</span>
-            <svg class="w-3.5 h-3.5 text-white/25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg
+              class="w-3.5 h-3.5 text-white/25"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </button>
         </div>
 
         <!-- Footer -->
-        <p class="mt-auto pt-6 text-[10.5px] text-white/20 tracking-wide">
-          &copy; 2026 ifer47 &middot; Open Source
-        </p>
+        <p class="mt-auto pt-6 text-[10.5px] text-white/20 tracking-wide">&copy; 2026 ifer47 &middot; Open Source</p>
       </div>
     </div>
   </div>
@@ -579,36 +741,51 @@ onUnmounted(() => {
 <style scoped>
 .msg-enter-active,
 .msg-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
+
 .msg-enter-from,
 .msg-leave-to {
   opacity: 0;
   transform: translateY(-4px);
 }
 
-.help-scroll::-webkit-scrollbar { width: 4px; }
-.help-scroll::-webkit-scrollbar-track { background: transparent; }
-.help-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
+.help-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.help-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.help-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
 
 .help-card {
   border-radius: 8px;
-  border: 1px solid rgba(255,255,255,.05);
-  background: rgba(255,255,255,.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
   overflow: hidden;
-  transition: background 0.2s, border-color 0.2s;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
 }
+
 .help-card:hover {
-  background: rgba(255,255,255,.03);
-  border-color: rgba(255,255,255,.08);
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .help-card-header {
   padding: 7px 14px;
   font-size: 11px;
   font-weight: 500;
-  color: rgba(255,255,255,.30);
-  border-bottom: 1px solid rgba(255,255,255,.04);
+  color: rgba(255, 255, 255, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   letter-spacing: 0.03em;
 }
 
@@ -622,11 +799,14 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 6px 14px;
-  border-bottom: 1px solid rgba(255,255,255,.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   min-height: 30px;
   gap: 12px;
 }
-.help-row:last-child { border-bottom: none; }
+
+.help-row:last-child {
+  border-bottom: none;
+}
 
 .help-row-block {
   flex-direction: column;
@@ -637,7 +817,7 @@ onUnmounted(() => {
 
 .help-label {
   font-size: 12.5px;
-  color: rgba(255,255,255,.70);
+  color: rgba(255, 255, 255, 0.7);
   display: flex;
   align-items: center;
   white-space: nowrap;
@@ -646,9 +826,10 @@ onUnmounted(() => {
 
 .help-desc {
   font-size: 10px;
-  color: rgba(255,255,255,.25);
+  color: rgba(255, 255, 255, 0.25);
   text-align: right;
 }
+
 .help-row-block .help-desc {
   text-align: left;
 }
@@ -658,13 +839,13 @@ onUnmounted(() => {
   align-items: center;
   gap: 4px;
   font-size: 10px;
-  color: rgba(255,255,255,.25);
+  color: rgba(255, 255, 255, 0.25);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .help-sep {
-  color: rgba(255,255,255,.15);
+  color: rgba(255, 255, 255, 0.15);
   margin: 0 2px;
   font-size: 10px;
 }
@@ -673,11 +854,11 @@ onUnmounted(() => {
   display: inline-block;
   padding: 1px 6px;
   border-radius: 4px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.1);
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
   font-size: 10.5px;
-  color: rgba(255,255,255,.55);
+  color: rgba(255, 255, 255, 0.55);
   line-height: 1.5;
   white-space: nowrap;
 }

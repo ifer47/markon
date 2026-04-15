@@ -1,19 +1,21 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --color-accent: rgb(10, 132, 255);
-  --font-text: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  --font-text: 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
 }
 
 @layer base {
-  html, body {
+  html,
+  body {
     width: 100%;
     height: 100%;
     overflow: hidden;
     background: transparent !important;
   }
 
-  html.settings, html.settings body {
+  html.settings,
+  html.settings body {
     background: #1e1e20 !important;
   }
 

@@ -99,4 +99,3 @@ defineExpose({ commitText, getText, getFontSize })
     @wheel="onWheel"
   />
 </template>
-
