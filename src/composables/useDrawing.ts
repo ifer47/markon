@@ -374,6 +374,14 @@ export function useDrawing(
     ctx.setTransform(1, 0, 0, 1, 0, 0)
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     if (cacheCanvas) ctx.drawImage(cacheCanvas, 0, 0)
+
+    const action = currentAction.value
+    if (action && action.tool === 'eraser' && action.points.length > 0) {
+      const dpr = getEffectiveDpr()
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      drawActionDirect(ctx, action, pathCache)
+    }
+
     ctx.restore()
     historyDirty = false
   }
@@ -400,7 +408,7 @@ export function useDrawing(
       return
     }
 
-    if (action) {
+    if (action && action.tool !== 'eraser') {
       if (action.tool === 'pen' && strokeCanvas && action.points.length > 3) {
         ctx.drawImage(strokeCanvas, 0, 0)
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
@@ -508,6 +516,7 @@ export function useDrawing(
       points: [point],
     }
     previewDirty = true
+    if (currentTool.value === 'eraser') historyDirty = true
     scheduleRender()
   }
 
@@ -573,6 +582,7 @@ export function useDrawing(
     }
 
     previewDirty = true
+    if (action.tool === 'eraser') historyDirty = true
     scheduleRender()
   }
 
