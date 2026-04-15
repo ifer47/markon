@@ -35,14 +35,28 @@
     "format": "prettier --write \"src/**/*.{ts,vue,css}\" \"*.{ts,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,vue,css}\" \"*.{ts,json}\"",
     "lint": "oxlint",
-    "lint:fix": "oxlint --fix"
+    "lint:fix": "oxlint --fix",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,vue,css}": [
+      "prettier --write",
+      "oxlint"
+    ],
+    "*.json": [
+      "prettier --write"
+    ]
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
     "@lucide/vue": "^1.0.0",
     "@tailwindcss/vite": "^4.2.2",
     "@tauri-apps/api": "^2",
     "@tauri-apps/cli": "^2",
     "@vitejs/plugin-vue": "^6.0.6",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "oxlint": "^1.60.0",
     "prettier": "^3.8.3",
     "tailwindcss": "^4.2.2",
