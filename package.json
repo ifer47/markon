@@ -30,19 +30,22 @@
     "build:msix": "bash scripts/build-msix.sh",
     "build:all": "tauri build && bash scripts/build-msix.sh",
     "build:fe": "vue-tsc --noEmit && vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix"
   },
   "devDependencies": {
+    "@lucide/vue": "^1.0.0",
     "@tailwindcss/vite": "^4.2.2",
     "@tauri-apps/api": "^2",
     "@tauri-apps/cli": "^2",
-    "@lucide/vue": "^1.0.0",
     "@vitejs/plugin-vue": "^6.0.6",
     "oxlint": "^1.60.0",
     "tailwindcss": "^4.2.2",
     "typescript": "^6.0.2",
     "vite": "^8.0.0",
+    "vitest": "^3.2.4",
     "vue": "^3.5.30",
     "vue-tsc": "^3.2.6"
   },
