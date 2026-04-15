@@ -29,17 +29,20 @@
     "build:mac-arm64": "tauri build --target aarch64-apple-darwin",
     "build:msix": "bash scripts/build-msix.sh",
     "build:all": "tauri build && bash scripts/build-msix.sh",
-    "build:fe": "vue-tsc --noEmit && vite build"
+    "build:fe": "vue-tsc --noEmit && vite build",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.2.1",
+    "@tailwindcss/vite": "^4.2.2",
     "@tauri-apps/api": "^2",
     "@tauri-apps/cli": "^2",
-    "@vitejs/plugin-vue": "^6.0.5",
-    "lucide-vue-next": "^0.577.0",
-    "tailwindcss": "^4.2.1",
-    "typescript": "^5.9.3",
-    "vite": "^6.4.1",
+    "@lucide/vue": "^1.0.0",
+    "@vitejs/plugin-vue": "^6.0.6",
+    "oxlint": "^1.60.0",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.0",
     "vue": "^3.5.30",
     "vue-tsc": "^3.2.6"
   },

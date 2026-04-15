@@ -17,10 +17,15 @@ export default defineConfig({
     target: 'esnext',
     modulePreload: { polyfill: false },
     reportCompressedSize: false,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          vue: ['vue'],
+        codeSplitting: {
+          groups: [
+            {
+              name: 'vue',
+              test: /[\\/]node_modules[\\/]vue[\\/]/,
+            },
+          ],
         },
       },
     },

@@ -10,7 +10,7 @@ const modKeyLabel = computed(() => (isMacOS() ? 'Command' : 'Ctrl'))
 import {
   Pen, Highlighter, ArrowUpRight, Square, Circle,
   Minus, Eraser, Type,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const props = defineProps<{
   currentTool: Tool

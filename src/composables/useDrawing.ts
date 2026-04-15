@@ -719,11 +719,6 @@ export function useDrawing(
     flushRender()
   }
 
-  function requestRedraw() {
-    previewDirty = true
-    scheduleRender()
-  }
-
   function beginDrag(action: DrawAction) {
     previewAction.value = action
     invalidateCache()

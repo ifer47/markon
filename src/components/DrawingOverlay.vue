@@ -9,7 +9,7 @@ import TextBox from './TextBox.vue'
 import {
   Pen, Highlighter, ArrowUpRight, Square, Circle,
   Minus, Eraser, Type,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { isMacOS } from '../utils/platform'
 import { useI18n } from '../i18n'
 
