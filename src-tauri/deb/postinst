@@ -25,6 +25,7 @@ fi
 if [ "${XDG_SESSION_TYPE:-}" = "wayland" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
   export GDK_BACKEND=x11
   export WINIT_UNIX_BACKEND=x11
+  export XDG_SESSION_TYPE=x11
   unset WAYLAND_DISPLAY
   unset WAYLAND_SOCKET
 fi
