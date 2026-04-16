@@ -52,7 +52,8 @@
         "depends": [
           "libwebkit2gtk-4.1-0",
           "libgtk-3-0",
-          "libayatana-appindicator3-1"
+          "libayatana-appindicator3-1",
+          "libpipewire-0.3-0"
         ],
         "section": "graphics"
       },
