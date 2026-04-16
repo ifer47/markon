@@ -50,7 +50,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "MarkerOn ${{ github.ref_name }}"
-          releaseBody: "See the assets below to download and install."
+          releaseBody: ""
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
@@ -68,3 +68,61 @@ jobs:
         run: |
           MSIX=$(ls src-tauri/target/release/bundle/msix/*.msix)
           gh release upload "${{ github.ref_name }}" "$MSIX" --clobber
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog and publish release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.ref_name }}"
+          PREV_TAG=$(git tag --sort=-v:refname | grep -A1 "^${TAG}$" | tail -1)
+
+          if [ "$PREV_TAG" = "$TAG" ] || [ -z "$PREV_TAG" ]; then
+            PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+
+          echo "Generating changelog from $PREV_TAG to $TAG"
+
+          FEATURES=""
+          FIXES=""
+          OTHERS=""
+
+          while IFS= read -r line; do
+            MSG=$(echo "$line" | sed 's/^[^ ]* //')
+            if echo "$MSG" | grep -qE '^feat(\(.+\))?:'; then
+              FEATURES="${FEATURES}- ${MSG#*: }"$'\n'
+            elif echo "$MSG" | grep -qE '^fix(\(.+\))?:'; then
+              FIXES="${FIXES}- ${MSG#*: }"$'\n'
+            elif echo "$MSG" | grep -qE '^(chore|docs|style|refactor|perf|test|ci)(\(.+\))?:'; then
+              OTHERS="${OTHERS}- ${MSG#*: }"$'\n'
+            fi
+          done < <(git log --oneline "${PREV_TAG}..${TAG}" --no-merges)
+
+          BODY=""
+          if [ -n "$FEATURES" ]; then
+            BODY="${BODY}## ✨ New Features"$'\n'"${FEATURES}"$'\n'
+          fi
+          if [ -n "$FIXES" ]; then
+            BODY="${BODY}## 🐛 Bug Fixes"$'\n'"${FIXES}"$'\n'
+          fi
+          if [ -n "$OTHERS" ]; then
+            BODY="${BODY}## 🔧 Other Changes"$'\n'"${OTHERS}"$'\n'
+          fi
+
+          BODY="${BODY}## 📦 Downloads"$'\n'
+          BODY="${BODY}| Platform | File |"$'\n'
+          BODY="${BODY}|----------|------|"$'\n'
+          BODY="${BODY}| Windows | \`.exe\` (NSIS installer) / \`.msi\` / \`.msix\` |"$'\n'
+          BODY="${BODY}| macOS (Apple Silicon) | \`.dmg\` |"$'\n'
+          BODY="${BODY}| Linux | \`.deb\` / \`.AppImage\` |"$'\n'
+
+          gh release edit "$TAG" --notes "$BODY" --draft=false
