@@ -56,6 +56,8 @@
           "libpipewire-0.3-0",
           "libgbm1"
         ],
+        "postInstallScript": "./deb/postinst",
+        "postRemoveScript": "./deb/postrm",
         "section": "graphics"
       },
       "appimage": {

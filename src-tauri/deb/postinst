@@ -1,0 +1,35 @@
+#!/bin/sh
+set -e
+
+APP_BIN="/usr/bin/markeron"
+REAL_BIN="/usr/bin/markeron-bin"
+WRAPPER_MARKER="markeron-wayland-wrapper"
+
+if [ -x "$APP_BIN" ]; then
+  if ! grep -q "$WRAPPER_MARKER" "$APP_BIN" 2>/dev/null; then
+    mv -f "$APP_BIN" "$REAL_BIN"
+  fi
+fi
+
+cat > "$APP_BIN" <<'EOF'
+#!/bin/sh
+# markeron-wayland-wrapper
+
+REAL_BIN="/usr/bin/markeron-bin"
+
+if [ ! -x "$REAL_BIN" ]; then
+  echo "MarkerOn binary not found: $REAL_BIN" >&2
+  exit 1
+fi
+
+if [ "${XDG_SESSION_TYPE:-}" = "wayland" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
+  export GDK_BACKEND=x11
+  export WINIT_UNIX_BACKEND=x11
+  unset WAYLAND_DISPLAY
+  unset WAYLAND_SOCKET
+fi
+
+exec "$REAL_BIN" "$@"
+EOF
+
+chmod 755 "$APP_BIN"
