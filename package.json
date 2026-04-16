@@ -21,6 +21,11 @@
     "vue"
   ],
   "type": "module",
+  "config": {
+    "commitizen": {
+      "path": "node_modules/cz-git"
+    }
+  },
   "scripts": {
     "tauri": "tauri",
     "dev": "tauri dev",
@@ -36,7 +41,8 @@
     "format:check": "prettier --check \"src/**/*.{ts,vue,css}\" \"*.{ts,json}\"",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
-    "prepare": "husky"
+    "prepare": "husky",
+    "commit": "czg"
   },
   "lint-staged": {
     "*.{ts,vue,css}": [
@@ -55,6 +61,8 @@
     "@tauri-apps/api": "^2",
     "@tauri-apps/cli": "^2",
     "@vitejs/plugin-vue": "^6.0.6",
+    "cz-git": "^1.12.0",
+    "czg": "^1.12.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "oxlint": "^1.60.0",
