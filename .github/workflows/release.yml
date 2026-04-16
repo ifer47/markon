@@ -16,7 +16,7 @@ jobs:
             args: ""
           - platform: macos-latest
             args: "--target aarch64-apple-darwin"
-          - platform: ubuntu-22.04
+          - platform: ubuntu-24.04
             args: ""
 
     runs-on: ${{ matrix.platform }}
@@ -33,7 +33,7 @@ jobs:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || '' }}
 
       - name: Install Linux dependencies
-        if: matrix.platform == 'ubuntu-22.04'
+        if: matrix.platform == 'ubuntu-24.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file \
