@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, shallowRef, onMounted, onUnmounted, nextTick, computed, type Component } from 'vue'
+import { ref, shallowRef, onMounted, onUnmounted, nextTick, computed, watch, type Component } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import { useDrawing, type Tool, type DrawAction } from '../composables/useDrawing'
@@ -365,6 +365,7 @@ function onPointerDown(e: PointerEvent) {
 function onPointerMove(e: PointerEvent) {
   lastPointerX = e.clientX
   lastPointerY = e.clientY
+  updateCursorEl(e.clientX, e.clientY)
 
   if (isDragging) {
     updateDragOffset(e.clientX - dragStartX, e.clientY - dragStartY)
@@ -515,48 +516,42 @@ function onKeyDown(e: KeyboardEvent) {
   }
 }
 
-const cursorSvgCache = new Map<string, string>()
+// Custom cursor element ref — position updated directly in pointermove for performance
+const cursorEl = ref<HTMLDivElement | null>(null)
 
-const cursorStyle = computed(() => {
+function getCursorHotspot(): { x: number; y: number } {
+  const tool = currentTool.value
+  // SVG 的 viewBox 是 0 0 1024 1024。笔尖大约在 (388, 846) 的位置
+  // 映射到 32x32 尺寸：x = 388/1024*32 ≈ 12， y = 846/1024*32 ≈ 26
+  if (tool === 'pen') return { x: 12, y: 26 }
+  if (tool === 'highlighter') return { x: 5, y: 27 } // 映射到 1024x1024 的笔尖位置(约 150, 850)
+  if (tool === 'eraser') return { x: 16, y: 16 }
+  return { x: 14, y: 14 }
+}
+
+function updateCursorEl(x: number, y: number) {
+  if (!cursorEl.value) return
+  const { x: hx, y: hy } = getCursorHotspot()
+  cursorEl.value.style.transform = `translate(${x - hx}px, ${y - hy}px)`
+}
+
+// CSS cursor for the canvas: 'none' when our SVG overlay handles it
+const canvasCursor = computed(() => {
   if (enableDragging.value && (isMoving.value || (hoveredActionInfo.value && !isDrawing.value))) return 'move'
   if (currentTool.value === 'text') return 'text'
   if (showQuickColors.value || showSettings.value) return 'default'
+  return 'none'
+})
 
-  const c = currentColor.value
-  const isEraser = currentTool.value === 'eraser'
-  const key = isEraser ? 'eraser' : c
+const showCustomCursor = computed(() => active.value && canvasCursor.value === 'none' && !textBoxPos.value)
 
-  const cached = cursorSvgCache.get(key)
-  if (cached) return cached
-
-  let result: string
-  if (isEraser) {
-    const svg =
-      `<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'>` +
-      `<circle cx='16' cy='16' r='14' fill='none' stroke='white' stroke-width='1.5' stroke-dasharray='3,2'/>` +
-      `<line x1='16' y1='12' x2='16' y2='20' stroke='white' stroke-width='1'/>` +
-      `<line x1='12' y1='16' x2='20' y2='16' stroke='white' stroke-width='1'/>` +
-      `</svg>`
-    result = `url("data:image/svg+xml,${encodeURIComponent(svg)}") 16 16, crosshair`
-  } else {
-    const svg =
-      `<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28'>` +
-      `<line x1='14' y1='2' x2='14' y2='10' stroke='black' stroke-opacity='0.4' stroke-width='3' stroke-linecap='round'/>` +
-      `<line x1='14' y1='18' x2='14' y2='26' stroke='black' stroke-opacity='0.4' stroke-width='3' stroke-linecap='round'/>` +
-      `<line x1='2' y1='14' x2='10' y2='14' stroke='black' stroke-opacity='0.4' stroke-width='3' stroke-linecap='round'/>` +
-      `<line x1='18' y1='14' x2='26' y2='14' stroke='black' stroke-opacity='0.4' stroke-width='3' stroke-linecap='round'/>` +
-      `<line x1='14' y1='2' x2='14' y2='10' stroke='${c}' stroke-width='1.5' stroke-linecap='round'/>` +
-      `<line x1='14' y1='18' x2='14' y2='26' stroke='${c}' stroke-width='1.5' stroke-linecap='round'/>` +
-      `<line x1='2' y1='14' x2='10' y2='14' stroke='${c}' stroke-width='1.5' stroke-linecap='round'/>` +
-      `<line x1='18' y1='14' x2='26' y2='14' stroke='${c}' stroke-width='1.5' stroke-linecap='round'/>` +
-      `<circle cx='14' cy='14' r='2.5' fill='black' fill-opacity='0.3'/>` +
-      `<circle cx='14' cy='14' r='2' fill='${c}'/>` +
-      `</svg>`
-    result = `url("data:image/svg+xml,${encodeURIComponent(svg)}") 14 14, crosshair`
-  }
-
-  cursorSvgCache.set(key, result)
-  return result
+// 修复静止时按快捷键切换工具或颜色导致的光标偏心问题
+watch([currentTool, currentColor], () => {
+  nextTick(() => {
+    if (active.value && showCustomCursor.value) {
+      updateCursorEl(lastPointerX, lastPointerY)
+    }
+  })
 })
 
 const quickColorsPanelStyle = computed(() => {
@@ -709,7 +704,7 @@ function exitDrawing() {
       ref="previewCanvasRef"
       class="absolute top-0 left-0 w-full h-full touch-none"
       style="contain: strict"
-      :style="{ cursor: cursorStyle }"
+      :style="{ cursor: canvasCursor }"
       @pointerdown="onPointerDown"
       @dblclick="onDoubleClick"
       @pointermove="onPointerMove"
@@ -718,6 +713,154 @@ function exitDrawing() {
       @contextmenu.prevent="onContextMenu"
       @wheel="onWheel"
     />
+
+    <!-- Custom cursor element: SVG rendered in DOM, positioned via transform -->
+    <div
+      v-show="showCustomCursor"
+      ref="cursorEl"
+      class="fixed top-0 left-0 pointer-events-none select-none drop-shadow-md"
+      style="z-index: 100010; will-change: transform"
+    >
+      <!-- 画笔: 使用用户提供的自定义 SVG 图标 -->
+      <svg
+        v-if="currentTool === 'pen'"
+        width="32"
+        height="32"
+        viewBox="0 0 1024 1024"
+        xmlns="http://www.w3.org/2000/svg"
+        style="display: block; overflow: visible; filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3))"
+      >
+        <g transform="rotate(15 388 846)">
+          <path d="M482.9 279.5L357.6 694.1l45.3 152.5 121.9-102L650 330z" fill="#FFDCB3"></path>
+          <path d="M490.435 254.311l167.144 50.477L532.37 719.395l-167.145-50.477z" fill="#FECD44"></path>
+          <path d="M388.3 797.1l14.6 49.5 39.6-33.1z" fill="#AEABA8"></path>
+          <path d="M402.9 846.6l66.2-118.8 23.9-37.4 31.8 54.2z" fill="#CC9D71"></path>
+          <!-- 笔尖：绑定 currentColor，让它显示当前绘制的颜色 -->
+          <path d="M424.4 808.1l-21.5 38.5 39.6-33.1z" :fill="currentColor"></path>
+          <path d="M413.4 710.9l-10.5 135.7 66.2-118.8 0.6-53.3-38.6 5.2z" fill="#F0BF92"></path>
+          <!-- 笔身蓝色条纹：原本是蓝色，我们也把它改成动态颜色以增强辨识度 -->
+          <path
+            d="M413.4 710.9s-9-15.2-24.4-19.9c-15.4-4.7-31.3 3.1-31.3 3.1l125.2-414.6 55.7 16.8-125.2 414.6z"
+            :fill="currentColor"
+            opacity="0.6"
+          ></path>
+          <path
+            d="M469.1 727.8s-8.5-15.1-24.4-19.9c-15.9-4.8-31.3 3.1-31.3 3.1l125.2-414.6 55.7 16.8-125.2 414.6z"
+            :fill="currentColor"
+            opacity="0.8"
+          ></path>
+          <path
+            d="M524.8 744.6s-9.9-15.5-24.4-19.9-31.3 3.1-31.3 3.1l125.2-414.6L650 330 524.8 744.6z"
+            :fill="currentColor"
+          ></path>
+          <path d="M406.3 802.6l-3.4 44 21.5-38.5z" fill="#63585B"></path>
+          <!-- 笔帽：绑定 currentColor，改变颜色时跟随变化 -->
+          <path
+            d="M650 330l-167.1-50.5 12.1-40c13.9-46.2 62.7-72.3 108.8-58.3 46.2 13.9 72.3 62.6 58.3 108.8L650 330z"
+            :fill="currentColor"
+          ></path>
+          <!-- 笔帽和笔身之间的分割线：默认白色，如果是白色画笔则变黑，同时增加 1px 厚度 -->
+          <g
+            :fill="currentColor.toUpperCase() === '#FFFFFF' ? '#333333' : '#FFFFFF'"
+            :stroke="currentColor.toUpperCase() === '#FFFFFF' ? '#333333' : '#FFFFFF'"
+            stroke-width="32"
+            stroke-linejoin="round"
+          >
+            <path d="M481.713 251.694l184.663 55.767-7.603 25.177-184.663-55.767z"></path>
+            <path d="M474.075 276.876l7.604-25.177 61.554 18.589-7.603 25.177z"></path>
+            <path d="M535.656 295.425l7.603-25.177 61.554 18.59-7.603 25.176z"></path>
+          </g>
+          <path
+            d="M637.3 227.1c7.8 11.9 10.2 24.1 12.2 22.8s2.9-15.7-5-27.6c-7.8-11.9-21.3-16.8-23.3-15.5-1.9 1.3 8.3 8.4 16.1 20.3z"
+            fill="#FFFFFF"
+          ></path>
+          <path d="M533.7 312.5l4.9-16.2-55.7-16.8-7.4 24.2z" fill="#7898E3"></path>
+          <path d="M591.8 321.2l2.5-8.1-55.7-16.8-4.9 16.2z" fill="#3463D9"></path>
+          <path d="M650 330l-55.7-16.9-2.5 8.1z" fill="#1A46AB"></path>
+        </g>
+      </svg>
+
+      <!-- 荧光笔: 使用用户提供的自定义 SVG 图标 -->
+      <svg
+        v-else-if="currentTool === 'highlighter'"
+        width="32"
+        height="32"
+        viewBox="0 0 1024 1024"
+        xmlns="http://www.w3.org/2000/svg"
+        style="display: block; overflow: visible; filter: drop-shadow(1px 2px 3px rgba(0, 0, 0, 0.3))"
+      >
+        <path
+          d="M312.32 829.013333a4.266667 4.266667 0 0 0 4.778667-0.853333l40.106666-40.106667a4.266667 4.266667 0 0 0 0-6.016l-114.602666-114.645333a4.266667 4.266667 0 0 0-6.016 0l-83.2 83.114667a4.266667 4.266667 0 0 0 1.28 6.912l157.653333 71.68v-0.042667z m220.288-382.208a32 32 0 0 0 45.226667 45.226667l162.474666-162.432a32 32 0 0 0-45.226666-45.269333l-162.474667 162.474666z"
+          :fill="currentColor"
+        ></path>
+        <path
+          d="M384.426667 748.8a40.533333 40.533333 0 0 0 57.301333 0l77.312-77.269333a10.666667 10.666667 0 0 1 3.114667-2.133334l97.450666-44.714666c8.021333-3.712 15.36-8.789333 21.674667-15.061334l231.893333-231.893333a74.666667 74.666667 0 0 0 0-105.6L752.512 151.466667a74.666667 74.666667 0 0 0-105.6 0L415.018667 383.36a74.666667 74.666667 0 0 0-15.061334 21.674667l-44.672 97.450666a10.666667 10.666667 0 0 1-2.133333 3.114667l-77.354667 77.312a40.533333 40.533333 0 0 0 0 57.301333l108.629334 108.629334v-0.042667z m89.386666-122.538667L413.013333 686.976l-75.434666-75.434667 60.714666-60.714666a74.666667 74.666667 0 0 0 15.061334-21.674667l44.672-97.450667a10.666667 10.666667 0 0 1 2.133333-3.114666l231.893333-231.850667a10.666667 10.666667 0 0 1 15.104 0l120.661334 120.661333a10.666667 10.666667 0 0 1 0 15.104l-231.850667 231.850667a10.666667 10.666667 0 0 1-3.114667 2.133333l-97.450666 44.714667a74.794667 74.794667 0 0 0-21.674667 15.061333z"
+          :fill="currentColor"
+          opacity="0.8"
+        ></path>
+      </svg>
+      <!-- 橡皮擦: 虚线圆 + 十字 -->
+      <svg
+        v-else-if="currentTool === 'eraser'"
+        width="32"
+        height="32"
+        xmlns="http://www.w3.org/2000/svg"
+        style="display: block"
+      >
+        <circle cx="16" cy="16" r="14" fill="none" stroke="white" stroke-width="1.5" stroke-dasharray="3 2" />
+        <line x1="16" y1="12" x2="16" y2="20" stroke="white" stroke-width="1" />
+        <line x1="12" y1="16" x2="20" y2="16" stroke="white" stroke-width="1" />
+      </svg>
+      <!-- 箭头/矩形/椭圆/直线: 彩色十字准星 -->
+      <svg v-else width="28" height="28" xmlns="http://www.w3.org/2000/svg" style="display: block">
+        <line
+          x1="14"
+          y1="2"
+          x2="14"
+          y2="10"
+          stroke="black"
+          stroke-opacity="0.4"
+          stroke-width="3"
+          stroke-linecap="round"
+        />
+        <line
+          x1="14"
+          y1="18"
+          x2="14"
+          y2="26"
+          stroke="black"
+          stroke-opacity="0.4"
+          stroke-width="3"
+          stroke-linecap="round"
+        />
+        <line
+          x1="2"
+          y1="14"
+          x2="10"
+          y2="14"
+          stroke="black"
+          stroke-opacity="0.4"
+          stroke-width="3"
+          stroke-linecap="round"
+        />
+        <line
+          x1="18"
+          y1="14"
+          x2="26"
+          y2="14"
+          stroke="black"
+          stroke-opacity="0.4"
+          stroke-width="3"
+          stroke-linecap="round"
+        />
+        <line x1="14" y1="2" x2="14" y2="10" :stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        <line x1="14" y1="18" x2="14" y2="26" :stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        <line x1="2" y1="14" x2="10" y2="14" :stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        <line x1="18" y1="14" x2="26" y2="14" :stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        <circle cx="14" cy="14" r="2.5" fill="black" fill-opacity="0.3" />
+        <circle cx="14" cy="14" r="2" :fill="currentColor" />
+      </svg>
+    </div>
 
     <TextBox
       v-if="active && textBoxPos"
